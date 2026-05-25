@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SIEM切换项目</title>
+  <style>
+    :root {
+      --green-dark: #1a6b3c;
+      --lime: #8dc63f;
+      --green-teal: #2d6a4f;
+      --grey: #555555;
+      --ink: #202724;
+      --muted: #69736f;
+      --line: #dfe7df;
+      --surface: #ffffff;
+      --page: #f5f7f3;
+      --soft-green: #edf6e8;
+      --soft-teal: #eef7f3;
+      --shadow: 0 18px 46px rgba(26, 107, 60, 0.10);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        linear-gradient(180deg, #f9fbf7 0%, var(--page) 34%, #f7f9f5 100%);
+      font-family: "Aptos", "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.65;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 36px 0 56px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+      gap: 22px;
+      align-items: stretch;
+      margin-bottom: 24px;
+    }
+
+    .hero-main,
+    .toc,
+    .card,
+    .metric,
+    .highlight,
+    .issue-card,
+    .version-card {
+      background: var(--surface);
+      border: 1px solid rgba(45, 106, 79, 0.13);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-main {
+      position: relative;
+      padding: 34px;
+      overflow: hidden;
+    }
+
+    .hero-main::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 7px;
+      background: linear-gradient(90deg, var(--green-dark), var(--lime), var(--green-teal));
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin: 8px 0 18px;
+      color: var(--green-teal);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 0 5px rgba(141, 198, 63, 0.16);
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    h1 {
+      max-width: 720px;
+      color: var(--green-dark);
+      font-size: clamp(34px, 5vw, 58px);
+      font-weight: 780;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      margin: 18px 0 0;
+      color: var(--grey);
+      font-size: 18px;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 34px;
+      padding: 5px 12px;
+      color: var(--green-dark);
+      background: var(--soft-green);
+      border: 1px solid rgba(141, 198, 63, 0.36);
+      border-radius: 999px;
+      font-size: 14px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .toc {
+      padding: 24px;
+    }
+
+    .toc-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      color: var(--green-dark);
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .toc-title span:last-child {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      background: var(--green-dark);
+      color: #fff;
+      display: inline-grid;
+      place-items: center;
+      font-size: 14px;
+    }
+
+    .toc nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .toc a {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 40px;
+      padding: 8px 10px;
+      color: var(--grey);
+      border-radius: 12px;
+      transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+    }
+
+    .toc a:hover {
+      color: var(--green-dark);
+      background: var(--soft-teal);
+      transform: translateX(2px);
+    }
+
+    .toc a span:first-child {
+      overflow-wrap: anywhere;
+    }
+
+    .toc a span:last-child {
+      color: var(--green-teal);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .section {
+      margin-top: 22px;
+      scroll-margin-top: 22px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 32px 0 14px;
+    }
+
+    .section-kicker {
+      color: var(--green-teal);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    h2 {
+      color: var(--green-dark);
+      font-size: clamp(24px, 3vw, 34px);
+      font-weight: 780;
+    }
+
+    h3 {
+      color: var(--green-teal);
+      font-size: 20px;
+      font-weight: 760;
+    }
+
+    .section-note {
+      margin: 8px 0 0;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+    }
+
+    .metric {
+      padding: 20px;
+      min-height: 132px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .metric-value {
+      margin-top: 14px;
+      color: var(--green-dark);
+      font-size: 38px;
+      font-weight: 820;
+      line-height: 1;
+    }
+
+    .metric-foot {
+      margin-top: 10px;
+      color: var(--green-teal);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .card {
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      padding: 13px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+      vertical-align: top;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    th {
+      color: var(--green-dark);
+      background: #f3f8ef;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    td:first-child,
+    th:first-child {
+      text-align: center;
+      white-space: nowrap;
+      width: 72px;
+    }
+
+    tbody tr:hover td {
+      background: #fbfdf8;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 2px 9px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .tag-high {
+      color: #7a221c;
+      background: #fff0ed;
+      border: 1px solid #ffd5cf;
+    }
+
+    .tag-medium {
+      color: #6b5315;
+      background: #fff8df;
+      border: 1px solid #f1df9a;
+    }
+
+    .period-card {
+      display: grid;
+      gap: 22px;
+    }
+
+    .timeline-band {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(150px, auto) 1fr minmax(150px, auto);
+      gap: 18px;
+      align-items: center;
+      padding: 22px;
+      color: var(--green-dark);
+      background: linear-gradient(90deg, #f1f8ed, #fff, #eef7f3);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      font-weight: 800;
+    }
+
+    .timeline-line {
+      position: relative;
+      height: 4px;
+      min-width: 100px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--green-dark), var(--lime), var(--green-teal));
+    }
+
+    .timeline-line::before,
+    .timeline-line::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--green-dark);
+      transform: translateY(-50%);
+    }
+
+    .timeline-line::before {
+      left: -2px;
+    }
+
+    .timeline-line::after {
+      right: -2px;
+      border-color: var(--green-teal);
+    }
+
+    .period-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .period-meta li {
+      padding: 14px 16px;
+      background: var(--soft-teal);
+      border: 1px solid rgba(45, 106, 79, 0.14);
+      border-radius: 14px;
+      color: var(--grey);
+    }
+
+    .period-meta strong {
+      color: var(--green-dark);
+    }
+
+    .journey-date {
+      display: block;
+      color: var(--green-dark);
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .journey-caption {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .release-timeline {
+      position: relative;
+      display: grid;
+      margin-top: 2px;
+    }
+
+    .release-timeline::before {
+      content: "";
+      position: absolute;
+      left: 9px;
+      top: 24px;
+      bottom: 24px;
+      width: 2px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, var(--green-dark), var(--lime), var(--green-teal));
+    }
+
+    .release-step {
+      position: relative;
+      display: grid;
+      grid-template-columns: 126px 88px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+      padding: 17px 0 17px 34px;
+      border-top: 1px solid var(--line);
+    }
+
+    .release-step:first-child {
+      border-top: 0;
+    }
+
+    .release-step::before {
+      content: "";
+      position: absolute;
+      left: 3px;
+      top: 24px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid var(--green-dark);
+      box-shadow: 0 0 0 5px rgba(141, 198, 63, 0.13);
+    }
+
+    .release-date {
+      color: var(--green-dark);
+      font-weight: 820;
+      white-space: nowrap;
+    }
+
+    .release-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 28px;
+      padding: 3px 10px;
+      color: var(--green-dark);
+      background: var(--soft-green);
+      border: 1px solid rgba(141, 198, 63, 0.36);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 820;
+      white-space: nowrap;
+    }
+
+    .release-title {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .release-desc {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .issue-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .issue-card {
+      padding: 22px;
+    }
+
+    .issue-list {
+      display: grid;
+      gap: 14px;
+      margin: 16px 0 0;
+    }
+
+    .issue-item {
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .issue-item:first-child {
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .issue-title {
+      color: var(--green-dark);
+      font-weight: 800;
+    }
+
+    .issue-desc {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .quote {
+      margin: 0 0 18px;
+      padding: 20px 22px;
+      color: var(--green-dark);
+      background: #f3f9ee;
+      border-left: 5px solid var(--lime);
+      border-radius: var(--radius);
+      font-size: 18px;
+      font-weight: 780;
+    }
+
+    .highlight {
+      padding: 22px;
+    }
+
+    .highlight ul,
+    .version-card ul {
+      margin: 14px 0 0;
+      padding-left: 20px;
+      color: var(--grey);
+    }
+
+    .highlight li,
+    .version-card li {
+      margin: 8px 0;
+    }
+
+    .version-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .version-card {
+      padding: 22px;
+      min-height: 100%;
+    }
+
+    .version-card h3 {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--green-dark);
+    }
+
+    .version-card h3::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 0 5px rgba(141, 198, 63, 0.14);
+      flex: 0 0 auto;
+    }
+
+    .version-meta {
+      margin-top: 8px;
+      color: var(--green-teal);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .footer {
+      margin-top: 36px;
+      color: var(--muted);
+      text-align: center;
+      font-size: 13px;
+    }
+
+    @media (max-width: 840px) {
+      .page {
+        width: min(100% - 28px, 1180px);
+        padding-top: 20px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-main,
+      .toc,
+      .card,
+      .metric,
+      .highlight,
+      .issue-card,
+      .version-card {
+        border-radius: var(--radius);
+      }
+
+      .hero-main {
+        padding: 28px 22px;
+      }
+
+      .section-head {
+        display: block;
+      }
+
+      .timeline-band {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .timeline-line {
+        width: 100%;
+      }
+
+      .release-step {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+
+      table {
+        min-width: 680px;
+      }
+    }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .page {
+        width: 100%;
+        padding: 0;
+      }
+
+      .hero,
+      .grid,
+      .issue-grid,
+      .version-grid {
+        break-inside: avoid;
+      }
+
+      .hero-main,
+      .toc,
+      .card,
+      .metric,
+      .highlight,
+      .issue-card,
+      .version-card {
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="hero" id="top">
+      <section class="hero-main" aria-labelledby="page-title">
+        <div class="eyebrow">MSSP-XSIEM 安全运营平台建设成果汇报</div>
+        <h1 id="page-title">SIEM切换项目</h1>
+        <p class="subtitle">围绕日志源接入、告警规则、AI 智能化、工单闭环与版本迭代，汇总 2025.09.24 至 2026.05.21 的项目建设成果。</p>
+        <div class="meta-row" aria-label="报告关键时间">
+          <span class="pill">周期：2025.09.24 — 2026.05.21</span>
+          <span class="pill">持续建设：8 个月</span>
+          <span class="pill">版本迭代：8 个版本</span>
+        </div>
+      </section>
+
+      <aside class="toc" aria-label="目录导航">
+        <div class="toc-title">
+          <span>目录导航</span>
+          <span>01</span>
+        </div>
+        <nav>
+          <a href="#overview"><span>总览</span><span>01</span></a>
+          <a href="#logs"><span>日志源接入概览</span><span>02</span></a>
+          <a href="#rules"><span>告警策略规则</span><span>03</span></a>
+          <a href="#period"><span>项目周期与版本迭代</span><span>04</span></a>
+          <a href="#highlights"><span>核心亮点</span><span>05</span></a>
+          <a href="#next-phase"><span>下一阶段</span><span>06</span></a>
+          <a href="#details"><span>版本迭代明细</span><span>07</span></a>
+        </nav>
+      </aside>
+    </header>
+
+    <section class="section" id="overview">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">OVERVIEW</div>
+          <h2>总览</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="metric">
+          <div class="metric-label">接入日志源</div>
+          <div class="metric-value">49</div>
+          <div class="metric-foot">覆盖主机、身份、Web、邮件等关键数据</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">告警策略规则</div>
+          <div class="metric-value">105</div>
+          <div class="metric-foot">形成高频风险检测规则体系</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">系统迭代版本</div>
+          <div class="metric-value">8</div>
+          <div class="metric-foot">从 V1.0 持续演进至 V2.3</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">持续建设</div>
+          <div class="metric-value">8</div>
+          <div class="metric-foot">个月连续交付与运营优化</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="logs">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">DATA SOURCE</div>
+          <h2>日志源接入概览</h2>
+          <p class="section-note">共接入 <strong>49 个</strong>日志源，以下为高频使用的 Top 10 日志源。</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>日志源名称</th>
+                <th>来源平台</th>
+                <th>数据类型</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td><strong>jumpserver</strong></td><td>JumpServer 堡垒机</td><td>操作审计</td></tr>
+              <tr><td>2</td><td><strong>ioa_edr</strong></td><td>iOA 终端检测响应</td><td>主机安全</td></tr>
+              <tr><td>3</td><td><strong>threatbook_tdp</strong></td><td>微步 TDP 威胁检测</td><td>威胁情报</td></tr>
+              <tr><td>4</td><td><strong>chaitin_cloudwalker</strong></td><td>长亭牧云主机安全</td><td>主机安全</td></tr>
+              <tr><td>5</td><td><strong>O365_Azure_Identify_Protection</strong></td><td>Microsoft Entra ID</td><td>身份安全</td></tr>
+              <tr><td>6</td><td><strong>nsfocus_waf_pdc</strong></td><td>NSFocus WAF</td><td>Web 安全</td></tr>
+              <tr><td>7</td><td><strong>Azure_AD_Audit</strong></td><td>Azure AD</td><td>身份审计</td></tr>
+              <tr><td>8</td><td><strong>O365_SharePoint</strong></td><td>Microsoft SharePoint</td><td>文件安全</td></tr>
+              <tr><td>9</td><td><strong>Microsoft Windows</strong></td><td>Windows Server</td><td>系统日志</td></tr>
+              <tr><td>10</td><td><strong>Microsoft O365 Defender</strong></td><td>Microsoft 365 Defender</td><td>邮件安全</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="rules">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">DETECTION RULES</div>
+          <h2>告警策略规则</h2>
+          <p class="section-note">共配置 <strong>105 条</strong>告警规则，以下为 Top 10 高频告警规则。</p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>排名</th>
+                <th>告警规则名称</th>
+                <th>关联日志源</th>
+                <th>风险级别</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td>Risky user detected at O365 Azure (HighRisk)</td><td>O365 Azure IDP</td><td><span class="tag tag-high">High</span></td></tr>
+              <tr><td>2</td><td>Internal High-Risk Attack on Server - ThreatBook TDP</td><td>threatbook_tdp</td><td><span class="tag tag-high">High</span></td></tr>
+              <tr><td>3</td><td>Suspicious Command Execution - cloudwalker</td><td>chaitin_cloudwalker</td><td><span class="tag tag-medium">Medium</span></td></tr>
+              <tr><td>4</td><td>Threat alert detection on Hostmachine - iOA EDR</td><td>ioa_edr</td><td><span class="tag tag-high">High</span></td></tr>
+              <tr><td>5</td><td>Suspicious/Malicious commands run on server - Jumpserver</td><td>jumpserver</td><td><span class="tag tag-medium">Medium</span></td></tr>
+              <tr><td>6</td><td>High frequency alert from Nsfocus_WAF-PDC</td><td>nsfocus_waf_pdc</td><td><span class="tag tag-medium">Medium</span></td></tr>
+              <tr><td>7</td><td>Suspicious remote login to server via RDP directly - Event ID 4624</td><td>Microsoft Windows</td><td><span class="tag tag-medium">Medium</span></td></tr>
+              <tr><td>8</td><td>Abnormal operation in Entra ID</td><td>Azure_AD_Audit</td><td><span class="tag tag-medium">Medium</span></td></tr>
+              <tr><td>9</td><td>Email messages containing malicious file removed after delivery - Microsoft365Defender</td><td>O365 Defender</td><td><span class="tag tag-high">High</span></td></tr>
+              <tr><td>10</td><td>Abnormal operation on file to delete - SharePoint</td><td>O365_SharePoint</td><td><span class="tag tag-medium">Medium</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="period">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">PROJECT PERIOD & RELEASES</div>
+          <h2>项目周期与版本迭代时间线</h2>
+        </div>
+      </div>
+      <div class="card period-card">
+        <div class="timeline-band" aria-label="项目周期时间轴">
+          <span>
+            <span class="journey-date">2025.09.24</span>
+            <span class="journey-caption">项目启动</span>
+          </span>
+          <span class="timeline-line" aria-hidden="true"></span>
+          <span>
+            <span class="journey-date">2026.05.21</span>
+            <span class="journey-caption">最新迭代 V2.3</span>
+          </span>
+        </div>
+        <ul class="period-meta">
+          <li><strong>启动时间：</strong>2025年9月24日</li>
+          <li><strong>最新迭代：</strong>2026年5月21日</li>
+          <li><strong>运营时长：</strong>8 个月</li>
+          <li><strong>版本迭代：</strong>8 个版本</li>
+        </ul>
+        <div class="release-timeline" aria-label="版本迭代时间线">
+          <div class="release-step">
+            <div class="release-date">2025.09.24</div>
+            <div class="release-badge">启动</div>
+            <div>
+              <div class="release-title">项目启动</div>
+              <div class="release-desc">完成项目启动，进入持续建设与平台适配阶段。</div>
+            </div>
+          </div>
+          <div class="release-step">
+            <div class="release-date">2025.12.17</div>
+            <div class="release-badge">V1.0 · 3项</div>
+            <div>
+              <div class="release-title">工单关联、表单、API 接口</div>
+              <div class="release-desc">建立工单关联、调查表单与开放接口基础能力。</div>
+            </div>
+          </div>
+          <div class="release-step">
+            <div class="release-date">2025.12.30</div>
+            <div class="release-badge">V1.1 · 1项</div>
+            <div>
+              <div class="release-title">AI 研判 + 告警聚合</div>
+              <div class="release-desc">引入 AI 研判能力，并联动 SOAR 支撑告警聚合。</div>
+            </div>
+          </div>
+          <div class="release-step">
+            <div class="release-date">2026.01.30</div>
+            <div class="release-badge">V1.2 · 6项</div>
+            <div>
+              <div class="release-title">导出 / 搜索 / 飞书通知 / DSL 查询</div>
+              <div class="release-desc">优化工单导出、搜索回跳、通知链接与告警类型查询体验。</div>
+            </div>
+          </div>
+          <div class="release-step">
+            <div class="release-date">2026.02.28</div>
+            <div class="release-badge">V1.3 · 3项</div>
+            <div>
+              <div class="release-title">邮件转工单、表单管理</div>
+              <div class="release-desc">支持邮件自动生成工单，完善表单字段管理与专家分析附件能力。</div>
+            </div>
+          </div>
+          <div class="release-step">
+            <div class="release-date">2026.03.27</div>
+            <div class="release-badge">V2.0 · 6项</div>
+            <div>
+              <div class="release-title">大屏 / 聚合 / 情报 / AI 飞书告警</div>
+              <div class="release-desc">扩展运营大屏、工单聚合、威胁情报接入与飞书告警 AI 分析。</div>
+            </div>
+          </div>
+          <div class="release-step">
+            <div class="release-date">2026.04.16</div>
+            <div class="release-badge">V2.1 · 2项</div>
+            <div>
+              <div class="release-title">XSIEM 2.0 + MCP 封装</div>
+              <div class="release-desc">完成 XSIEM 2.0 升级适配，并将工单查询能力封装为 MCP 服务。</div>
+            </div>
+          </div>
+          <div class="release-step">
+            <div class="release-date">2026.04.28</div>
+            <div class="release-badge">V2.2 · 3项</div>
+            <div>
+              <div class="release-title">AI Chat + 知识库 + 研判智能体</div>
+              <div class="release-desc">上线智能问答、外挂知识库与 AI 分析研判智能体。</div>
+            </div>
+          </div>
+          <div class="release-step">
+            <div class="release-date">2026.05.21</div>
+            <div class="release-badge">V2.3 · 7项</div>
+            <div>
+              <div class="release-title">腾讯情报 / 邮件 AI / 大屏账号管理</div>
+              <div class="release-desc">增强情报展示、邮件附件 AI 解析、接口文档与大屏管理能力。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="highlights">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">CORE VALUE</div>
+          <h2>核心亮点</h2>
+        </div>
+      </div>
+      <div class="card">
+        <blockquote class="quote">MSSP = XSIEM（看见）+ SOAR（行动）+ Ticketing（追踪），AI 与智能体深度融入真实运营链路。</blockquote>
+        <div class="grid">
+          <article class="highlight">
+            <h3>亮点一：AI 智能化全面渗透</h3>
+            <ul>
+              <li>AI Chat 智能问答（威胁情报 / 工单查询 / 知识库）</li>
+              <li>AI 分析研判智能体，自动辅助告警研判</li>
+              <li>工单查询封装为 MCP 服务，支持自然语言查询</li>
+              <li>飞书告警 AI 摘要 + 聚合抑制信息展示</li>
+              <li>邮件 .eml 附件 AI 解析分析</li>
+              <li>外挂知识库支持私有文档导入 / 解析 / 向量化</li>
+            </ul>
+          </article>
+          <article class="highlight">
+            <h3>亮点二：平台整合超越独立工具</h3>
+            <ul>
+              <li>XSIEM（检测）+ SOAR（编排）+ Ticketing（追踪）三合一</li>
+              <li>工单天然携带告警上下文、处置历史</li>
+              <li>告警自动收敛降噪 -> AI自动聚合 -> AI研判分析，减少人工处理</li>
+              <li>飞书机器人巡检保证工单实时更新</li>
+              <li>XSIEM 2.0 平台升级，V2.2 接口全面适配</li>
+              <li>49 个日志源 + 105 条告警规则覆盖全面</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="next-phase">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">NEXT PHASE</div>
+          <h2>下一阶段</h2>
+        </div>
+      </div>
+      <div class="grid">
+        <article class="highlight">
+          <h3>多智能体协作完成工单闭环</h3>
+          <ul>
+            <li>构建研判、处置、质检等智能体分工协作机制，围绕同一工单自动推进任务流转</li>
+            <li>串联告警识别、证据收集、处置建议、结论沉淀等节点，形成可追踪的闭环链路</li>
+            <li>在关键决策点保留人工确认，减少重复录入、跨系统搬运和人工跟进成本</li>
+          </ul>
+        </article>
+        <article class="highlight">
+          <h3>外部情报联动实时威胁监测</h3>
+          <ul>
+            <li>对接外部威胁情报源，持续更新 IP、域名、URL、文件哈希等 IOC 数据</li>
+            <li>将外部情报与日志源实时碰撞，识别外部攻击、失陷主机和异常访问线索</li>
+            <li>将命中结果自动回填至告警与工单，辅助研判优先级排序和处置路径推荐</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="details">
+      <div class="section-head">
+        <div>
+          <div class="section-kicker">RELEASE DETAILS</div>
+          <h2>版本迭代明细</h2>
+        </div>
+      </div>
+      <div class="version-grid">
+        <article class="version-card">
+          <h3>2025.12.17</h3>
+          <div class="version-meta">V1.0 · 3 项交付</div>
+          <ul>
+            <li><strong>工单 Link：</strong>支持多选工单建立一对一/一对多关联；详情页展示关联工单并可跳转；记录关联、解除、同步操作日志；联动 SOAR 展示 AI 研判分析；同状态告警合并聚合。</li>
+            <li><strong>工单附件表单：</strong>各事件类型匹配专属表单；不同工单类型预置带检查项的调查表单。</li>
+            <li><strong>工单 API 接口：</strong>开发工单创建、查询、修改、关闭开放接口；提供含参数、示例、错误码的完整 API 文档。</li>
+          </ul>
+        </article>
+
+        <article class="version-card">
+          <h3>2025.12.30</h3>
+          <div class="version-meta">V1.1 · 1 项交付</div>
+          <ul>
+            <li><strong>工单详情：</strong>联动 SOAR 实现 AI 研判、告警聚合；多租户适配告警类型下拉，同步告警字典。</li>
+          </ul>
+        </article>
+
+        <article class="version-card">
+          <h3>2026.01.30</h3>
+          <div class="version-meta">V1.2 · 6 项交付</div>
+          <ul>
+            <li><strong>工单批量导出：</strong>支持工单列表、详情页字段导出。</li>
+            <li><strong>工单双向关联：</strong>实现工单双向关联，关联范围限定本租户。</li>
+            <li><strong>工单搜索条件优化：</strong>详情页返回列表，保留原有搜索筛选条件。</li>
+            <li><strong>飞书通知优化：</strong>通知跳转链接替换为工单真实 URL。</li>
+            <li><strong>工单列表：</strong>新增告警类型展示，支持告警类型 DSL 查询。</li>
+            <li><strong>操作类优化：</strong>手动建单/专家分析设为非必填；告警名称改为工单名称，字符上限 200；新增复制粘贴快捷操作。</li>
+          </ul>
+        </article>
+
+        <article class="version-card">
+          <h3>2026.02.28</h3>
+          <div class="version-meta">V1.3 · 3 项交付</div>
+          <ul>
+            <li><strong>邮件转成工单：</strong>指定发件人邮件自动生成工单，邮件内容附带 AI 分析。</li>
+            <li><strong>表单管理：</strong>表单字段支持拖拽调整；支持多标签页打开工单；限制专家分析录入长度；导出内容英文转中文。</li>
+            <li><strong>专家分析：</strong>支持单次批量上传多个附件。</li>
+          </ul>
+        </article>
+
+        <article class="version-card">
+          <h3>2026.03.27</h3>
+          <div class="version-meta">V2.0 · 6 项交付</div>
+          <ul>
+            <li><strong>大屏功能：</strong>自定义大屏配置；同步工单数据，搭建运营类自定义大屏。</li>
+            <li><strong>工单详情：</strong>新增 AI 分析功能按钮。</li>
+            <li><strong>工单聚合：</strong>同源 IP、载荷的 TDP、WAF 外网攻击告警自动合并工单。</li>
+            <li><strong>情报接入：</strong>对接微步、VT 接口，判定外网 IP 并回填情报数据至工单。</li>
+            <li><strong>标签：</strong>抑制、关联工单列表增加标签展示。</li>
+            <li><strong>飞书告警：</strong>新增 AI 分析模块，展示聚合抑制相关信息。</li>
+          </ul>
+        </article>
+
+        <article class="version-card">
+          <h3>2026.04.16</h3>
+          <div class="version-meta">V2.1 · 2 项交付</div>
+          <ul>
+            <li><strong>工单查询 MCP：</strong>工单查询功能封装为 MCP 服务。</li>
+            <li><strong>XSIEM 2.0 升级：</strong>各子服务联调测试；系统版本间数据迁移；修复数据延迟、日志上传等异常；适配 V2.2 版本接口文档。</li>
+          </ul>
+        </article>
+
+        <article class="version-card">
+          <h3>2026.04.28</h3>
+          <div class="version-meta">V2.2 · 3 项交付</div>
+          <ul>
+            <li><strong>AI Chat：</strong>上线威胁情报、工单查询、知识库智能问答。</li>
+            <li><strong>外挂知识库：</strong>支持知识库文件上传，可在 AI 对话中调取。</li>
+            <li><strong>AI 分析研判智能体：</strong>新增 AI 分析研判智能体能力。</li>
+          </ul>
+        </article>
+
+        <article class="version-card">
+          <h3>2026.05.21</h3>
+          <div class="version-meta">V2.3 · 7 项交付</div>
+          <ul>
+            <li><strong>邮件转工单：</strong>支持 .eml 格式附件 AI 解析分析。</li>
+            <li><strong>专家分析：</strong>附件支持复制粘贴快捷上传；情况说明字数上限提升至 200 字。</li>
+            <li><strong>工单详情：</strong>对接腾讯情报接口，结构化可视化展示情报数据。</li>
+            <li><strong>区域配置：</strong>默认区域改为 NA，设为必选项，支持多区域选择。</li>
+            <li><strong>API 接口文档-工单：</strong>优化接口描述内容；新增 AI 分析概要、全量分析、威胁情报接口文档。</li>
+            <li><strong>大屏管理账号：</strong>配置专属大屏管理账号。</li>
+            <li><strong>研判详情：</strong>更新告警关联分析页面展示字段。</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <p class="footer">MSSP-XSIEM 安全运营平台建设成果汇报 · 2026.05.21</p>
+  </main>
+</body>
+</html>
