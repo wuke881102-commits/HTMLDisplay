@@ -121,14 +121,12 @@ h1 {
 
 .legend {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
-  flex-shrink: 0;
-  align-self: center;
-  background: var(--page-bg);
-  border-radius: 12px;
-  padding: 16px 20px;
-  min-width: 160px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
 }
 .legend-title {
   font-size: 9px;
@@ -136,12 +134,8 @@ h1 {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-faint);
-  margin-bottom: 4px;
 }
 .legend-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
   font-size: 11.5px;
   color: var(--text-muted);
 }
@@ -165,8 +159,76 @@ h1 {
 .s-bad  { color: var(--bad-text);  background: var(--bad-bg);  border-color: var(--bad-border); }
 .s-na   { color: var(--na-text);   background: var(--na-bg);   border-color: var(--na-border); }
 
+/* ── TABLE OF CONTENTS (masthead右侧紧凑版) ── */
+html { scroll-behavior: smooth; }
+
+.toc {
+  flex-shrink: 0;
+  align-self: stretch;
+  min-width: 240px;
+  max-width: 280px;
+  background: var(--page-bg);
+  border-radius: 12px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+}
+.toc-title {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 10px;
+}
+.toc-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.toc-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  text-decoration: none;
+  color: var(--text-body);
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+.toc-item:hover {
+  background: #fff;
+  border-color: var(--green-lime);
+  transform: translateX(2px);
+}
+.toc-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--green-dark);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.toc-item:hover .toc-num { background: var(--green-teal); }
+.toc-text {
+  font-size: 11.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
 /* ── SECTION ── */
-.section { margin-bottom: 28px; }
+.section {
+  margin-bottom: 28px;
+  scroll-margin-top: 16px;
+}
 
 .section-head {
   display: flex;
@@ -545,19 +607,48 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
       架构升级到 <strong>SWA Functions 代理</strong>：所有 API key（DashScope / VirusTotal / Azure OpenAI）已迁出 bundle，server-side 持有。
       数据源自 manifest.xml v1.3.0.0、office-mail.js、analyzer.js、assistant.js、attachment-analysis.js，反映当前代码实际行为。
     </p>
+    <div class="legend">
+      <div class="legend-title">图例</div>
+      <div class="legend-item"><span class="s s-ok">✓ 完整支持</span></div>
+      <div class="legend-item"><span class="s s-warn">⚠ 部分 / 受限</span></div>
+      <div class="legend-item"><span class="s s-bad">✗ 不支持</span></div>
+      <div class="legend-item"><span class="s s-na">— 不适用</span></div>
+    </div>
   </div>
-  <div class="legend">
-    <div class="legend-title">图例</div>
-    <div class="legend-item"><span class="s s-ok">✓ 完整支持</span></div>
-    <div class="legend-item"><span class="s s-warn">⚠ 部分 / 受限</span></div>
-    <div class="legend-item"><span class="s s-bad">✗ 不支持</span></div>
-    <div class="legend-item"><span class="s s-na">— 不适用</span></div>
-  </div>
+  <nav class="toc" aria-label="目录">
+    <div class="toc-title">目录 · Contents</div>
+    <div class="toc-grid">
+      <a href="#sec-01" class="toc-item">
+        <span class="toc-num">01</span>
+        <span class="toc-text">Outlook 平台兼容性</span>
+      </a>
+      <a href="#sec-02" class="toc-item">
+        <span class="toc-num">02</span>
+        <span class="toc-text">邮件服务器环境兼容性</span>
+      </a>
+      <a href="#sec-03" class="toc-item">
+        <span class="toc-num">03</span>
+        <span class="toc-text">当前环境 · 混合邮箱</span>
+      </a>
+      <a href="#sec-04" class="toc-item">
+        <span class="toc-num">04</span>
+        <span class="toc-text">部署要求</span>
+      </a>
+      <a href="#sec-05" class="toc-item">
+        <span class="toc-num">05</span>
+        <span class="toc-text">钓鱼邮件判断逻辑</span>
+      </a>
+      <a href="#sec-06" class="toc-item">
+        <span class="toc-num">06</span>
+        <span class="toc-text">EmailGuard · EmailAssist · AttachAnalyst 工作方式</span>
+      </a>
+    </div>
+  </nav>
 </div>
 
 
 <!-- ══ SECTION 1 ══ -->
-<div class="section card">
+<div class="section card" id="sec-01">
   <div class="section-head">
     <div class="section-num">01</div>
     <h2>Outlook 平台兼容性</h2>
@@ -739,7 +830,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
 
 
 <!-- ══ SECTION 2 ══ -->
-<div class="section card">
+<div class="section card" id="sec-02">
   <div class="section-head">
     <div class="section-num">02</div>
     <h2>邮件服务器环境兼容性</h2>
@@ -799,7 +890,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
 
 
 <!-- ══ SECTION 4 ══ -->
-<div class="section card">
+<div class="section card" id="sec-03">
   <div class="section-head">
     <div class="section-num" style="background:var(--green-lime);color:var(--green-dark);">03</div>
     <h2>当前环境 · 混合邮箱</h2>
@@ -890,7 +981,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
 
 
 <!-- ══ SECTION 5 ══ -->
-<div class="section card">
+<div class="section card" id="sec-04">
   <div class="section-head">
     <div class="section-num">04</div>
     <h2>部署要求</h2>
@@ -1170,7 +1261,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
 
 
 <!-- ══ SECTION 05 · 钓鱼判断逻辑 ══ -->
-<div class="section card">
+<div class="section card" id="sec-05">
   <div class="section-head">
     <div class="section-num">05</div>
     <h2>钓鱼邮件判断逻辑</h2>
@@ -1384,7 +1475,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
 
 
 <!-- ══ SECTION 06 · EmailGuard · EmailAssist · AttachAnalyst 工作方式 ══ -->
-<div class="section card">
+<div class="section card" id="sec-06">
   <div class="section-head">
     <div class="section-num">06</div>
     <h2>EmailGuard · EmailAssist · AttachAnalyst 工作方式</h2>
