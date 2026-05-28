@@ -5,139 +5,242 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PhishGuard · 部署兼容性矩阵</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
-  --green-dark:   #1a6b3c;
-  --green-lime:   #8dc63f;
-  --green-teal:   #2d6a4f;
-  --grey:         #555555;
+  /* ── GLP-light Design System ── */
+  /* Brand */
+  --brand-50:  #E3F5EA;
+  --brand-100: #C0E6D0;
+  --brand-200: #90D4A8;
+  --brand-300: #60C080;
+  --brand-400: #30AA60;
+  --brand-500: #00AA4F;
+  --brand-600: #008E43;
+  --brand-700: #006845;
+  --brand-800: #005A3C;
+  --brand-900: #004A30;
 
-  --page-bg:      #f0f4f1;
-  --card-bg:      #ffffff;
-  --card-radius:  16px;
-  --card-shadow:  0 2px 16px rgba(26,107,60,0.07), 0 0 0 1px rgba(26,107,60,0.05);
+  /* Accent */
+  --accent-lime:    #82BC00;
+  --accent-emerald: #00D47B;
+  --accent-forest:  #228B22;
+  --accent-mint:    #38A169;
 
-  --border:       #e4ece6;
-  --border-mid:   #d0ddd4;
+  /* Semantic */
+  --success:    #10B050;
+  --success-bg: rgba(16, 176, 80, 0.12);
+  --warning:    #F0A800;
+  --warning-bg: rgba(240, 168, 0, 0.12);
+  --error:      #C83A3A;
+  --error-bg:   rgba(200, 58, 58, 0.12);
+  --info:       #0095D4;
+  --info-bg:    rgba(42, 157, 143, 0.12);
 
-  --text-primary: #1a2a1e;
-  --text-body:    #555555;
-  --text-muted:   #7a8f80;
-  --text-faint:   #a0b0a6;
+  /* Surface */
+  --surface-page:      #F9FAFC;
+  --surface-elevated:  #FFFFFF;
+  --surface-container: #FFFFFF;
+  --surface-subtle:    #F0F1F3;
+  --surface-hover:     #EDEEF0;
+  --surface-active:    #E5E7EB;
 
-  --ok-bg:        #f0f9f0;
-  --ok-text:      #1a6b3c;
-  --ok-border:    #8dc63f;
+  /* Border */
+  --border-default: #DDE3EA;
+  --border-subtle:  #E8ECF0;
+  --border-strong:  #C5CCD3;
+  --border-focus:   #00AA4F;
 
-  --warn-bg:      #fef9ec;
-  --warn-text:    #8a6200;
-  --warn-border:  #d4a017;
+  /* Text */
+  --text-primary:     #42464A;
+  --text-secondary:   #555B61;
+  --text-tertiary:    #737A82;
+  --text-disabled:    #A6ADB5;
+  --text-placeholder: #9CA3AF;
+  --text-inverse:     #FFFFFF;
+  --text-brand:       #00AA4F;
 
-  --bad-bg:       #fff4f4;
-  --bad-text:     #c0392b;
-  --bad-border:   #e05050;
+  /* Shadows */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.03);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1),  0 0 0 1px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05);
 
-  --na-bg:        #f5f6f5;
-  --na-text:      #8a9a8a;
-  --na-border:    #d0d8d0;
+  /* Border Radius */
+  --radius-none: 0px;
+  --radius-xs:   2px;
+  --radius-sm:   4px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:   12px;
+  --radius-2xl:  16px;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --space-0:   0;
+  --space-0-5: 2px;
+  --space-1:   4px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+  --space-20:  80px;
+  --space-24:  96px;
+
+  /* Typography */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', 'Consolas', monospace;
+  --text-xs:   11px;
+  --text-sm:   13px;
+  --text-base: 14px;
+  --text-lg:   16px;
+  --text-xl:   20px;
+  --text-2xl:  26px;
+  --text-3xl:  34px;
+
+  /* Transitions */
+  --transition-fast:     150ms cubic-bezier(0,0,0.2,1);
+  --transition-base:     200ms cubic-bezier(0,0,0.2,1);
+  --transition-moderate: 300ms cubic-bezier(0,0,0.2,1);
+
+  /* Legacy aliases for compatibility */
+  --green-dark:   var(--brand-700);
+  --green-lime:   var(--accent-lime);
+  --green-teal:   var(--accent-mint);
+  --grey:         var(--text-secondary);
+
+  --page-bg:      var(--surface-page);
+  --card-bg:      var(--surface-elevated);
+  --card-radius:  var(--radius-2xl);
+  --card-shadow:  var(--shadow-sm);
+
+  --border:       var(--border-default);
+  --border-mid:   var(--border-strong);
+
+  --text-body:    var(--text-secondary);
+  --text-muted:   var(--text-tertiary);
+  --text-faint:   var(--text-disabled);
+
+  --ok-bg:        var(--success-bg);
+  --ok-text:      var(--success);
+  --ok-border:    var(--success);
+
+  --warn-bg:      var(--warning-bg);
+  --warn-text:    var(--warning);
+  --warn-border:  var(--warning);
+
+  --bad-bg:       var(--error-bg);
+  --bad-text:     var(--error);
+  --bad-border:   var(--error);
+
+  --na-bg:        var(--surface-subtle);
+  --na-text:      var(--text-tertiary);
+  --na-border:    var(--border-default);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  background: var(--page-bg);
-  color: var(--text-body);
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 13.5px;
+  background: var(--surface-page);
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
   line-height: 1.65;
 }
 
 .page {
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 48px 32px 80px;
+  padding: var(--space-12) var(--space-8) var(--space-20);
 }
 
 /* ── CARD ── */
 .card {
-  background: var(--card-bg);
-  border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
+  background: var(--surface-elevated);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
+  transition: box-shadow var(--transition-base);
 }
+.card:hover { box-shadow: var(--shadow-md); }
 
 /* ── MASTHEAD ── */
 .masthead {
-  background: var(--card-bg);
-  border-radius: var(--card-radius);
-  box-shadow: var(--card-shadow);
-  padding: 36px 40px;
-  margin-bottom: 28px;
-  border-top: 4px solid var(--green-dark);
+  background: var(--surface-elevated);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-8) var(--space-10);
+  margin-bottom: var(--space-6);
+  border-top: 4px solid var(--brand-500);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 40px;
+  gap: var(--space-10);
 }
 
 .masthead-left { flex: 1; }
 
 .eyebrow {
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: wrap;
   margin-bottom: 14px;
 }
 
 .chip {
-  font-size: 10px;
+  font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 3px 10px;
-  border-radius: 6px;
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
 }
-.chip-green { background: #e8f5ee; color: var(--green-dark); }
-.chip-lime  { background: #f2f9e6; color: #5a8010; }
-.chip-grey  { background: #f0f0f0; color: var(--grey); }
+.chip-green { background: var(--brand-50);       color: var(--brand-700); border: 1px solid var(--brand-500); }
+.chip-lime  { background: rgba(130,188,0,0.1);   color: #4a7000;          border: 1px solid var(--accent-lime); }
+.chip-grey  { background: var(--surface-subtle); color: var(--text-tertiary); border: 1px solid var(--border-default); }
 
 h1 {
-  font-size: 32px;
+  font-size: var(--text-3xl);
   font-weight: 800;
-  color: var(--green-dark);
+  color: var(--brand-700);
   letter-spacing: -0.02em;
   line-height: 1.1;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
 }
 
 .masthead-desc {
-  color: var(--text-muted);
-  font-size: 13px;
+  color: var(--text-tertiary);
+  font-size: var(--text-sm);
   line-height: 1.8;
   max-width: 560px;
 }
-.masthead-desc strong { color: var(--text-body); font-weight: 600; }
+.masthead-desc strong { color: var(--text-secondary); font-weight: 600; }
 
 .legend {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 14px;
-  margin-top: 16px;
+  margin-top: var(--space-4);
   padding-top: 14px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border-default);
 }
 .legend-title {
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-disabled);
+  font-family: var(--font-mono);
 }
 .legend-item {
-  font-size: 11.5px;
-  color: var(--text-muted);
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
 }
 
 /* ── STATUS BADGE ── */
@@ -145,19 +248,20 @@ h1 {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 9px;
-  border-radius: 6px;
-  font-size: 10.5px;
+  padding: var(--space-0-5) var(--space-2);
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
   font-weight: 600;
   border: 1px solid;
   white-space: nowrap;
-  letter-spacing: 0.01em;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
 }
-.s-ok   { color: var(--ok-text);   background: var(--ok-bg);   border-color: var(--ok-border); }
-.s-warn { color: var(--warn-text); background: var(--warn-bg); border-color: var(--warn-border); }
-.s-bad  { color: var(--bad-text);  background: var(--bad-bg);  border-color: var(--bad-border); }
-.s-na   { color: var(--na-text);   background: var(--na-bg);   border-color: var(--na-border); }
+.s-ok   { color: var(--success);  background: var(--success-bg);  border-color: var(--success); }
+.s-warn { color: var(--warning);  background: var(--warning-bg);  border-color: var(--warning); }
+.s-bad  { color: var(--error);    background: var(--error-bg);    border-color: var(--error); }
+.s-na   { color: var(--text-tertiary); background: var(--surface-subtle); border-color: var(--border-default); }
 
 /* ── TABLE OF CONTENTS (masthead右侧紧凑版) ── */
 html { scroll-behavior: smooth; }
@@ -167,105 +271,108 @@ html { scroll-behavior: smooth; }
   align-self: stretch;
   min-width: 240px;
   max-width: 280px;
-  background: var(--page-bg);
-  border-radius: 12px;
-  padding: 16px 18px;
+  background: var(--surface-subtle);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4);
   display: flex;
   flex-direction: column;
 }
 .toc-title {
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 700;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--text-faint);
-  margin-bottom: 10px;
+  color: var(--text-disabled);
+  font-family: var(--font-mono);
+  margin-bottom: var(--space-2);
 }
 .toc-grid {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-1);
 }
 .toc-item {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 7px 10px;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
   border: 1px solid transparent;
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   background: transparent;
   text-decoration: none;
-  color: var(--text-body);
-  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  color: var(--text-secondary);
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 .toc-item:hover {
-  background: #fff;
-  border-color: var(--green-lime);
+  background: var(--surface-elevated);
+  border-color: var(--accent-lime);
   transform: translateX(2px);
 }
 .toc-num {
   width: 22px;
   height: 22px;
-  border-radius: 5px;
-  background: var(--green-dark);
-  color: #fff;
-  font-size: 10px;
+  border-radius: var(--radius-md);
+  background: var(--brand-500);
+  color: var(--text-inverse);
+  font-size: var(--text-xs);
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: background 0.15s;
+  transition: background var(--transition-fast);
+  font-family: var(--font-mono);
 }
-.toc-item:hover .toc-num { background: var(--green-teal); }
+.toc-item:hover .toc-num { background: var(--brand-600); }
 .toc-text {
-  font-size: 11.5px;
+  font-size: var(--text-sm);
   font-weight: 600;
   line-height: 1.4;
 }
 
 /* ── SECTION ── */
 .section {
-  margin-bottom: 28px;
-  scroll-margin-top: 16px;
+  margin-bottom: var(--space-6);
+  scroll-margin-top: var(--space-4);
 }
 
 .section-head {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 28px 32px 0;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--space-8) 0;
 }
 
 .section-num {
   width: 32px;
   height: 32px;
-  border-radius: 8px;
-  background: var(--green-dark);
-  color: #fff;
-  font-size: 13px;
+  border-radius: var(--radius-lg);
+  background: var(--brand-500);
+  color: var(--text-inverse);
+  font-size: var(--text-sm);
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  font-family: var(--font-mono);
 }
 
 h2 {
-  font-size: 19px;
+  font-size: var(--text-xl);
   font-weight: 700;
   color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .section-desc {
-  padding: 8px 32px 20px;
-  font-size: 12.5px;
-  color: var(--text-muted);
+  padding: var(--space-2) var(--space-8) var(--space-5);
+  font-size: var(--text-sm);
+  color: var(--text-tertiary);
   line-height: 1.85;
   max-width: 900px;
 }
-.section-desc strong { color: var(--text-body); font-weight: 600; }
+.section-desc strong { color: var(--text-secondary); font-weight: 600; }
 
 /* ── TABLE ── */
 table {
@@ -274,45 +381,48 @@ table {
 }
 
 thead tr th {
-  background: var(--green-teal);
-  color: rgba(255,255,255,0.92);
-  font-size: 11px;
+  background: var(--accent-mint);
+  color: var(--text-inverse);
+  font-size: var(--text-xs);
   font-weight: 600;
-  letter-spacing: 0.04em;
-  padding: 14px 14px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: var(--space-3) var(--space-4);
   text-align: center;
-  border-right: 1px solid rgba(255,255,255,0.1);
+  border-right: 1px solid rgba(255,255,255,0.12);
   border-bottom: none;
+  font-family: var(--font-mono);
 }
 thead tr th:first-child {
   text-align: left;
   width: 220px;
-  background: var(--green-dark);
+  background: var(--brand-700);
 }
 thead tr th:last-child { border-right: none; }
 
 .col-icon { display: block; font-size: 18px; margin-bottom: 4px; }
-.col-name { display: block; font-size: 12px; font-weight: 700; color: #fff; }
-.col-sub  { display: block; font-size: 9.5px; color: rgba(255,255,255,0.6); margin-top: 2px; font-weight: 400; }
+.col-name { display: block; font-size: var(--text-sm); font-weight: 700; color: var(--text-inverse); }
+.col-sub  { display: block; font-size: var(--text-xs); color: rgba(255,255,255,0.6); margin-top: 2px; font-weight: 400; font-family: var(--font-mono); }
 
 /* group label row */
 .group-row td {
-  background: #f5faf6 !important;
-  color: var(--green-dark) !important;
-  font-size: 9.5px !important;
+  background: var(--brand-50) !important;
+  color: var(--brand-700) !important;
+  font-size: var(--text-xs) !important;
   font-weight: 700 !important;
-  letter-spacing: 0.18em !important;
+  letter-spacing: 0.12em !important;
   text-transform: uppercase !important;
-  padding: 7px 16px !important;
-  border-bottom: 1px solid var(--border-mid) !important;
+  padding: var(--space-1) var(--space-4) !important;
+  border-bottom: 1px solid var(--border-strong) !important;
   text-align: left !important;
   border-right: none !important;
+  font-family: var(--font-mono) !important;
 }
 
 tbody td {
-  padding: 11px 14px;
-  border-bottom: 1px solid var(--border);
-  border-right: 1px solid var(--border);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
   text-align: center;
   vertical-align: middle;
 }
@@ -321,24 +431,24 @@ tbody tr:last-child td { border-bottom: none; }
 
 tbody td:first-child {
   text-align: left;
-  font-size: 12.5px;
-  color: var(--text-body);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
   font-weight: 500;
-  padding-left: 16px;
-  background: #fafcfa;
-  border-right: 1px solid var(--border-mid);
+  padding-left: var(--space-4);
+  background: var(--surface-page);
+  border-right: 1px solid var(--border-default);
 }
 
-tbody tr:hover td { background: #f8fcf8; }
-tbody tr:hover td:first-child { background: #f4f8f4; }
-tbody .group-row:hover td { background: #f5faf6 !important; }
+tbody tr:hover td { background: var(--surface-hover); }
+tbody tr:hover td:first-child { background: var(--surface-active); }
+tbody .group-row:hover td { background: var(--brand-50) !important; }
 
 .note {
   display: block;
-  font-size: 10px;
-  color: var(--text-faint);
+  font-size: var(--text-xs);
+  color: var(--text-disabled);
   margin-top: 3px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
   font-weight: 400;
   line-height: 1.5;
 }
@@ -347,77 +457,80 @@ tbody .group-row:hover td { background: #f5faf6 !important; }
 .ver-row {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
-  gap: 10px;
-  padding: 0 32px 20px;
+  gap: var(--space-2);
+  padding: 0 var(--space-8) var(--space-5);
 }
 
 .ver-block {
-  background: var(--page-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 14px 12px;
+  background: var(--surface-page);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-3);
   text-align: center;
-  transition: box-shadow 0.15s;
+  transition: box-shadow var(--transition-base), transform var(--transition-base);
 }
-.ver-block:hover { box-shadow: 0 4px 16px rgba(26,107,60,0.1); }
+.ver-block:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
 .ver-block.dead     { opacity: 0.45; }
-.ver-block.partial  { border-color: var(--green-teal); background: #f0f7f2; }
-.ver-block.full     { border-color: var(--green-lime); background: #f5fae8; }
+.ver-block.partial  { border-color: var(--accent-mint);    background: rgba(56,161,105,0.06); }
+.ver-block.full     { border-color: var(--accent-lime);    background: var(--brand-50); }
 
 .ver-name {
-  font-size: 13px;
+  font-size: var(--text-sm);
   font-weight: 700;
   color: var(--text-primary);
   display: block;
 }
-.ver-block.partial .ver-name { color: var(--green-teal); }
-.ver-block.full .ver-name    { color: var(--green-dark); }
+.ver-block.partial .ver-name { color: var(--accent-mint); }
+.ver-block.full .ver-name    { color: var(--brand-700); }
 
 .ver-api {
-  font-size: 9.5px;
-  color: var(--text-faint);
+  font-size: var(--text-xs);
+  color: var(--text-disabled);
   display: block;
   margin-top: 3px;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-mono);
 }
-.ver-pill { margin-top: 10px; }
+.ver-pill { margin-top: var(--space-2); }
 
 /* ── CALLOUT GRID ── */
 .callouts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  padding: 20px 32px 28px;
+  gap: var(--space-3);
+  padding: var(--space-5) var(--space-8) var(--space-6);
 }
 
 .callout {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 18px 20px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
   border-left: 4px solid;
+  transition: box-shadow var(--transition-base);
 }
-.callout-ok   { border-left-color: var(--green-lime); }
-.callout-warn { border-left-color: var(--warn-border); }
-.callout-bad  { border-left-color: var(--bad-border); }
-.callout-info { border-left-color: var(--green-teal); }
+.callout:hover { box-shadow: var(--shadow-md); }
+.callout-ok   { border-left-color: var(--success); }
+.callout-warn { border-left-color: var(--warning); }
+.callout-bad  { border-left-color: var(--error); }
+.callout-info { border-left-color: var(--info); }
 
 .callout-title {
-  font-size: 11px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: var(--space-2);
+  font-family: var(--font-mono);
 }
-.callout-ok   .callout-title { color: var(--green-dark); }
-.callout-warn .callout-title { color: var(--warn-text); }
-.callout-bad  .callout-title { color: var(--bad-text); }
-.callout-info .callout-title { color: var(--green-teal); }
+.callout-ok   .callout-title { color: var(--success); }
+.callout-warn .callout-title { color: var(--warning); }
+.callout-bad  .callout-title { color: var(--error); }
+.callout-info .callout-title { color: var(--info); }
 
 .callout ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
 .callout li {
-  font-size: 11.5px;
-  color: var(--text-muted);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
   padding-left: 14px;
   position: relative;
   line-height: 1.6;
@@ -428,168 +541,172 @@ tbody .group-row:hover td { background: #f5faf6 !important; }
   left: 3px;
   font-weight: 700;
 }
-.callout-ok li::before   { color: var(--green-lime); }
-.callout-warn li::before { color: var(--warn-border); }
-.callout-bad li::before  { color: var(--bad-border); }
-.callout-info li::before { color: var(--green-teal); }
+.callout-ok li::before   { color: var(--success); }
+.callout-warn li::before { color: var(--warning); }
+.callout-bad li::before  { color: var(--error); }
+.callout-info li::before { color: var(--info); }
 
 /* ── SECTION 4 ── */
 .env-banner {
-  margin: 0 32px 20px;
-  background: linear-gradient(135deg, #f0f7f2, #e8f5ee);
-  border: 1.5px solid var(--green-lime);
-  border-radius: 12px;
-  padding: 16px 20px;
+  margin: 0 var(--space-8) var(--space-5);
+  background: linear-gradient(135deg, var(--brand-50), var(--brand-100));
+  border: 1.5px solid var(--accent-lime);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
   display: flex;
   align-items: flex-start;
   gap: 14px;
 }
 .env-banner-icon { font-size: 24px; flex-shrink: 0; margin-top: 1px; }
 .env-banner-text { flex: 1; }
-.env-banner-title { font-size: 13px; font-weight: 700; color: var(--green-dark); margin-bottom: 4px; }
-.env-banner-desc  { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
-.env-banner-desc strong { color: var(--text-body); font-weight: 600; }
+.env-banner-title { font-size: var(--text-base); font-weight: 700; color: var(--brand-700); margin-bottom: 4px; }
+.env-banner-desc  { font-size: var(--text-sm); color: var(--text-tertiary); line-height: 1.7; }
+.env-banner-desc strong { color: var(--text-secondary); font-weight: 600; }
 
 .detect-box {
-  margin: 0 32px 24px;
-  background: #f8faf8;
-  border: 1px solid var(--border-mid);
-  border-radius: 12px;
+  margin: 0 var(--space-8) var(--space-6);
+  background: var(--surface-page);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
   overflow: hidden;
 }
 .detect-box-head {
-  background: var(--green-dark);
-  padding: 10px 16px;
+  background: var(--brand-700);
+  padding: var(--space-2) var(--space-4);
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.detect-box-title { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.8); }
-.detect-box-tag   { font-size: 9px; font-family: 'JetBrains Mono', monospace; color: var(--green-lime); background: rgba(141,198,63,0.15); padding: 2px 8px; border-radius: 4px; border: 1px solid rgba(141,198,63,0.3); }
-.detect-body { padding: 16px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.detect-col-title { font-size: 9px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
-.detect-cloud { color: var(--ok-text); }
-.detect-onprem { color: var(--warn-text); }
+.detect-box-title { font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.8); font-family: var(--font-mono); }
+.detect-box-tag   { font-size: var(--text-xs); font-family: var(--font-mono); color: var(--accent-lime); background: rgba(130,188,0,0.15); padding: 2px var(--space-2); border-radius: var(--radius-sm); border: 1px solid rgba(130,188,0,0.3); }
+.detect-body { padding: var(--space-4); display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+.detect-col-title { font-size: var(--text-xs); font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: var(--space-2); font-family: var(--font-mono); }
+.detect-cloud { color: var(--success); }
+.detect-onprem { color: var(--warning); }
 pre {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
   line-height: 1.7;
-  color: var(--text-body);
+  color: var(--text-secondary);
   white-space: pre-wrap;
   word-break: break-all;
 }
-pre .cm  { color: var(--text-faint); }
-pre .kw  { color: var(--green-teal); font-weight: 600; }
+pre .cm  { color: var(--text-disabled); }
+pre .kw  { color: var(--accent-mint); font-weight: 600; }
 pre .str { color: #a0522d; }
-pre .fn  { color: var(--green-dark); }
-pre .hi  { color: var(--green-lime); font-weight: 600; }
+pre .fn  { color: var(--brand-700); }
+pre .hi  { color: var(--accent-lime); font-weight: 600; }
 
 .url-example {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10.5px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-1);
   word-break: break-all;
   line-height: 1.5;
 }
-.url-cloud  { background: var(--ok-bg);   color: var(--ok-text);   border: 1px solid var(--ok-border); }
-.url-onprem { background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+.url-cloud  { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+.url-onprem { background: var(--warning-bg); color: var(--warning); border: 1px solid var(--warning); }
 
 .solution-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  padding: 0 32px 28px;
+  gap: var(--space-3);
+  padding: 0 var(--space-8) var(--space-6);
 }
 
 .sol-card {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 12px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
   overflow: hidden;
+  transition: box-shadow var(--transition-base);
 }
+.sol-card:hover { box-shadow: var(--shadow-md); }
 .sol-head {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--border-default);
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--space-2);
 }
 .sol-icon { font-size: 18px; }
-.sol-title { font-size: 12px; font-weight: 700; color: var(--text-primary); }
-.sol-body { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.sol-title { font-size: var(--text-sm); font-weight: 700; color: var(--text-primary); }
+.sol-body { padding: var(--space-4); display: flex; flex-direction: column; gap: var(--space-2); }
 
 .sol-path {
-  border-radius: 8px;
-  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  padding: var(--space-2) var(--space-3);
 }
-.sol-path-cloud  { background: var(--ok-bg);   border: 1px solid var(--ok-border); }
-.sol-path-onprem { background: var(--warn-bg); border: 1px solid var(--warn-border); }
+.sol-path-cloud  { background: var(--success-bg); border: 1px solid var(--success); }
+.sol-path-onprem { background: var(--warning-bg); border: 1px solid var(--warning); }
 .sol-path-label {
-  font-size: 9px;
+  font-size: var(--text-xs);
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   margin-bottom: 5px;
+  font-family: var(--font-mono);
 }
-.sol-path-cloud  .sol-path-label { color: var(--ok-text); }
-.sol-path-onprem .sol-path-label { color: var(--warn-text); }
-.sol-path-content { font-size: 11px; color: var(--text-body); line-height: 1.6; }
+.sol-path-cloud  .sol-path-label { color: var(--success); }
+.sol-path-onprem .sol-path-label { color: var(--warning); }
+.sol-path-content { font-size: var(--text-sm); color: var(--text-secondary); line-height: 1.6; }
 .sol-path-code {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 9.5px;
-  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-tertiary);
   margin-top: 4px;
   background: rgba(0,0,0,0.04);
-  padding: 3px 6px;
-  border-radius: 4px;
+  padding: 3px var(--space-1);
+  border-radius: var(--radius-sm);
   display: block;
 }
 .sol-effort {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border-default);
   margin-top: 2px;
 }
-.sol-effort-label { font-size: 10px; color: var(--text-faint); }
-.sol-effort-val   { font-size: 10px; font-weight: 600; }
-.effort-low  { color: var(--ok-text); }
-.effort-mid  { color: var(--warn-text); }
-.effort-high { color: var(--bad-text); }
+.sol-effort-label { font-size: var(--text-xs); color: var(--text-disabled); }
+.sol-effort-val   { font-size: var(--text-xs); font-weight: 600; }
+.effort-low  { color: var(--success); }
+.effort-mid  { color: var(--warning); }
+.effort-high { color: var(--error); }
 
 .migration-card {
   grid-column: 1 / -1;
-  background: linear-gradient(135deg, #f0f7f2, #fafff6);
-  border: 1.5px solid var(--green-teal);
-  border-radius: 12px;
-  padding: 18px 20px;
+  background: linear-gradient(135deg, var(--brand-50), var(--surface-page));
+  border: 1.5px solid var(--accent-mint);
+  border-radius: var(--radius-xl);
+  padding: var(--space-4) var(--space-5);
   display: flex;
-  gap: 20px;
+  gap: var(--space-5);
   align-items: flex-start;
   flex-wrap: wrap;
 }
-.migration-title { font-size: 12px; font-weight: 700; color: var(--green-teal); margin-bottom: 8px; }
+.migration-title { font-size: var(--text-sm); font-weight: 700; color: var(--accent-mint); margin-bottom: var(--space-2); }
 .migration-col { flex: 1; min-width: 200px; }
 .migration-col ul { list-style: none; display: flex; flex-direction: column; gap: 4px; }
-.migration-col li { font-size: 11.5px; color: var(--text-muted); padding-left: 14px; position: relative; line-height: 1.6; }
-.migration-col li::before { content: '›'; position: absolute; left: 2px; color: var(--green-teal); font-weight: 700; }
+.migration-col li { font-size: var(--text-sm); color: var(--text-secondary); padding-left: 14px; position: relative; line-height: 1.6; }
+.migration-col li::before { content: '›'; position: absolute; left: 2px; color: var(--accent-mint); font-weight: 700; }
 
 /* ── FOOTER ── */
 .footer {
-  margin-top: 40px;
+  margin-top: var(--space-10);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--text-faint);
-  font-size: 11px;
+  color: var(--text-disabled);
+  font-size: var(--text-xs);
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 0 4px;
+  gap: var(--space-2);
+  padding: 0 var(--space-1);
+  font-family: var(--font-mono);
 }
-.footer strong { color: var(--green-dark); }
+.footer strong { color: var(--brand-700); }
 </style>
 </head>
 <body>
@@ -876,7 +993,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
         <li>无需 Azure AD 应用注册（Graph 已移除）</li>
       </ul>
     </div>
-    <div class="callout callout-info" style="border-radius:12px;">
+    <div class="callout callout-info" style="border-radius:var(--radius-xl);">
       <div class="callout-title">🏢 纯本地 Exchange — EAC 集中部署</div>
       <ul>
         <li>需 Exchange 2016 CU3+（或 Exchange 2019）支持 Add-in 部署</li>
@@ -892,7 +1009,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
 <!-- ══ SECTION 4 ══ -->
 <div class="section card" id="sec-03">
   <div class="section-head">
-    <div class="section-num" style="background:var(--green-lime);color:var(--green-dark);">03</div>
+    <div class="section-num" style="background:var(--accent-lime);color:var(--brand-700);">03</div>
     <h2>当前环境 · 混合邮箱</h2>
   </div>
   <p class="section-desc">
@@ -931,31 +1048,31 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
         <tbody>
           <tr>
             <td style="text-align:left;font-size:12px;font-weight:600;">AI 分析（规则 + VirusTotal + Qwen）</td>
-            <td style="text-align:left;font-size:11.5px;color:var(--text-muted);">客户端运行，无需邮件服务器</td>
+            <td style="text-align:left;font-size:11.5px;color:var(--text-tertiary);">客户端运行，无需邮件服务器</td>
             <td><span class="s s-ok">完整</span></td>
             <td><span class="s s-ok">完整</span></td>
           </tr>
           <tr>
             <td style="text-align:left;font-size:12px;font-weight:600;">SOC 转发（含原邮件 .eml 附件）</td>
-            <td style="text-align:left;font-size:11.5px;color:var(--text-muted);">displayNewMessageForm — Office.js</td>
+            <td style="text-align:left;font-size:11.5px;color:var(--text-tertiary);">displayNewMessageForm — Office.js</td>
             <td><span class="s s-ok">完整</span></td>
             <td><span class="s s-ok">完整</span></td>
           </tr>
           <tr>
             <td style="text-align:left;font-size:12px;font-weight:600;">回复建议（草稿弹窗）</td>
-            <td style="text-align:left;font-size:11.5px;color:var(--text-muted);">displayReplyFormAsync — Office.js</td>
+            <td style="text-align:left;font-size:11.5px;color:var(--text-tertiary);">displayReplyFormAsync — Office.js</td>
             <td><span class="s s-ok">完整</span></td>
             <td><span class="s s-ok">完整</span></td>
           </tr>
           <tr>
             <td style="text-align:left;font-size:12px;font-weight:600;">固定任务栏（Pinnable Taskpane）</td>
-            <td style="text-align:left;font-size:11.5px;color:var(--text-muted);">ItemChanged 事件，Mailbox 1.5+</td>
+            <td style="text-align:left;font-size:11.5px;color:var(--text-tertiary);">ItemChanged 事件，Mailbox 1.5+</td>
             <td><span class="s s-ok">支持</span></td>
             <td><span class="s s-ok">支持</span></td>
           </tr>
           <tr>
             <td style="text-align:left;font-size:12px;font-weight:600;">手机端（iOS / Android）</td>
-            <td style="text-align:left;font-size:11.5px;color:var(--text-muted);">MobileFormFactor 已部署；处置操作降级为剪贴板复制</td>
+            <td style="text-align:left;font-size:11.5px;color:var(--text-tertiary);">MobileFormFactor 已部署；处置操作降级为剪贴板复制</td>
             <td><span class="s s-warn">剪贴板降级</span></td>
             <td><span class="s s-warn">剪贴板降级</span></td>
           </tr>
@@ -965,7 +1082,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
 
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:18px;">
 
-      <div class="callout callout-info" style="border-radius:12px;">
+      <div class="callout callout-info" style="border-radius:var(--radius-xl);">
         <div class="callout-title">› 本地 Exchange 注意事项</div>
         <ul>
           <li>Add-in 加载要求 Outlook 客户端能访问 Azure SWA 的 HTTPS 地址（出站 443）</li>
@@ -994,8 +1111,8 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
   </p>
 
   <!-- 架构图 -->
-  <div style="margin:0 32px 24px;background:#f8faf8;border:1px solid var(--border-mid);border-radius:12px;padding:24px 28px;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:20px;">部署架构</div>
+  <div style="margin:0 32px 24px;background:var(--surface-page);border:1px solid var(--border-strong);border-radius:var(--radius-xl);padding:24px 28px;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-disabled);margin-bottom:20px;">部署架构</div>
     <div style="display:flex;align-items:center;gap:0;flex-wrap:wrap;justify-content:center;">
 
       <!-- Outlook -->
@@ -1003,14 +1120,14 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
         <div style="background:#fff;border:1.5px solid var(--border-mid);border-radius:10px;padding:12px 14px;display:inline-block;">
           <div style="font-size:20px;margin-bottom:4px;">🖥 📱 🌐</div>
           <div style="font-size:11px;font-weight:700;color:var(--text-primary);">Outlook 客户端</div>
-          <div style="font-size:9.5px;color:var(--text-faint);margin-top:2px;">桌面 / 手机 / Web</div>
-          <div style="font-size:9px;color:var(--text-faint);margin-top:3px;">分析在此运行</div>
+          <div style="font-size:9.5px;color:var(--text-disabled);margin-top:2px;">桌面 / 手机 / Web</div>
+          <div style="font-size:9px;color:var(--text-disabled);margin-top:3px;">分析在此运行</div>
         </div>
       </div>
 
       <div style="display:flex;flex-direction:column;align-items:center;padding:0 6px;">
-        <div style="font-size:9px;color:var(--ok-text);font-weight:600;white-space:nowrap;margin-bottom:2px;">HTTPS 443</div>
-        <div style="width:40px;height:2px;background:var(--green-lime);"></div>
+        <div style="font-size:9px;color:var(--success);font-weight:600;white-space:nowrap;margin-bottom:2px;">HTTPS 443</div>
+        <div style="width:40px;height:2px;background:var(--accent-lime);"></div>
         <div style="width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--green-lime);"></div>
       </div>
 
@@ -1018,15 +1135,15 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
       <div style="text-align:center;min-width:130px;">
         <div style="background:#fff;border:2px solid var(--green-dark);border-radius:10px;padding:12px 14px;display:inline-block;">
           <div style="font-size:20px;margin-bottom:4px;">☁️</div>
-          <div style="font-size:11px;font-weight:700;color:var(--green-dark);">Azure Static Web Apps</div>
-          <div style="font-size:9.5px;color:var(--text-faint);margin-top:2px;">静态文件 CDN<br>自动 HTTPS</div>
+          <div style="font-size:11px;font-weight:700;color:var(--brand-700);">Azure Static Web Apps</div>
+          <div style="font-size:9.5px;color:var(--text-disabled);margin-top:2px;">静态文件 CDN<br>自动 HTTPS</div>
           <div style="margin-top:6px;"><span class="s s-ok" style="font-size:9px;">已上线</span></div>
         </div>
       </div>
 
       <div style="display:flex;flex-direction:column;align-items:center;padding:0 6px;">
-        <div style="font-size:9px;color:var(--green-dark);font-weight:600;white-space:nowrap;margin-bottom:2px;">/api/*</div>
-        <div style="width:40px;height:2px;background:var(--green-lime);"></div>
+        <div style="font-size:9px;color:var(--brand-700);font-weight:600;white-space:nowrap;margin-bottom:2px;">/api/*</div>
+        <div style="width:40px;height:2px;background:var(--accent-lime);"></div>
         <div style="width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--green-lime);"></div>
       </div>
 
@@ -1034,16 +1151,16 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
       <div style="text-align:center;min-width:140px;">
         <div style="background:#f5fae8;border:2px solid var(--green-lime);border-radius:10px;padding:12px 14px;display:inline-block;">
           <div style="font-size:20px;margin-bottom:4px;">🔐</div>
-          <div style="font-size:11px;font-weight:700;color:var(--green-dark);">SWA Functions</div>
-          <div style="font-size:9.5px;color:var(--text-faint);margin-top:2px;line-height:1.6;">
+          <div style="font-size:11px;font-weight:700;color:var(--brand-700);">SWA Functions</div>
+          <div style="font-size:9.5px;color:var(--text-disabled);margin-top:2px;line-height:1.6;">
             /api/dashscope-attachment<br>/api/virustotal<br>/api/openai-vision
           </div>
-          <div style="font-size:9px;color:var(--ok-text);margin-top:4px;font-weight:600;">持有 API key</div>
+          <div style="font-size:9px;color:var(--success);margin-top:4px;font-weight:600;">持有 API key</div>
         </div>
       </div>
 
       <div style="display:flex;flex-direction:column;align-items:center;padding:0 6px;">
-        <div style="font-size:9px;color:var(--text-faint);font-weight:600;white-space:nowrap;margin-bottom:2px;">server→外网</div>
+        <div style="font-size:9px;color:var(--text-disabled);font-weight:600;white-space:nowrap;margin-bottom:2px;">server→外网</div>
         <div style="width:40px;height:2px;background:var(--border-mid);"></div>
         <div style="width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:8px solid var(--border-mid);"></div>
       </div>
@@ -1052,15 +1169,15 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
       <div style="text-align:center;min-width:120px;">
         <div style="background:#fff;border:1.5px dashed var(--border-mid);border-radius:10px;padding:12px 14px;display:inline-block;">
           <div style="font-size:20px;margin-bottom:4px;">🔗</div>
-          <div style="font-size:11px;font-weight:700;color:var(--text-body);">外部 API</div>
-          <div style="font-size:9.5px;color:var(--text-faint);margin-top:4px;line-height:1.8;">
+          <div style="font-size:11px;font-weight:700;color:var(--text-secondary);">外部 API</div>
+          <div style="font-size:9.5px;color:var(--text-disabled);margin-top:4px;line-height:1.8;">
             DashScope (Qwen)<br>VirusTotal v3<br>Azure OpenAI
           </div>
         </div>
       </div>
 
     </div>
-    <div style="margin-top:16px;font-size:10.5px;color:var(--ok-text);background:var(--ok-bg);border:1px solid var(--ok-border);border-radius:8px;padding:8px 14px;">
+    <div style="margin-top:16px;font-size:10.5px;color:var(--success);background:var(--success-bg);border:1px solid var(--success);border-radius:var(--radius-lg);padding:8px 14px;">
       ✓ <strong>Functions 代理拦截 /api/* 路径：</strong>客户端发请求到 <code>/api/dashscope-attachment</code> 等 3 个端点，Functions 加上服务端 <code>Authorization</code> / <code>x-apikey</code> / <code>api-key</code> header 后转发外部 API。
       Key 不进 bundle，DevTools 无法提取。
     </div>
@@ -1070,20 +1187,20 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;padding:0 32px 24px;">
 
     <!-- 当前部署 -->
-    <div class="callout callout-ok" style="border-radius:12px;">
+    <div class="callout callout-ok" style="border-radius:var(--radius-xl);">
       <div class="callout-title">✓ 当前部署（Azure SWA + Functions）</div>
       <ul>
         <li>托管平台：Azure Static Web Apps（含 Functions consumption plan）</li>
-        <li>URL：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">brave-pebble-0f7aa6510.7.azurestaticapps.net</code></li>
+        <li>URL：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">brave-pebble-0f7aa6510.7.azurestaticapps.net</code></li>
         <li>HTTPS：Azure 托管证书，自动续期</li>
         <li>CDN：全球 PoP，国内访问延迟通常 &lt; 100 ms</li>
-        <li>部署命令：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">swa deploy ./dist --api-location ./api --env production</code></li>
+        <li>部署命令：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">swa deploy ./dist --api-location ./api --env production</code></li>
         <li>Functions serverless，按请求计费，无实例管理</li>
       </ul>
     </div>
 
     <!-- 运行时依赖 -->
-    <div class="callout callout-info" style="border-radius:12px;">
+    <div class="callout callout-info" style="border-radius:var(--radius-xl);">
       <div class="callout-title">🔗 运行时外部依赖（经代理）</div>
       <ul>
         <li><strong>DashScope（Qwen）：</strong>EmailGuard / EmailAssist / AttachAnalyst 文本路径共用，经 <code style="font-size:9.5px;">/api/dashscope-attachment</code></li>
@@ -1094,7 +1211,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     </div>
 
     <!-- API Key 安全说明 -->
-    <div class="callout callout-ok" style="border-radius:12px;">
+    <div class="callout callout-ok" style="border-radius:var(--radius-xl);">
       <div class="callout-title">✓ API Key 安全（已加固）</div>
       <ul>
         <li>所有 key 现存放于 SWA Configuration → Application settings，<strong>无 <code>VITE_</code> 前缀</strong>，仅 Functions 服务端可读</li>
@@ -1109,7 +1226,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
   <!-- 网络与防火墙 -->
   <div style="padding:0 32px 24px;">
     <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:8px;">网络与防火墙规则</div>
-    <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:14px;">
+    <div style="font-size:11.5px;color:var(--text-tertiary);margin-bottom:14px;">
       用户网络只需出站到 <strong>Azure SWA 一个域名</strong>；外部 API 调用由 Azure 内部 Functions 发起，
       不出现在企业出口流量里（合规友好）。
     </div>
@@ -1166,91 +1283,91 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
 
       <!-- 部署 Add-in -->
-      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;border-top:3px solid var(--green-dark);">
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--green-dark);margin-bottom:12px;">Step 1 · 全员部署 Add-in</div>
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:18px 20px;border-top:3px solid var(--green-dark);">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--brand-700);margin-bottom:12px;">Step 1 · 全员部署 Add-in</div>
         <ol style="list-style:none;display:flex;flex-direction:column;gap:8px;">
-          <li style="font-size:11.5px;color:var(--text-muted);display:flex;gap:10px;align-items:flex-start;">
+          <li style="font-size:11.5px;color:var(--text-tertiary);display:flex;gap:10px;align-items:flex-start;">
             <span style="background:var(--green-dark);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px;">1</span>
             <span>admin.microsoft.com → Settings → Integrated apps → Add-in → Upload custom app</span>
           </li>
-          <li style="font-size:11.5px;color:var(--text-muted);display:flex;gap:10px;align-items:flex-start;">
+          <li style="font-size:11.5px;color:var(--text-tertiary);display:flex;gap:10px;align-items:flex-start;">
             <span style="background:var(--green-dark);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px;">2</span>
             <span>选择「Provide link to manifest file」，粘贴 manifest.xml 的公网 URL（或直接上传文件）</span>
           </li>
-          <li style="font-size:11.5px;color:var(--text-muted);display:flex;gap:10px;align-items:flex-start;">
+          <li style="font-size:11.5px;color:var(--text-tertiary);display:flex;gap:10px;align-items:flex-start;">
             <span style="background:var(--green-dark);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px;">3</span>
             <span>Assign users：全部用户 或 指定安全组，推送生效约需 <strong>12–24 小时</strong></span>
           </li>
-          <li style="font-size:11.5px;color:var(--text-muted);display:flex;gap:10px;align-items:flex-start;">
+          <li style="font-size:11.5px;color:var(--text-tertiary);display:flex;gap:10px;align-items:flex-start;">
             <span style="background:var(--green-dark);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;margin-top:1px;">4</span>
             <span>更新 manifest 后点击「Update add-in」按钮，无需重新指定用户</span>
           </li>
         </ol>
-        <div style="margin-top:12px;font-size:10px;color:var(--ok-text);background:var(--ok-bg);border:1px solid var(--ok-border);border-radius:6px;padding:6px 10px;">
+        <div style="margin-top:12px;font-size:10px;color:var(--success);background:var(--success-bg);border:1px solid var(--success);border-radius:var(--radius-md);padding:6px 10px;">
           ✓ 无需 Azure AD 应用注册 · 无需 admin consent · 用户无感知自动推送
         </div>
       </div>
 
       <!-- 服务端 env vars (Functions) -->
-      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;border-top:3px solid var(--bad-border);">
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--bad-text);margin-bottom:12px;">🔐 服务端 env（Functions 持有）</div>
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:18px 20px;border-top:3px solid var(--bad-border);">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--error);margin-bottom:12px;">🔐 服务端 env（Functions 持有）</div>
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:10px;color:var(--text-faint);margin-bottom:4px;">SWA Configuration → Application settings，<strong>无 VITE_ 前缀</strong>，不进 bundle</div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:6px;">
-            <code style="font-size:10px;color:var(--bad-text);">DASHSCOPE_API_KEY</code>
+          <div style="font-size:10px;color:var(--text-disabled);margin-bottom:4px;">SWA Configuration → Application settings，<strong>无 VITE_ 前缀</strong>，不进 bundle</div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--error);">DASHSCOPE_API_KEY</code>
             <span class="s s-bad" style="font-size:9px;">必须</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:6px;">
-            <code style="font-size:10px;color:var(--bad-text);">VIRUSTOTAL_API_KEY</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--error);">VIRUSTOTAL_API_KEY</code>
             <span class="s s-warn" style="font-size:9px;">建议</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:6px;">
-            <code style="font-size:10px;color:var(--bad-text);">AZURE_OPENAI_KEY</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--error);">AZURE_OPENAI_KEY</code>
             <span class="s s-warn" style="font-size:9px;">AttachAnalyst</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:6px;">
-            <code style="font-size:10px;color:var(--bad-text);">AZURE_OPENAI_ENDPOINT</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--error);">AZURE_OPENAI_ENDPOINT</code>
             <span class="s s-warn" style="font-size:9px;">AttachAnalyst</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:6px;">
-            <code style="font-size:10px;color:var(--bad-text);">AZURE_OPENAI_DEPLOYMENT</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--error);">AZURE_OPENAI_DEPLOYMENT</code>
             <span class="s s-warn" style="font-size:9px;">AttachAnalyst</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:6px;">
-            <code style="font-size:10px;color:var(--bad-text);">AZURE_OPENAI_API_VERSION</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#fff4f4;border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--error);">AZURE_OPENAI_API_VERSION</code>
             <span class="s s-warn" style="font-size:9px;">AttachAnalyst</span>
           </div>
-          <div style="margin-top:10px;font-size:10px;color:var(--text-faint);">改 key 后 Functions 自动热重载，无需重新部署。</div>
+          <div style="margin-top:10px;font-size:10px;color:var(--text-disabled);">改 key 后 Functions 自动热重载，无需重新部署。</div>
         </div>
       </div>
 
       <!-- 客户端 env vars (非敏感) -->
-      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:18px 20px;border-top:3px solid var(--green-teal);">
-        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--green-teal);margin-bottom:12px;">客户端 env（VITE_ 烘焙进 bundle）</div>
+      <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:var(--radius-xl);padding:18px 20px;border-top:3px solid var(--green-teal);">
+        <div style="font-size:10px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent-mint);margin-bottom:12px;">客户端 env（VITE_ 烘焙进 bundle）</div>
         <div style="display:flex;flex-direction:column;gap:6px;">
-          <div style="font-size:10px;color:var(--text-faint);margin-bottom:4px;">全是<strong>非敏感</strong>功能开关 / 模型名 / 路由信息</div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#f0f7f0;border-radius:6px;">
-            <code style="font-size:10px;color:var(--green-teal);">VITE_SOC_MAILBOX</code>
+          <div style="font-size:10px;color:var(--text-disabled);margin-bottom:4px;">全是<strong>非敏感</strong>功能开关 / 模型名 / 路由信息</div>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:var(--brand-50);border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--accent-mint);">VITE_SOC_MAILBOX</code>
             <span class="s s-warn" style="font-size:9px;">建议覆盖</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#f0f7f0;border-radius:6px;">
-            <code style="font-size:10px;color:var(--green-teal);">VITE_QWEN_MODEL</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:var(--brand-50);border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--accent-mint);">VITE_QWEN_MODEL</code>
             <span class="s s-na" style="font-size:9px;">可选</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#f0f7f0;border-radius:6px;">
-            <code style="font-size:10px;color:var(--green-teal);">VITE_INTEL_PROVIDER</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:var(--brand-50);border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--accent-mint);">VITE_INTEL_PROVIDER</code>
             <span class="s s-na" style="font-size:9px;">可选</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#f0f7f0;border-radius:6px;">
-            <code style="font-size:10px;color:var(--green-teal);">VITE_INTEL_MAX_LOOKUPS</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:var(--brand-50);border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--accent-mint);">VITE_INTEL_MAX_LOOKUPS</code>
             <span class="s s-na" style="font-size:9px;">可选</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:#f0f7f0;border-radius:6px;">
-            <code style="font-size:10px;color:var(--green-teal);">VITE_ATTACHANALYSIS_ENABLED</code>
+          <div style="display:flex;justify-content:space-between;align-items:baseline;padding:5px 8px;background:var(--brand-50);border-radius:var(--radius-md);">
+            <code style="font-size:10px;color:var(--accent-mint);">VITE_ATTACHANALYSIS_ENABLED</code>
             <span class="s s-na" style="font-size:9px;">kill switch</span>
           </div>
-          <div style="margin-top:10px;font-size:10px;color:var(--text-faint);">
-            旧版 <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px;">VITE_DASHSCOPE_API_KEY</code> / <code style="background:#f0f0f0;padding:1px 4px;border-radius:3px;">VITE_INTEL_API_KEY</code> 已废弃 — 可从 SWA 删除。
+          <div style="margin-top:10px;font-size:10px;color:var(--text-disabled);">
+            旧版 <code style="background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">VITE_DASHSCOPE_API_KEY</code> / <code style="background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">VITE_INTEL_API_KEY</code> 已废弃 — 可从 SWA 删除。
           </div>
         </div>
       </div>
@@ -1269,47 +1386,47 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
   <p class="section-desc">
     三维加权评分：<strong>规则引擎 30%</strong> + <strong>威胁情报 20%</strong> + <strong>AI 分析 50%</strong>，
     综合得分 0–100，经过三路阈值输出最终裁决（phish / uncertain / safe）。
-    源码：<code style="font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px;">services/analyzer.js</code>
-    · <code style="font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px;">services/rules.js</code>
-    · <code style="font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px;">services/intel.js</code>
+    源码：<code style="font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:var(--radius-xs);">services/analyzer.js</code>
+    · <code style="font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:var(--radius-xs);">services/rules.js</code>
+    · <code style="font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:var(--radius-xs);">services/intel.js</code>
   </p>
 
   <!-- 加权公式 -->
-  <div style="margin:0 32px 24px;background:#f8faf8;border:1px solid var(--border-mid);border-radius:12px;padding:24px 28px;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:18px;">加权评分公式</div>
+  <div style="margin:0 32px 24px;background:var(--surface-page);border:1px solid var(--border-strong);border-radius:var(--radius-xl);padding:24px 28px;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-disabled);margin-bottom:18px;">加权评分公式</div>
 
     <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;margin-bottom:20px;">
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700;color:var(--text-primary);">score =</div>
+      <div style="font-family:var(--font-mono);font-size:15px;font-weight:700;color:var(--text-primary);">score =</div>
 
-      <div style="background:var(--ok-bg);border:2px solid var(--ok-border);border-radius:10px;padding:10px 18px;text-align:center;min-width:110px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--ok-text);">0.30</div>
-        <div style="font-size:10px;font-weight:700;color:var(--ok-text);margin-top:2px;">× 规则分</div>
-        <div style="font-size:9px;color:var(--text-faint);margin-top:2px;">0–91 分</div>
+      <div style="background:var(--success-bg);border:2px solid var(--ok-border);border-radius:10px;padding:10px 18px;text-align:center;min-width:110px;">
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:var(--success);">0.30</div>
+        <div style="font-size:10px;font-weight:700;color:var(--success);margin-top:2px;">× 规则分</div>
+        <div style="font-size:9px;color:var(--text-disabled);margin-top:2px;">0–91 分</div>
       </div>
 
-      <div style="font-size:18px;color:var(--text-faint);font-weight:300;">+</div>
+      <div style="font-size:18px;color:var(--text-disabled);font-weight:300;">+</div>
 
-      <div style="background:var(--warn-bg);border:2px solid var(--warn-border);border-radius:10px;padding:10px 18px;text-align:center;min-width:110px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--warn-text);">0.20</div>
-        <div style="font-size:10px;font-weight:700;color:var(--warn-text);margin-top:2px;">× 情报分</div>
-        <div style="font-size:9px;color:var(--text-faint);margin-top:2px;">0–60 分（上限）</div>
+      <div style="background:var(--warning-bg);border:2px solid var(--warn-border);border-radius:10px;padding:10px 18px;text-align:center;min-width:110px;">
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:var(--warning);">0.20</div>
+        <div style="font-size:10px;font-weight:700;color:var(--warning);margin-top:2px;">× 情报分</div>
+        <div style="font-size:9px;color:var(--text-disabled);margin-top:2px;">0–60 分（上限）</div>
       </div>
 
-      <div style="font-size:18px;color:var(--text-faint);font-weight:300;">+</div>
+      <div style="font-size:18px;color:var(--text-disabled);font-weight:300;">+</div>
 
       <div style="background:var(--bad-bg);border:2px solid var(--bad-border);border-radius:10px;padding:10px 18px;text-align:center;min-width:110px;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:800;color:var(--bad-text);">0.50</div>
-        <div style="font-size:10px;font-weight:700;color:var(--bad-text);margin-top:2px;">× AI 风险分</div>
-        <div style="font-size:9px;color:var(--text-faint);margin-top:2px;">0–100 分</div>
+        <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:var(--error);">0.50</div>
+        <div style="font-size:10px;font-weight:700;color:var(--error);margin-top:2px;">× AI 风险分</div>
+        <div style="font-size:9px;color:var(--text-disabled);margin-top:2px;">0–100 分</div>
       </div>
 
-      <div style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted);">→ clamp(0, 100)</div>
+      <div style="font-family:var(--font-mono);font-size:13px;color:var(--text-tertiary);">→ clamp(0, 100)</div>
     </div>
 
     <div>
-      <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:6px;">权重分配</div>
-      <div style="display:flex;height:22px;border-radius:6px;overflow:hidden;border:1px solid var(--border-mid);">
+      <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-disabled);margin-bottom:6px;">权重分配</div>
+      <div style="display:flex;height:22px;border-radius:var(--radius-md);overflow:hidden;border:1px solid var(--border-strong);">
         <div style="width:30%;background:var(--green-dark);display:flex;align-items:center;justify-content:center;">
           <span style="font-size:9.5px;font-weight:700;color:#fff;">规则 30%</span>
         </div>
@@ -1329,59 +1446,59 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
 
       <!-- PHISH -->
-      <div style="background:var(--bad-bg);border:1.5px solid var(--bad-border);border-radius:12px;padding:18px 20px;border-top:4px solid var(--bad-border);">
+      <div style="background:var(--bad-bg);border:1.5px solid var(--bad-border);border-radius:var(--radius-xl);padding:18px 20px;border-top:4px solid var(--bad-border);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
           <span class="s s-bad" style="font-size:12px;padding:4px 12px;">✗ PHISH</span>
-          <span style="font-size:10px;color:var(--text-faint);">满足任意一条</span>
+          <span style="font-size:10px;color:var(--text-disabled);">满足任意一条</span>
         </div>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:7px;">
-          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:8px;border-left:3px solid var(--bad-border);">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bad-text);font-weight:600;">score ≥ 65</span>
-            <span style="display:block;font-size:10px;color:var(--text-faint);margin-top:2px;">综合加权分达到或超过 65</span>
+          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:var(--radius-lg);border-left:3px solid var(--bad-border);">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--error);font-weight:600;">score ≥ 65</span>
+            <span style="display:block;font-size:10px;color:var(--text-disabled);margin-top:2px;">综合加权分达到或超过 65</span>
           </li>
-          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:8px;border-left:3px solid var(--bad-border);">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bad-text);font-weight:600;">rules ≥ 30 <span style="color:var(--text-faint);font-weight:400;">AND</span> AI = phish</span>
-            <span style="display:block;font-size:10px;color:var(--text-faint);margin-top:2px;">规则强命中（≥30 分）且 AI 倾向钓鱼</span>
+          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:var(--radius-lg);border-left:3px solid var(--bad-border);">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--error);font-weight:600;">rules ≥ 30 <span style="color:var(--text-disabled);font-weight:400;">AND</span> AI = phish</span>
+            <span style="display:block;font-size:10px;color:var(--text-disabled);margin-top:2px;">规则强命中（≥30 分）且 AI 倾向钓鱼</span>
           </li>
-          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:8px;border-left:3px solid var(--bad-border);">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--bad-text);font-weight:600;">VT 已确认 <span style="color:var(--text-faint);font-weight:400;">AND</span> AI ≠ safe</span>
-            <span style="display:block;font-size:10px;color:var(--text-faint);margin-top:2px;">VirusTotal ≥2 引擎确认恶意，且 AI 未判定安全</span>
+          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:var(--radius-lg);border-left:3px solid var(--bad-border);">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--error);font-weight:600;">VT 已确认 <span style="color:var(--text-disabled);font-weight:400;">AND</span> AI ≠ safe</span>
+            <span style="display:block;font-size:10px;color:var(--text-disabled);margin-top:2px;">VirusTotal ≥2 引擎确认恶意，且 AI 未判定安全</span>
           </li>
         </ul>
       </div>
 
       <!-- SAFE -->
-      <div style="background:var(--ok-bg);border:1.5px solid var(--ok-border);border-radius:12px;padding:18px 20px;border-top:4px solid var(--ok-border);">
+      <div style="background:var(--success-bg);border:1.5px solid var(--ok-border);border-radius:var(--radius-xl);padding:18px 20px;border-top:4px solid var(--ok-border);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
           <span class="s s-ok" style="font-size:12px;padding:4px 12px;">✓ SAFE</span>
-          <span style="font-size:10px;color:var(--text-faint);">两条同时满足</span>
+          <span style="font-size:10px;color:var(--text-disabled);">两条同时满足</span>
         </div>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:7px;">
-          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:8px;border-left:3px solid var(--ok-border);">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ok-text);font-weight:600;">score ≤ 18</span>
-            <span style="display:block;font-size:10px;color:var(--text-faint);margin-top:2px;">综合加权分 ≤ 18</span>
+          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:var(--radius-lg);border-left:3px solid var(--ok-border);">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--success);font-weight:600;">score ≤ 18</span>
+            <span style="display:block;font-size:10px;color:var(--text-disabled);margin-top:2px;">综合加权分 ≤ 18</span>
           </li>
-          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:8px;border-left:3px solid var(--ok-border);">
-            <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ok-text);font-weight:600;">AI = safe</span>
-            <span style="display:block;font-size:10px;color:var(--text-faint);margin-top:2px;">AI leaning 字段明确为 safe</span>
+          <li style="padding:8px 12px;background:rgba(255,255,255,0.65);border-radius:var(--radius-lg);border-left:3px solid var(--ok-border);">
+            <span style="font-family:var(--font-mono);font-size:11px;color:var(--success);font-weight:600;">AI = safe</span>
+            <span style="display:block;font-size:10px;color:var(--text-disabled);margin-top:2px;">AI leaning 字段明确为 safe</span>
           </li>
         </ul>
-        <div style="margin-top:10px;font-size:10px;color:var(--ok-text);padding:6px 10px;background:rgba(255,255,255,0.55);border-radius:6px;">
+        <div style="margin-top:10px;font-size:10px;color:var(--success);padding:6px 10px;background:rgba(255,255,255,0.55);border-radius:var(--radius-md);">
           偏保守：分低 AND AI 双重确认才判 safe
         </div>
       </div>
 
       <!-- UNCERTAIN -->
-      <div style="background:var(--warn-bg);border:1.5px solid var(--warn-border);border-radius:12px;padding:18px 20px;border-top:4px solid var(--warn-border);">
+      <div style="background:var(--warning-bg);border:1.5px solid var(--warn-border);border-radius:var(--radius-xl);padding:18px 20px;border-top:4px solid var(--warn-border);">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
           <span class="s s-warn" style="font-size:12px;padding:4px 12px;">⚠ UNCERTAIN</span>
-          <span style="font-size:10px;color:var(--text-faint);">其余所有情况</span>
+          <span style="font-size:10px;color:var(--text-disabled);">其余所有情况</span>
         </div>
-        <div style="padding:10px 12px;background:rgba(255,255,255,0.65);border-radius:8px;border-left:3px solid var(--warn-border);font-size:11.5px;color:var(--text-body);line-height:1.65;">
+        <div style="padding:10px 12px;background:rgba(255,255,255,0.65);border-radius:var(--radius-lg);border-left:3px solid var(--warn-border);font-size:11.5px;color:var(--text-secondary);line-height:1.65;">
           不满足 PHISH 任意条件，也不同时满足 SAFE 两条件时输出 uncertain，
           触发 SOC 转发流程（displayNewMessageForm），等待人工研判。
         </div>
-        <div style="margin-top:10px;font-size:10px;color:var(--warn-text);padding:6px 10px;background:rgba(255,255,255,0.55);border-radius:6px;">
+        <div style="margin-top:10px;font-size:10px;color:var(--warning);padding:6px 10px;background:rgba(255,255,255,0.55);border-radius:var(--radius-md);">
           实际部署中 uncertain 占比最高，设计上偏保守
         </div>
       </div>
@@ -1392,7 +1509,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
   <!-- 规则引擎明细 -->
   <div style="padding:0 32px 24px;">
     <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">规则引擎 · 7 条规则明细</div>
-    <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;">
+    <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:14px;">
       各规则分值累加，无上限（理论最高 91 分），再以权重 30% 贡献综合分。
       移动端 Headers 不可用时 RULE-AUTH-001 自动跳过，上限降至 76 分。
     </div>
@@ -1406,37 +1523,37 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
       </thead>
       <tbody>
         <tr>
-          <td><code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green-dark);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-DOM-001</code></td>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:var(--brand-50);padding:2px 5px;border-radius:var(--radius-xs);">RULE-DOM-001</code></td>
           <td style="text-align:left;font-size:12px;">发件人域名仿冒知名品牌（microsoft / google / apple / paypal / amazon / docusign 等子串匹配）</td>
           <td><span class="s s-bad" style="font-size:11px;font-weight:700;letter-spacing:0;">+22</span></td>
         </tr>
         <tr>
-          <td><code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green-dark);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-DOM-014</code></td>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:var(--brand-50);padding:2px 5px;border-radius:var(--radius-xs);">RULE-DOM-014</code></td>
           <td style="text-align:left;font-size:12px;">显示名含内部角色词（helpdesk / support / admin / security / finance / hr / payroll）但使用公共邮箱域（gmail / outlook / qq 等）</td>
           <td><span class="s s-bad" style="font-size:11px;font-weight:700;letter-spacing:0;">+18</span></td>
         </tr>
         <tr>
-          <td><code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green-dark);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-AUTH-001</code></td>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:var(--brand-50);padding:2px 5px;border-radius:var(--radius-xs);">RULE-AUTH-001</code></td>
           <td style="text-align:left;font-size:12px;">邮件头部 SPF 检查结果为 fail 或 DMARC 结果为 fail<span class="note">移动端 Headers 不可用时自动跳过</span></td>
           <td><span class="s s-bad" style="font-size:11px;font-weight:700;letter-spacing:0;">+15</span></td>
         </tr>
         <tr>
-          <td><code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green-dark);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-FIN-001</code></td>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:var(--brand-50);padding:2px 5px;border-radius:var(--radius-xs);">RULE-FIN-001</code></td>
           <td style="text-align:left;font-size:12px;">正文含银行账户变更 / 电汇转账 / 发票付款等财务敏感关键词（中英文双语模式匹配）</td>
           <td><span class="s s-warn" style="font-size:11px;font-weight:700;letter-spacing:0;">+12</span></td>
         </tr>
         <tr>
-          <td><code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green-dark);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-URG-001</code></td>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:var(--brand-50);padding:2px 5px;border-radius:var(--radius-xs);">RULE-URG-001</code></td>
           <td style="text-align:left;font-size:12px;">正文含账号锁定 / 立即操作 / 24 小时内 / verify now 等紧迫性语言</td>
           <td><span class="s s-warn" style="font-size:11px;font-weight:700;letter-spacing:0;">+10</span></td>
         </tr>
         <tr>
-          <td><code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green-dark);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-TLD-001</code></td>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:var(--brand-50);padding:2px 5px;border-radius:var(--radius-xs);">RULE-TLD-001</code></td>
           <td style="text-align:left;font-size:12px;">发件人域名使用高危 TLD（.zip .country .click .biz .top .tk .gq .ml .cf .xyz .info）</td>
           <td><span class="s s-warn" style="font-size:11px;font-weight:700;letter-spacing:0;">+8</span></td>
         </tr>
         <tr>
-          <td><code style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green-dark);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-LINK-001</code></td>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:var(--brand-50);padding:2px 5px;border-radius:var(--radius-xs);">RULE-LINK-001</code></td>
           <td style="text-align:left;font-size:12px;">正文超链接目标域名与发件人域名不一致（排除常见 CDN / 邮件服务商跳转）</td>
           <td><span class="s s-ok" style="font-size:11px;font-weight:700;letter-spacing:0;">+6</span></td>
         </tr>
@@ -1449,7 +1566,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     <div class="callout callout-warn">
       <div class="callout-title">威胁情报维度 · VirusTotal v3</div>
       <ul>
-        <li>通过 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">/api/virustotal</code> 代理调用，VT key 在服务端</li>
+        <li>通过 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">/api/virustotal</code> 代理调用，VT key 在服务端</li>
         <li>每次请求 4 秒 AbortController 超时</li>
         <li>每封邮件最多查询 <strong>6 个域名 / URL</strong>（VITE_INTEL_MAX_LOOKUPS 可调）</li>
         <li>重复域名去重，Promise.allSettled 并发查询</li>
@@ -1462,10 +1579,10 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     <div class="callout callout-info">
       <div class="callout-title">AI 分析维度 · Qwen / DashScope</div>
       <ul>
-        <li>EmailGuard 分析：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">qwen3.6-max-preview</code>；EmailAssist 摘要：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">qwen3.6-flash</code>；EmailAssist 回复：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">qwen3.6-plus</code></li>
-        <li>所有 Qwen 调用统一走 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">/api/dashscope-attachment</code> 代理</li>
-        <li>输出 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">riskScore</code> 0–100，乘以权重 0.50 后贡献综合评分</li>
-        <li>输出 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">leaning</code>（phish / uncertain / safe），用于裁决快捷路径</li>
+        <li>EmailGuard 分析：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">qwen3.6-max-preview</code>；EmailAssist 摘要：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">qwen3.6-flash</code>；EmailAssist 回复：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">qwen3.6-plus</code></li>
+        <li>所有 Qwen 调用统一走 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">/api/dashscope-attachment</code> 代理</li>
+        <li>输出 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">riskScore</code> 0–100，乘以权重 0.50 后贡献综合评分</li>
+        <li>输出 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">leaning</code>（phish / uncertain / safe），用于裁决快捷路径</li>
         <li>所有调用均 <code style="font-size:9.5px;">enable_thinking: false</code>，关掉推理链以保证 3-15s 延迟</li>
         <li>非流式（buffered）— 经 Function 代理后无法保留 SSE，UI 用 spinner 覆盖等待</li>
       </ul>
@@ -1481,7 +1598,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     <h2>EmailGuard · EmailAssist · AttachAnalyst 工作方式</h2>
   </div>
   <p class="section-desc">
-    同一个 Outlook 任务窗格内有 <strong>3 个 Tab</strong>，共享同一个 <code style="font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:3px;">Office.js</code> 邮件快照。
+    同一个 Outlook 任务窗格内有 <strong>3 个 Tab</strong>，共享同一个 <code style="font-size:10px;background:#f0f0f0;padding:1px 5px;border-radius:var(--radius-xs);">Office.js</code> 邮件快照。
     <strong>EmailGuard</strong> 负责钓鱼判断与处置；
     <strong>EmailAssist</strong> 负责摘要、翻译与回复建议；
     <strong>AttachAnalyst</strong> 负责附件深度分析（文本走 Qwen，图像走 Azure GPT-4.1-mini）。
@@ -1489,13 +1606,13 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
   </p>
 
   <!-- 共同入口说明 -->
-  <div style="margin:0 32px 24px;background:linear-gradient(135deg,#f0f7f2,#e8f5ee);border:1.5px solid var(--green-lime);border-radius:12px;padding:16px 20px;display:flex;align-items:flex-start;gap:14px;">
+  <div style="margin:0 32px 24px;background:linear-gradient(135deg,#f0f7f2,#e8f5ee);border:1.5px solid var(--green-lime);border-radius:var(--radius-xl);padding:16px 20px;display:flex;align-items:flex-start;gap:14px;">
     <div style="font-size:24px;flex-shrink:0;margin-top:1px;">📌</div>
     <div>
-      <div style="font-size:13px;font-weight:700;color:var(--green-dark);margin-bottom:4px;">共同入口 — 任务窗格 Tab 切换</div>
-      <div style="font-size:12px;color:var(--text-muted);line-height:1.7;">
+      <div style="font-size:13px;font-weight:700;color:var(--brand-700);margin-bottom:4px;">共同入口 — 任务窗格 Tab 切换</div>
+      <div style="font-size:12px;color:var(--text-tertiary);line-height:1.7;">
         用户在 Outlook 功能区点击「邮件分析 Lite」按钮 → 任务窗格打开 → 顶部并排显示 <strong>3 个 Tab</strong>：<strong>EmailGuard</strong> · <strong>EmailAssist</strong> · <strong>AttachAnalyst</strong>。
-        三者均读取 <code style="font-size:10px;background:rgba(0,0,0,0.06);padding:1px 4px;border-radius:3px;">Office.context.mailbox.item</code> 的同一份快照（发件人 / 收件人 / 主题 / 时间 / 附件数），
+        三者均读取 <code style="font-size:10px;background:rgba(0,0,0,0.06);padding:1px 4px;border-radius:var(--radius-xs);">Office.context.mailbox.item</code> 的同一份快照（发件人 / 收件人 / 主题 / 时间 / 附件数），
         正文与 Headers 在各自流程内按需异步读取，附件列表 / 字节由 AttachAnalyst 按需懒读。
         任务窗格固定（Pin）后切换邮件时，三个 Tab 同步重置。
       </div>
@@ -1506,7 +1623,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
   <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:20px;padding:0 32px 24px;">
 
     <!-- ── EmailGuard ── -->
-    <div style="background:#f8faf8;border:1px solid var(--border-mid);border-radius:12px;overflow:hidden;">
+    <div style="background:var(--surface-page);border:1px solid var(--border-strong);border-radius:var(--radius-xl);overflow:hidden;">
       <div style="background:var(--green-dark);padding:12px 18px;display:flex;align-items:center;gap:10px;">
         <span style="font-size:18px;">🛡</span>
         <div>
@@ -1518,70 +1635,70 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
 
         <!-- State Machine -->
         <div>
-          <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-faint);margin-bottom:8px;">状态机</div>
+          <div style="font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:var(--text-disabled);margin-bottom:8px;">状态机</div>
           <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-            <span style="font-size:10.5px;padding:4px 10px;background:#fff;border:1px solid var(--border-mid);border-radius:6px;color:var(--text-muted);font-weight:500;">idle</span>
-            <span style="color:var(--text-faint);font-size:11px;">→</span>
-            <span style="font-size:10.5px;padding:4px 10px;background:#fff;border:1px solid var(--green-lime);border-radius:6px;color:var(--green-dark);font-weight:600;">confirm</span>
-            <span style="color:var(--text-faint);font-size:11px;">→</span>
-            <span style="font-size:10.5px;padding:4px 10px;background:#fff;border:1px solid var(--warn-border);border-radius:6px;color:var(--warn-text);font-weight:600;">analyzing</span>
-            <span style="color:var(--text-faint);font-size:11px;">→</span>
-            <span style="font-size:10.5px;padding:4px 10px;background:#fff;border:1px solid var(--ok-border);border-radius:6px;color:var(--ok-text);font-weight:600;">done</span>
+            <span style="font-size:10.5px;padding:4px 10px;background:#fff;border:1px solid var(--border-strong);border-radius:var(--radius-md);color:var(--text-tertiary);font-weight:500;">idle</span>
+            <span style="color:var(--text-disabled);font-size:11px;">→</span>
+            <span style="font-size:10.5px;padding:4px 10px;background:#fff;border:1px solid var(--green-lime);border-radius:var(--radius-md);color:var(--brand-700);font-weight:600;">confirm</span>
+            <span style="color:var(--text-disabled);font-size:11px;">→</span>
+            <span style="font-size:10.5px;padding:4px 10px;background:#fff;border:1px solid var(--warning);border-radius:var(--radius-md);color:var(--warning);font-weight:600;">analyzing</span>
+            <span style="color:var(--text-disabled);font-size:11px;">→</span>
+            <span style="font-size:10.5px;padding:4px 10px;background:#fff;border:1px solid var(--success);border-radius:var(--radius-md);color:var(--success);font-weight:600;">done</span>
           </div>
         </div>
 
         <!-- Confirm step -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-dark);margin-bottom:5px;letter-spacing:0.05em;">① confirm · 确认上报</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--brand-700);margin-bottom:5px;letter-spacing:0.05em;">① confirm · 确认上报</div>
           <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;">
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
               显示邮件预览（发件人、主题、收件人），用户勾选同意后点击「确认上报」
             </li>
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
-              此时调用 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 3px;border-radius:3px;">getMessageContent()</code> 读取邮件正文 + Headers
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
+              此时调用 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 3px;border-radius:var(--radius-xs);">getMessageContent()</code> 读取邮件正文 + Headers
             </li>
           </ul>
         </div>
 
         <!-- Analyzing step -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--warn-text);margin-bottom:5px;letter-spacing:0.05em;">② analyzing · 三级流水线</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--warning);margin-bottom:5px;letter-spacing:0.05em;">② analyzing · 三级流水线</div>
           <div style="display:flex;flex-direction:column;gap:6px;">
             <div style="display:flex;align-items:center;gap:8px;">
               <div style="width:20px;height:20px;border-radius:50%;background:var(--green-dark);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">1</div>
-              <div style="font-size:11px;color:var(--text-body);">规则引擎（本地，同步）</div>
+              <div style="font-size:11px;color:var(--text-secondary);">规则引擎（本地，同步）</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
               <div style="width:20px;height:20px;border-radius:50%;background:var(--green-dark);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">2</div>
-              <div style="font-size:11px;color:var(--text-body);">VirusTotal 查询（浏览器直连，4s 超时）</div>
+              <div style="font-size:11px;color:var(--text-secondary);">VirusTotal 查询（浏览器直连，4s 超时）</div>
             </div>
             <div style="display:flex;align-items:center;gap:8px;">
               <div style="width:20px;height:20px;border-radius:50%;background:var(--green-dark);color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;">3</div>
-              <div style="font-size:11px;color:var(--text-body);">Qwen AI 分析（DashScope，<code style="font-size:9px;background:#f0f0f0;padding:1px 3px;border-radius:3px;">qwen3.6-max-preview</code>）</div>
+              <div style="font-size:11px;color:var(--text-secondary);">Qwen AI 分析（DashScope，<code style="font-size:9px;background:#f0f0f0;padding:1px 3px;border-radius:var(--radius-xs);">qwen3.6-max-preview</code>）</div>
             </div>
-            <div style="font-size:10px;color:var(--text-faint);padding-left:28px;line-height:1.5;">顺序执行；规则与 VT 结果作为上下文注入 AI Prompt</div>
+            <div style="font-size:10px;color:var(--text-disabled);padding-left:28px;line-height:1.5;">顺序执行；规则与 VT 结果作为上下文注入 AI Prompt</div>
           </div>
         </div>
 
         <!-- Done step by verdict -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--ok-text);margin-bottom:8px;letter-spacing:0.05em;">③ done · 裁决处置</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--success);margin-bottom:8px;letter-spacing:0.05em;">③ done · 裁决处置</div>
           <div style="display:flex;flex-direction:column;gap:6px;">
-            <div style="display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--bad-bg);border-radius:6px;border-left:3px solid var(--bad-border);">
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--bad-bg);border-radius:var(--radius-md);border-left:3px solid var(--bad-border);">
               <span class="s s-bad" style="font-size:9.5px;flex-shrink:0;">PHISH</span>
-              <span style="font-size:11px;color:var(--text-body);line-height:1.5;">显示红色裁决 + 分析原因，提示手动将邮件移到垃圾邮件（右键 → Junk）</span>
+              <span style="font-size:11px;color:var(--text-secondary);line-height:1.5;">显示红色裁决 + 分析原因，提示手动将邮件移到垃圾邮件（右键 → Junk）</span>
             </div>
-            <div style="display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--warn-bg);border-radius:6px;border-left:3px solid var(--warn-border);">
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--warning-bg);border-radius:var(--radius-md);border-left:3px solid var(--warn-border);">
               <span class="s s-warn" style="font-size:9.5px;flex-shrink:0;">UNCERTAIN</span>
-              <span style="font-size:11px;color:var(--text-body);line-height:1.5;">一键触发 <code style="font-size:9px;background:rgba(0,0,0,0.05);padding:1px 3px;border-radius:3px;">displayNewMessageForm</code>，预填 SOC 收件人、主题、分析报告 HTML、原邮件 .eml 附件</span>
+              <span style="font-size:11px;color:var(--text-secondary);line-height:1.5;">一键触发 <code style="font-size:9px;background:rgba(0,0,0,0.05);padding:1px 3px;border-radius:var(--radius-xs);">displayNewMessageForm</code>，预填 SOC 收件人、主题、分析报告 HTML、原邮件 .eml 附件</span>
             </div>
-            <div style="display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--ok-bg);border-radius:6px;border-left:3px solid var(--ok-border);">
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:7px 10px;background:var(--success-bg);border-radius:var(--radius-md);border-left:3px solid var(--ok-border);">
               <span class="s s-ok" style="font-size:9.5px;flex-shrink:0;">SAFE</span>
-              <span style="font-size:11px;color:var(--text-body);line-height:1.5;">显示绿色裁决 + 分析原因，无需额外操作</span>
+              <span style="font-size:11px;color:var(--text-secondary);line-height:1.5;">显示绿色裁决 + 分析原因，无需额外操作</span>
             </div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:2px;">
+            <div style="font-size:10px;color:var(--text-disabled);margin-top:2px;">
               移动端：UNCERTAIN 路径改为复制 SOC 邮箱地址（clipboard），用户手动转发
             </div>
           </div>
@@ -1591,7 +1708,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     </div>
 
     <!-- ── EmailAssist ── -->
-    <div style="background:#f8faf8;border:1px solid var(--border-mid);border-radius:12px;overflow:hidden;">
+    <div style="background:var(--surface-page);border:1px solid var(--border-strong);border-radius:var(--radius-xl);overflow:hidden;">
       <div style="background:var(--green-teal);padding:12px 18px;display:flex;align-items:center;gap:10px;">
         <span style="font-size:18px;">💬</span>
         <div>
@@ -1602,90 +1719,90 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
       <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;">
 
         <!-- Trigger -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-teal);margin-bottom:5px;letter-spacing:0.05em;">① 触发方式</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--accent-mint);margin-bottom:5px;letter-spacing:0.05em;">① 触发方式</div>
           <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;">
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-teal);font-weight:700;">·</span>
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-mint);font-weight:700;">·</span>
               用户切换到 EmailAssist Tab，自动开始（无需确认步骤）
             </li>
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-teal);font-weight:700;">·</span>
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-mint);font-weight:700;">·</span>
               复用 EmailGuard 已读取的邮件快照，不重复调用 Office.js
             </li>
           </ul>
         </div>
 
         <!-- Two parallel buffered calls -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-teal);margin-bottom:8px;letter-spacing:0.05em;">② 两路并行调用（非流式）</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--accent-mint);margin-bottom:8px;letter-spacing:0.05em;">② 两路并行调用（非流式）</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
 
-            <div style="background:#f5faf6;border:1px solid var(--ok-border);border-radius:6px;padding:8px 10px;">
-              <div style="font-size:9px;font-weight:700;color:var(--ok-text);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">摘要流</div>
-              <div style="font-size:10px;color:var(--text-faint);margin-bottom:5px;font-family:'JetBrains Mono',monospace;">qwen3.6-flash</div>
+            <div style="background:var(--brand-50);border:1px solid var(--success);border-radius:var(--radius-md);padding:8px 10px;">
+              <div style="font-size:9px;font-weight:700;color:var(--success);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">摘要流</div>
+              <div style="font-size:10px;color:var(--text-disabled);margin-bottom:5px;font-family:var(--font-mono);">qwen3.6-flash</div>
               <ul style="list-style:none;display:flex;flex-direction:column;gap:3px;">
-                <li style="font-size:10.5px;color:var(--text-muted);">语言检测</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">中文摘要</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">英文摘要</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">对向语言翻译</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">语言检测</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">中文摘要</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">英文摘要</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">对向语言翻译</li>
               </ul>
             </div>
 
-            <div style="background:#f0f4ff;border:1px solid #8fa8e0;border-radius:6px;padding:8px 10px;">
+            <div style="background:#f0f4ff;border:1px solid #8fa8e0;border-radius:var(--radius-md);padding:8px 10px;">
               <div style="font-size:9px;font-weight:700;color:#3d5a99;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">回复流</div>
-              <div style="font-size:10px;color:var(--text-faint);margin-bottom:5px;font-family:'JetBrains Mono',monospace;">qwen3.6-plus</div>
+              <div style="font-size:10px;color:var(--text-disabled);margin-bottom:5px;font-family:var(--font-mono);">qwen3.6-plus</div>
               <ul style="list-style:none;display:flex;flex-direction:column;gap:3px;">
-                <li style="font-size:10.5px;color:var(--text-muted);">3 种回复建议</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">简洁 / 正式 / 澄清</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">中英双语正文</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">收件人建议（单发 / 全回）</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">3 种回复建议</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">简洁 / 正式 / 澄清</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">中英双语正文</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">收件人建议（单发 / 全回）</li>
               </ul>
             </div>
 
           </div>
-          <div style="margin-top:8px;font-size:10px;color:var(--text-faint);line-height:1.5;">
-            两路 <code style="font-size:9px;background:#f0f0f0;padding:1px 3px;border-radius:3px;">Promise.all</code> 并行调用 <code style="font-size:9px;background:#f0f0f0;padding:1px 3px;border-radius:3px;">/api/dashscope-attachment</code>，
+          <div style="margin-top:8px;font-size:10px;color:var(--text-disabled);line-height:1.5;">
+            两路 <code style="font-size:9px;background:#f0f0f0;padding:1px 3px;border-radius:var(--radius-xs);">Promise.all</code> 并行调用 <code style="font-size:9px;background:#f0f0f0;padding:1px 3px;border-radius:var(--radius-xs);">/api/dashscope-attachment</code>，
             完整响应一次性返回；spinner 覆盖等待（3-7s），出结果后整体渲染。
           </div>
         </div>
 
         <!-- Reply suggestions -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-teal);margin-bottom:6px;letter-spacing:0.05em;">③ 回复建议 — 3 种风格</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--accent-mint);margin-bottom:6px;letter-spacing:0.05em;">③ 回复建议 — 3 种风格</div>
           <div style="display:flex;flex-direction:column;gap:5px;">
             <div style="display:flex;gap:8px;align-items:center;">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:2px 7px;background:#e8f0ff;border:1px solid #8fa8e0;border-radius:4px;color:#3d5a99;white-space:nowrap;">concise</span>
-              <span style="font-size:11px;color:var(--text-muted);">简洁确认 — 礼貌、简短</span>
+              <span style="font-family:var(--font-mono);font-size:9.5px;padding:2px 7px;background:#e8f0ff;border:1px solid #8fa8e0;border-radius:var(--radius-sm);color:#3d5a99;white-space:nowrap;">concise</span>
+              <span style="font-size:11px;color:var(--text-tertiary);">简洁确认 — 礼貌、简短</span>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:2px 7px;background:#e8f0ff;border:1px solid #8fa8e0;border-radius:4px;color:#3d5a99;white-space:nowrap;">formal</span>
-              <span style="font-size:11px;color:var(--text-muted);">正式业务回复 — 正式、完整</span>
+              <span style="font-family:var(--font-mono);font-size:9.5px;padding:2px 7px;background:#e8f0ff;border:1px solid #8fa8e0;border-radius:var(--radius-sm);color:#3d5a99;white-space:nowrap;">formal</span>
+              <span style="font-size:11px;color:var(--text-tertiary);">正式业务回复 — 正式、完整</span>
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <span style="font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:2px 7px;background:#e8f0ff;border:1px solid #8fa8e0;border-radius:4px;color:#3d5a99;white-space:nowrap;">clarify</span>
-              <span style="font-size:11px;color:var(--text-muted);">请求澄清 — 谨慎、明确</span>
+              <span style="font-family:var(--font-mono);font-size:9.5px;padding:2px 7px;background:#e8f0ff;border:1px solid #8fa8e0;border-radius:var(--radius-sm);color:#3d5a99;white-space:nowrap;">clarify</span>
+              <span style="font-size:11px;color:var(--text-tertiary);">请求澄清 — 谨慎、明确</span>
             </div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:3px;">每条建议包含中英双语正文，以发件人姓名作称呼，以上报人姓名签名</div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:3px;">回复对象默认选「<strong>全部回复 · Reply all</strong>」（适合多人邮件链）；可切到「仅回复发件人」</div>
+            <div style="font-size:10px;color:var(--text-disabled);margin-top:3px;">每条建议包含中英双语正文，以发件人姓名作称呼，以上报人姓名签名</div>
+            <div style="font-size:10px;color:var(--text-disabled);margin-top:3px;">回复对象默认选「<strong>全部回复 · Reply all</strong>」（适合多人邮件链）；可切到「仅回复发件人」</div>
           </div>
         </div>
 
         <!-- Delivery -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-teal);margin-bottom:6px;letter-spacing:0.05em;">④ 回复发送</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--accent-mint);margin-bottom:6px;letter-spacing:0.05em;">④ 回复发送</div>
           <div style="display:flex;flex-direction:column;gap:5px;">
-            <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 8px;background:var(--ok-bg);border-radius:5px;border-left:3px solid var(--ok-border);">
-              <span style="font-size:10px;color:var(--ok-text);font-weight:700;white-space:nowrap;flex-shrink:0;">桌面端</span>
-              <span style="font-size:11px;color:var(--text-body);line-height:1.5;">
-                <code style="font-size:9.5px;background:rgba(0,0,0,0.05);padding:1px 3px;border-radius:3px;">displayReplyFormAsync</code> /
-                <code style="font-size:9.5px;background:rgba(0,0,0,0.05);padding:1px 3px;border-radius:3px;">displayReplyAllFormAsync</code>，
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 8px;background:var(--success-bg);border-radius:5px;border-left:3px solid var(--ok-border);">
+              <span style="font-size:10px;color:var(--success);font-weight:700;white-space:nowrap;flex-shrink:0;">桌面端</span>
+              <span style="font-size:11px;color:var(--text-secondary);line-height:1.5;">
+                <code style="font-size:9.5px;background:rgba(0,0,0,0.05);padding:1px 3px;border-radius:var(--radius-xs);">displayReplyFormAsync</code> /
+                <code style="font-size:9.5px;background:rgba(0,0,0,0.05);padding:1px 3px;border-radius:var(--radius-xs);">displayReplyAllFormAsync</code>，
                 打开 Outlook 原生回复窗口，预填回复正文，用户点击发送
               </span>
             </div>
-            <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 8px;background:var(--warn-bg);border-radius:5px;border-left:3px solid var(--warn-border);">
-              <span style="font-size:10px;color:var(--warn-text);font-weight:700;white-space:nowrap;flex-shrink:0;">手机端</span>
-              <span style="font-size:11px;color:var(--text-body);line-height:1.5;">复制回复文本到剪贴板，用户手动在 Outlook 中粘贴后发送</span>
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:6px 8px;background:var(--warning-bg);border-radius:5px;border-left:3px solid var(--warn-border);">
+              <span style="font-size:10px;color:var(--warning);font-weight:700;white-space:nowrap;flex-shrink:0;">手机端</span>
+              <span style="font-size:11px;color:var(--text-secondary);line-height:1.5;">复制回复文本到剪贴板，用户手动在 Outlook 中粘贴后发送</span>
             </div>
           </div>
         </div>
@@ -1694,105 +1811,105 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     </div>
 
     <!-- ── AttachAnalyst ── -->
-    <div style="background:#f8faf8;border:1px solid var(--border-mid);border-radius:12px;overflow:hidden;">
-      <div style="background:var(--green-lime);padding:12px 18px;display:flex;align-items:center;gap:10px;">
+    <div style="background:var(--surface-page);border:1px solid var(--border-strong);border-radius:var(--radius-xl);overflow:hidden;">
+      <div style="background:var(--accent-lime);padding:12px 18px;display:flex;align-items:center;gap:10px;">
         <span style="font-size:18px;">📎</span>
         <div>
-          <div style="font-size:12px;font-weight:700;color:var(--green-dark);letter-spacing:0.02em;">AttachAnalyst</div>
+          <div style="font-size:12px;font-weight:700;color:var(--brand-700);letter-spacing:0.02em;">AttachAnalyst</div>
           <div style="font-size:9.5px;color:rgba(26,107,60,0.72);margin-top:1px;">附件深度分析 · 文本 + 图像</div>
         </div>
       </div>
       <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px;">
 
         <!-- ① Trigger -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-dark);margin-bottom:5px;letter-spacing:0.05em;">① 触发方式</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--brand-700);margin-bottom:5px;letter-spacing:0.05em;">① 触发方式</div>
           <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;">
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
-              切换到 AttachAnalyst Tab，自动调用 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 3px;border-radius:3px;">listAnalyzableAttachments()</code> 列出附件
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
+              切换到 AttachAnalyst Tab，自动调用 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 3px;border-radius:var(--radius-xs);">listAnalyzableAttachments()</code> 列出附件
             </li>
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
               用户多选 + 点「分析」才发送内容（首次显示隐私提示）
             </li>
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
-              移动端禁用（mobile Office.js 无 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 3px;border-radius:3px;">getAttachmentContentAsync</code>）
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
+              移动端禁用（mobile Office.js 无 <code style="font-size:9.5px;background:#f0f0f0;padding:1px 3px;border-radius:var(--radius-xs);">getAttachmentContentAsync</code>）
             </li>
           </ul>
         </div>
 
         <!-- ② Classifier -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-dark);margin-bottom:5px;letter-spacing:0.05em;">② 附件分类</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--brand-700);margin-bottom:5px;letter-spacing:0.05em;">② 附件分类</div>
           <div style="display:flex;flex-direction:column;gap:5px;">
-            <div style="font-size:10.5px;color:var(--text-muted);line-height:1.55;">
+            <div style="font-size:10.5px;color:var(--text-tertiary);line-height:1.55;">
               <strong>文本类</strong>（pdf / docx / xlsx / csv / json / md / sh / py / 36+ 后缀）→ Qwen
             </div>
-            <div style="font-size:10.5px;color:var(--text-muted);line-height:1.55;">
+            <div style="font-size:10.5px;color:var(--text-tertiary);line-height:1.55;">
               <strong>图像类</strong>（png / jpg / gif / webp）→ Azure GPT-4.1-mini
             </div>
-            <div style="font-size:10.5px;color:var(--text-muted);line-height:1.55;">
+            <div style="font-size:10.5px;color:var(--text-tertiary);line-height:1.55;">
               <strong>Outlook Item</strong>（邮件作为附件）→ EML 解析
             </div>
-            <div style="font-size:10.5px;color:var(--text-muted);line-height:1.55;">
+            <div style="font-size:10.5px;color:var(--text-tertiary);line-height:1.55;">
               <strong>ZIP 归档</strong> → 展开后子项独立分析
             </div>
-            <div style="font-size:10px;color:var(--text-faint);margin-top:3px;">
+            <div style="font-size:10px;color:var(--text-disabled);margin-top:3px;">
               单文件 ≤ 20 MB；超大 / 不支持显示具体原因
             </div>
           </div>
         </div>
 
         <!-- ③ ZIP -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-dark);margin-bottom:5px;letter-spacing:0.05em;">③ ZIP 展开（安全护栏）</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--brand-700);margin-bottom:5px;letter-spacing:0.05em;">③ ZIP 展开（安全护栏）</div>
           <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;">
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
               用户点 ▸ Expand 才解压；fflate 动态加载（~12 KB gz）
             </li>
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
               解压总大小 ≤ 50 MB（防 zip bomb），文件数 ≤ 30
             </li>
-            <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;line-height:1.55;">
-              <span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
+            <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;line-height:1.55;">
+              <span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
               加密 ZIP / 嵌套 ZIP → 失败卡片，不递归
             </li>
           </ul>
         </div>
 
         <!-- ④ AI dual-path -->
-        <div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--green-dark);margin-bottom:8px;letter-spacing:0.05em;">④ AI 分析（双路径）</div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--brand-700);margin-bottom:8px;letter-spacing:0.05em;">④ AI 分析（双路径）</div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
 
-            <div style="background:#f5faf6;border:1px solid var(--ok-border);border-radius:6px;padding:8px 10px;">
-              <div style="font-size:9px;font-weight:700;color:var(--ok-text);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">文本路径</div>
-              <div style="font-size:10px;color:var(--text-faint);margin-bottom:5px;font-family:'JetBrains Mono',monospace;">qwen3.6-plus</div>
+            <div style="background:var(--brand-50);border:1px solid var(--success);border-radius:var(--radius-md);padding:8px 10px;">
+              <div style="font-size:9px;font-weight:700;color:var(--success);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">文本路径</div>
+              <div style="font-size:10px;color:var(--text-disabled);margin-bottom:5px;font-family:var(--font-mono);">qwen3.6-plus</div>
               <ul style="list-style:none;display:flex;flex-direction:column;gap:3px;">
-                <li style="font-size:10.5px;color:var(--text-muted);">中英双语摘要</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">收款方 / 金额 / 期限</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">low / medium / high 风险</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">可疑信号清单</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">中英双语摘要</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">收款方 / 金额 / 期限</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">low / medium / high 风险</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">可疑信号清单</li>
               </ul>
             </div>
 
-            <div style="background:#f0f7f2;border:1px solid var(--green-teal);border-radius:6px;padding:8px 10px;">
-              <div style="font-size:9px;font-weight:700;color:var(--green-teal);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">图像路径</div>
-              <div style="font-size:10px;color:var(--text-faint);margin-bottom:5px;font-family:'JetBrains Mono',monospace;">gpt-4.1-mini</div>
+            <div style="background:var(--brand-50);border:1px solid var(--accent-mint);border-radius:var(--radius-md);padding:8px 10px;">
+              <div style="font-size:9px;font-weight:700;color:var(--accent-mint);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;">图像路径</div>
+              <div style="font-size:10px;color:var(--text-disabled);margin-bottom:5px;font-family:var(--font-mono);">gpt-4.1-mini</div>
               <ul style="list-style:none;display:flex;flex-direction:column;gap:3px;">
-                <li style="font-size:10.5px;color:var(--text-muted);">截图 / 二维码 / 发票图</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">OCR + 视觉理解</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">伪造登录页识别</li>
-                <li style="font-size:10.5px;color:var(--text-muted);">同样结构化 JSON 输出</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">截图 / 二维码 / 发票图</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">OCR + 视觉理解</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">伪造登录页识别</li>
+                <li style="font-size:10.5px;color:var(--text-tertiary);">同样结构化 JSON 输出</li>
               </ul>
             </div>
 
           </div>
-          <div style="margin-top:8px;font-size:10px;color:var(--text-faint);line-height:1.5;">
+          <div style="margin-top:8px;font-size:10px;color:var(--text-disabled);line-height:1.5;">
             并发上限 3，单附件 30s 超时；失败显示具体原因，不影响其他附件
           </div>
         </div>
@@ -1803,26 +1920,26 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
   </div><!-- end three-column grid -->
 
   <!-- 共享数据流说明 -->
-  <div style="margin:0 32px 28px;background:#f8faf8;border:1px solid var(--border-mid);border-radius:12px;padding:16px 20px;">
-    <div style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-faint);margin-bottom:12px;">用户 Prompt 结构（两者通用）</div>
+  <div style="margin:0 32px 28px;background:var(--surface-page);border:1px solid var(--border-strong);border-radius:var(--radius-xl);padding:16px 20px;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-disabled);margin-bottom:12px;">用户 Prompt 结构（两者通用）</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       <div>
-        <div style="font-size:10px;font-weight:700;color:var(--text-body);margin-bottom:6px;">包含字段</div>
+        <div style="font-size:10px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">包含字段</div>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;">
-          <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>Reporter：姓名、邮箱</li>
-          <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>From / To / Cc / Subject / Date</li>
-          <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>Email body（前 8 000 字符）</li>
-          <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>EmailGuard 额外传入：规则命中摘要、VT 情报摘要</li>
+          <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>Reporter：姓名、邮箱</li>
+          <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>From / To / Cc / Subject / Date</li>
+          <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>Email body（前 8 000 字符）</li>
+          <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>EmailGuard 额外传入：规则命中摘要、VT 情报摘要</li>
         </ul>
       </div>
       <div>
-        <div style="font-size:10px;font-weight:700;color:var(--text-body);margin-bottom:6px;">API 端点（同源代理）</div>
+        <div style="font-size:10px;font-weight:700;color:var(--text-secondary);margin-bottom:6px;">API 端点（同源代理）</div>
         <ul style="list-style:none;display:flex;flex-direction:column;gap:4px;">
-          <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>
-            <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">/api/dashscope-attachment</code>（EmailGuard / EmailAssist / AttachAnalyst 共用）
+          <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>
+            <code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">/api/dashscope-attachment</code>（EmailGuard / EmailAssist / AttachAnalyst 共用）
           </li>
-          <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>温度：0.25，JSON 模式，<code style="font-size:9.5px;">enable_thinking: false</code></li>
-          <li style="font-size:11px;color:var(--text-muted);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--green-lime);font-weight:700;">·</span>客户端无 Authorization header — Function 服务端加上 Bearer token 后转发</li>
+          <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>温度：0.25，JSON 模式，<code style="font-size:9.5px;">enable_thinking: false</code></li>
+          <li style="font-size:11px;color:var(--text-tertiary);padding-left:12px;position:relative;"><span style="position:absolute;left:2px;color:var(--accent-lime);font-weight:700;">·</span>客户端无 Authorization header — Function 服务端加上 Bearer token 后转发</li>
         </ul>
       </div>
     </div>
@@ -1833,7 +1950,7 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     <div class="callout callout-ok">
       <div class="callout-title">EmailGuard 使用的模型</div>
       <ul>
-        <li>AI 分析：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">qwen3.6-max-preview</code>（高精度，非流式，返回 riskScore + leaning）</li>
+        <li>AI 分析：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">qwen3.6-max-preview</code>（高精度，非流式，返回 riskScore + leaning）</li>
         <li>分析结果为单次完整响应，纳入三维加权评分</li>
         <li>所有 Qwen 调用经 <code style="font-size:9.5px;">/api/dashscope-attachment</code> 代理，key 服务端持有</li>
       </ul>
@@ -1841,16 +1958,16 @@ pre .hi  { color: var(--green-lime); font-weight: 600; }
     <div class="callout callout-info">
       <div class="callout-title">EmailAssist 使用的模型</div>
       <ul>
-        <li>摘要 + 翻译：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">qwen3.6-flash</code>（速度优先，约 3–4 倍更快）</li>
-        <li>回复建议：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">qwen3.6-plus</code>（生成质量优先）</li>
+        <li>摘要 + 翻译：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">qwen3.6-flash</code>（速度优先，约 3–4 倍更快）</li>
+        <li>回复建议：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">qwen3.6-plus</code>（生成质量优先）</li>
         <li>两路并行非流式调用，spinner 等待 3-7s 后整体渲染</li>
       </ul>
     </div>
     <div class="callout callout-warn">
       <div class="callout-title">AttachAnalyst 使用的模型</div>
       <ul>
-        <li>文本附件（pdf/docx/xlsx/csv/html/eml/json/md/zip 子项 等 36+ 后缀）：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">qwen3.6-plus</code> via <code style="font-size:9.5px;">/api/dashscope-attachment</code></li>
-        <li>图像附件（png/jpg/gif/webp）：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:3px;">gpt-4.1-mini-2025-04-14</code>（Azure OpenAI）via <code style="font-size:9.5px;">/api/openai-vision</code></li>
+        <li>文本附件（pdf/docx/xlsx/csv/html/eml/json/md/zip 子项 等 36+ 后缀）：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">qwen3.6-plus</code> via <code style="font-size:9.5px;">/api/dashscope-attachment</code></li>
+        <li>图像附件（png/jpg/gif/webp）：<code style="font-size:9.5px;background:#f0f0f0;padding:1px 4px;border-radius:var(--radius-xs);">gpt-4.1-mini-2025-04-14</code>（Azure OpenAI）via <code style="font-size:9.5px;">/api/openai-vision</code></li>
         <li>ZIP 一层展开（含安全护栏：50MB 解压上限、30 文件上限、加密 ZIP 报错）；嵌套 ZIP 不递归</li>
         <li>用户多选 + 单附件 30s 超时 + 并发 3 + 隐私提示首次详细 / 之后压缩条</li>
       </ul>
