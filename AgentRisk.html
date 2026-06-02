@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企业AI数字员工安全风险分析 — GLP DT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+/* ── Design Tokens ── */
+:root {
+  --primary:        #00AA4F;
+  --primary-active: #008E43;
+  --primary-soft:   #E3F5EA;
+  --deep:           #006845;
+  --deep-field:     #005A3C;
+  --lime:           #82BC00;
+  --bg:             #F9FAFC;
+  --surface:        #FFFFFF;
+  --paper:          #F6F4EF;
+  --ink:            #42464A;
+  --body:           #555B61;
+  --muted:          #737A82;
+  --muted-soft:     #A6ADB5;
+  --hairline:       #DDE3EA;
+  --hairline-green: #B8DFC9;
+  --warning:        #F0A800;
+  --error:          #C83A3A;
+  --font: 'Lato', 'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Animations ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes arcGrow {
+  from { opacity: 0; transform: scale(0.92); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes drawLine {
+  from { stroke-dashoffset: 800; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-32px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes iconFloat {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-4px); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+/* ── Layout ── */
+.container { max-width: 1440px; margin: 0 auto; padding: 0 40px; }
+
+/* ── Header ── */
+.site-header {
+  position: sticky; top: 0; z-index: 100;
+  background: var(--surface);
+  border-bottom: 1px solid var(--hairline);
+  height: 60px;
+  display: flex; align-items: center;
+}
+
+/* ── Page navigation tabs ── */
+.page-nav {
+  position: sticky;
+  top: 60px;
+  z-index: 99;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(150%) blur(10px);
+  -webkit-backdrop-filter: saturate(150%) blur(10px);
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: 0 1px 4px rgba(0, 60, 30, 0.03);
+}
+.page-nav .container {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+.page-nav-list {
+  list-style: none;
+  margin: 0; padding: 0;
+  display: flex;
+  gap: 4px;
+}
+.page-nav-link {
+  display: inline-block;
+  padding: 14px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-decoration: none;
+  position: relative;
+  transition: color 0.15s ease;
+}
+.page-nav-link::after {
+  content: '';
+  position: absolute;
+  left: 18px; right: 18px;
+  bottom: 0;
+  height: 2px;
+  background: var(--primary);
+  transform: scaleX(0);
+  transform-origin: center;
+  transition: transform 0.25s ease;
+}
+.page-nav-link:hover {
+  color: var(--ink);
+}
+.page-nav-link.is-active {
+  color: var(--deep);
+}
+.page-nav-link.is-active::after {
+  transform: scaleX(1);
+}
+/* Anchor offset so sticky header doesn't cover the title when jumping */
+section[id] {
+  scroll-margin-top: 116px;
+}
+.site-header .container {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 0 40px;
+}
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
+}
+.logo-mark {
+  width: 32px; height: 32px;
+  background: var(--primary);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  animation: pulse 3s ease-in-out infinite;
+}
+.logo-mark svg { width: 18px; height: 18px; }
+.logo-text {
+  font-size: 13px; font-weight: 900; letter-spacing: 0.08em;
+  color: var(--ink); text-transform: uppercase;
+}
+.logo-sub {
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  letter-spacing: 0.04em;
+}
+.header-meta {
+  font-size: 12px; color: var(--muted);
+  display: flex; gap: 20px; align-items: center;
+}
+.header-badge {
+  background: var(--primary-soft);
+  color: var(--deep);
+  font-size: 11px; font-weight: 700;
+  padding: 3px 10px; border-radius: 4px;
+  letter-spacing: 0.05em;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  background: var(--deep-field);
+  overflow: hidden;
+  min-height: 260px;
+  display: flex; align-items: center;
+}
+.hero-arc-1 {
+  position: absolute; bottom: -240px; right: -200px;
+  width: 700px; height: 700px;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.18;
+  animation: arcGrow 1.4s cubic-bezier(0.16,1,0.3,1) forwards;
+}
+.hero-arc-2 {
+  position: absolute; bottom: -320px; right: -120px;
+  width: 560px; height: 560px;
+  border-radius: 50%;
+  background: var(--lime);
+  opacity: 0.12;
+  animation: arcGrow 1.6s 0.2s cubic-bezier(0.16,1,0.3,1) both;
+}
+.hero-arc-3 {
+  position: absolute; top: -180px; left: -140px;
+  width: 400px; height: 400px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.08);
+  animation: arcGrow 1.8s 0.1s cubic-bezier(0.16,1,0.3,1) both;
+}
+.hero-content {
+  position: relative; z-index: 2;
+  padding: 40px 40px;
+  max-width: 1440px; margin: 0 auto; width: 100%;
+}
+.hero-eyebrow {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.14em;
+  color: var(--lime); text-transform: uppercase;
+  margin-bottom: 20px;
+  animation: fadeUp 0.8s 0.2s both;
+}
+.hero-title {
+  font-size: 44px; font-weight: 900; line-height: 1.12;
+  color: #fff; max-width: 680px;
+  animation: fadeUp 0.8s 0.35s both;
+}
+.hero-title em {
+  font-style: normal;
+  color: var(--lime);
+}
+.hero-desc {
+  margin-top: 24px;
+  font-size: 17px; line-height: 1.7;
+  color: rgba(255,255,255,0.72);
+  max-width: 1100px;
+  animation: fadeUp 0.8s 0.5s both;
+}
+.hero-desc strong {
+  color: rgba(255,255,255,0.95);
+  font-weight: 700;
+}
+
+/* ── Section ── */
+.section { padding: 72px 0; }
+.section + .section { padding-top: 0; }
+.section-label {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--primary);
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px;
+}
+.section-label::after {
+  content: '';
+  display: block; flex: 1; max-width: 40px; height: 1px;
+  background: var(--primary);
+}
+.section-title {
+  font-size: 32px; font-weight: 900;
+  color: var(--ink); line-height: 1.2;
+  margin-bottom: 16px;
+}
+.intro-lead {
+  font-size: 16px;
+  line-height: 1.85;
+  color: var(--body);
+  margin: 8px 0 40px;
+  max-width: none;
+}
+.intro-lead strong {
+  color: var(--deep);
+  font-weight: 700;
+}
+.intro-lead br { display: none; }
+.section-desc {
+  font-size: 16px; color: var(--muted);
+  max-width: 640px; line-height: 1.65;
+  margin-bottom: 48px;
+}
+
+/* ── Stats band ── */
+.stats-band {
+  background: var(--surface);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  padding: 40px 0;
+}
+.stats-grid {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 0;
+}
+.stat-item {
+  padding: 24px 40px;
+  border-right: 1px solid var(--hairline);
+  animation: countUp 0.6s both;
+}
+.stat-item:last-child { border-right: none; }
+.stat-num {
+  font-size: 48px; font-weight: 900; line-height: 1;
+  color: var(--primary); display: block;
+}
+.stat-num.red { color: var(--error); }
+.stat-label {
+  font-size: 13px; color: var(--muted);
+  margin-top: 8px; line-height: 1.45;
+}
+.stat-source {
+  font-size: 11px; color: var(--muted-soft);
+  margin-top: 6px;
+}
+
+/* ── Manage vs Control ── */
+.mvc-section {
+  position: relative;
+  background: var(--surface);
+  overflow: hidden;
+}
+.mvc-arc {
+  position: absolute; top: -200px; right: -150px;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  pointer-events: none;
+}
+.mvc-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  background: var(--hairline);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 48px;
+}
+.mvc-card {
+  background: var(--surface);
+  padding: 40px 48px;
+}
+.mvc-card.manage { border-left: 4px solid var(--primary); }
+.mvc-card.control { border-left: 4px solid #1E40AF; }
+.mvc-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  padding: 4px 12px; border-radius: 4px;
+  text-transform: uppercase; margin-bottom: 16px;
+}
+.mvc-badge.manage {
+  background: var(--primary-soft); color: var(--deep);
+}
+.mvc-badge.control {
+  background: #DBEAFE; color: #1E40AF;
+}
+.mvc-keyword {
+  font-size: 34px; font-weight: 900;
+  color: var(--ink); margin-bottom: 8px;
+}
+.mvc-keyword .q { color: var(--primary); }
+.mvc-keyword .q.red { color: #1E40AF; }
+.mvc-sub {
+  font-size: 15px; color: var(--muted);
+}
+
+/* ── Assumptions table ── */
+.assumption-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  table-layout: fixed;
+}
+.assumption-table thead tr {
+  background: var(--ink);
+}
+.assumption-table thead th {
+  padding: 16px 22px;
+  color: #fff; font-weight: 700; font-size: 13px;
+  text-align: left; letter-spacing: 0.02em;
+  line-height: 1.4;
+}
+.assumption-table thead th:first-child {
+  border-radius: 8px 0 0 0;
+  padding-left: 64px;
+}
+.assumption-table thead th:last-child {
+  border-radius: 0 8px 0 0;
+}
+.assumption-table tbody { counter-reset: assumption-row; }
+.assumption-table tbody tr {
+  counter-increment: assumption-row;
+}
+.assumption-table tbody tr:last-child td:first-child { border-bottom: none; }
+.assumption-table tbody tr:last-child .assumption-col-yes,
+.assumption-table tbody tr:last-child .assumption-col-no { border-bottom: none; }
+.assumption-table td {
+  padding: 18px 22px;
+  vertical-align: middle;
+  line-height: 1.55;
+  background-clip: padding-box;
+  border-bottom: 4px solid var(--surface);
+}
+.assumption-table td:first-child {
+  color: var(--ink); font-weight: 500;
+  padding-left: 64px;
+  position: relative;
+  background: var(--surface);
+}
+.assumption-table td:first-child::before {
+  content: counter(assumption-row, decimal-leading-zero);
+  position: absolute;
+  left: 20px; top: 50%;
+  transform: translateY(-50%);
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--deep);
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+}
+.assumption-col-yes,
+td.assumption-col-yes {
+  color: var(--deep);
+  background-color: #F0F8F4 !important;
+  font-size: 13px;
+}
+.assumption-col-yes::before {
+  content: '● ';
+  font-size: 9px;
+  vertical-align: middle;
+  margin-right: 4px;
+  color: var(--primary);
+}
+.assumption-col-no,
+td.assumption-col-no {
+  color: #1E40AF;
+  background-color: #EFF6FF !important;
+  font-size: 13px;
+}
+.assumption-col-no::before {
+  content: '● ';
+  font-size: 9px;
+  vertical-align: middle;
+  margin-right: 4px;
+  color: #1E40AF;
+}
+.table-wrap {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* ── Risk domain header ── */
+.domain-header {
+  display: flex; align-items: center; gap: 16px;
+  padding: 20px 28px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.domain-header.agent  { background: var(--deep-field); }   /* #005A3C — deepest field green */
+.domain-header.data   { background: var(--deep); }         /* #006845 — deep green */
+.domain-header.legal  { background: #003E2A; }             /* darker olive-green */
+.domain-icon {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  animation: iconFloat 3s ease-in-out infinite;
+}
+.domain-header.agent  .domain-icon { background: rgba(130,188,0,0.22); }
+.domain-header.data   .domain-icon { background: rgba(0,170,79,0.25); }
+.domain-header.legal  .domain-icon { background: rgba(130,188,0,0.18); }
+.domain-icon svg { width: 24px; height: 24px; }
+.domain-title {
+  font-size: 20px; font-weight: 900;
+  color: #fff; letter-spacing: -0.01em;
+}
+.domain-sub {
+  font-size: 13px; color: rgba(255,255,255,0.55);
+  margin-top: 2px;
+}
+.domain-arc {
+  position: absolute; right: -60px; top: -60px;
+  width: 180px; height: 180px;
+  border-radius: 50%;
+  opacity: 0.08;
+}
+.domain-header.agent  .domain-arc { background: var(--lime); }
+.domain-header.data   .domain-arc { background: var(--primary); }
+.domain-header.legal  .domain-arc { background: var(--lime); }
+
+/* ── Risk cards ── */
+.risk-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 48px;
+}
+.risk-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.risk-card:hover {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
+}
+.risk-card-header {
+  padding: 14px 18px 12px;
+  border-bottom: 1px solid var(--hairline);
+  display: flex; align-items: center; gap: 10px;
+}
+.risk-icon {
+  width: 32px; height: 32px; flex-shrink: 0;
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+}
+/* All risk icons unified to GLP green-tinted backgrounds */
+.risk-icon.a1, .risk-icon.a3, .risk-icon.a4,
+.risk-icon.d1, .risk-icon.d2,
+.risk-icon.l1, .risk-icon.l2 { background: #E3F5EA; }
+.risk-icon.a2 { background: #F2F9E0; }
+.risk-icon svg { width: 16px; height: 16px; }
+.risk-name {
+  font-size: 14.5px; font-weight: 700;
+  color: var(--deep); line-height: 1.3;
+}
+.risk-card-body { padding: 14px 18px 16px; }
+.risk-desc {
+  font-size: 12.5px; color: var(--primary);
+  line-height: 1.6; margin-bottom: 12px;
+}
+/* Inline sections (replaces tabs — both shown sequentially) */
+.risk-section { margin-top: 10px; }
+.risk-section-label {
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--deep);
+  margin-bottom: 5px;
+  display: inline-flex;
+  align-items: center; gap: 6px;
+}
+.risk-section-label::before {
+  content: '';
+  width: 14px; height: 2px;
+  background: var(--primary);
+  border-radius: 2px;
+}
+.consequence-list { list-style: none; padding: 0; }
+.consequence-list li {
+  padding: 3px 0 3px 14px;
+  position: relative; font-size: 12.5px;
+  color: var(--body);
+}
+.consequence-list li::before {
+  content: '';
+  position: absolute; left: 0; top: 10px;
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--primary);
+}
+.example-box {
+  background: var(--bg);
+  border-left: 3px solid var(--primary);
+  border-radius: 0 6px 6px 0;
+  padding: 9px 13px;
+  font-size: 12px; color: var(--body);
+  line-height: 1.55;
+}
+.example-box strong { color: var(--ink); }
+
+/* ── UEBA note ── */
+.ueba-note {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 20px 24px;
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.ueba-col-label {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; margin-bottom: 8px;
+}
+.ueba-col-label.human { color: var(--primary); }
+.ueba-col-label.digital { color: var(--error); }
+.ueba-list { font-size: 13px; color: var(--body); line-height: 1.7; padding-left: 16px; }
+
+/* ── UEBA collapsible footnote ── */
+.ueba-footnote {
+  margin: 4px 0 32px;
+  font-size: 12.5px;
+}
+.ueba-footnote > summary {
+  list-style: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  border: 1px dashed var(--hairline);
+  background: transparent;
+  color: var(--muted);
+  user-select: none;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+.ueba-footnote > summary::-webkit-details-marker { display: none; }
+.ueba-footnote > summary::marker { content: ''; }
+.ueba-footnote > summary:hover {
+  color: var(--ink);
+  border-color: var(--muted-soft);
+  background: var(--surface);
+}
+.ueba-footnote-marker {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--muted-soft);
+  color: #fff;
+  font-size: 10px; font-weight: 700;
+  font-style: normal;
+}
+.ueba-footnote-label {
+  font-size: 12px;
+  letter-spacing: 0.01em;
+}
+.ueba-footnote-chevron {
+  font-size: 14px; line-height: 1;
+  color: var(--muted-soft);
+  transition: transform 0.2s ease;
+  transform: rotate(90deg);
+}
+.ueba-footnote[open] > summary {
+  color: var(--ink);
+  border-color: var(--muted-soft);
+  background: var(--surface);
+  margin-bottom: 12px;
+}
+.ueba-footnote[open] .ueba-footnote-chevron {
+  transform: rotate(-90deg);
+}
+.ueba-footnote[open] .ueba-footnote-marker {
+  background: var(--primary);
+}
+
+/* ── Appendix table ── */
+.appendix-section { background: var(--paper); padding: 72px 0; }
+
+/* ── Appendix collapsible ── */
+.appendix-collapse { margin-top: 8px; }
+.appendix-collapse > summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  user-select: none;
+}
+.appendix-collapse > summary::-webkit-details-marker { display: none; }
+.appendix-collapse > summary::marker { content: ''; }
+.appendix-title {
+  margin: 0;
+  display: inline-block;
+  font-size: 22px;
+  font-weight: 800;
+}
+.appendix-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--deep);
+  padding: 6px 14px;
+  border: 1px solid #B8DFC9;
+  border-radius: 999px;
+  background: #E3F5EA;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+.appendix-collapse > summary:hover .appendix-toggle {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+.appendix-toggle-label-open { display: none; }
+.appendix-toggle-label-closed { display: inline; }
+.appendix-collapse[open] .appendix-toggle-label-open { display: inline; }
+.appendix-collapse[open] .appendix-toggle-label-closed { display: none; }
+.appendix-chevron {
+  display: inline-block;
+  font-size: 16px; line-height: 1;
+  transition: transform 0.2s ease;
+  transform: rotate(90deg);
+}
+.appendix-collapse[open] .appendix-chevron {
+  transform: rotate(-90deg);
+}
+
+.control-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+  background: var(--surface);
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--hairline);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+.control-table thead tr { background: var(--ink); }
+.control-table thead th {
+  padding: 14px 20px; color: #fff;
+  font-weight: 700; font-size: 13px;
+  text-align: left;
+}
+.control-table tbody tr { border-bottom: 1px solid var(--hairline); }
+.control-table tbody tr:hover { background: var(--bg); }
+.control-table tbody tr:last-child { border-bottom: none; }
+.control-table td { padding: 13px 20px; vertical-align: top; line-height: 1.55; }
+.domain-pill {
+  display: inline-block;
+  padding: 3px 10px; border-radius: 4px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+.domain-pill.agent { background: #DCFCE7; color: #166534; }
+.domain-pill.data  { background: #DBEAFE; color: #1E40AF; }
+.domain-pill.legal { background: #FFF7ED; color: #92400E; }
+.risk-tag {
+  display: inline-block;
+  font-size: 11px; padding: 2px 8px;
+  border-radius: 4px; background: var(--bg);
+  color: var(--muted); border: 1px solid var(--hairline);
+  white-space: nowrap;
+}
+
+/* ── Footer ── */
+.site-footer {
+  background: var(--deep-field);
+  padding: 48px 0 32px;
+  position: relative; overflow: hidden;
+}
+.footer-arc {
+  position: absolute; top: -160px; right: -100px;
+  width: 360px; height: 360px;
+  border-radius: 50%;
+  border: 1px solid rgba(0,170,79,0.15);
+  pointer-events: none;
+}
+.footer-arc-2 {
+  position: absolute; bottom: -120px; left: -80px;
+  width: 280px; height: 280px;
+  border-radius: 50%;
+  background: rgba(130,188,0,0.06);
+  pointer-events: none;
+}
+.footer-content {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 48px; position: relative; z-index: 1;
+}
+.footer-brand { flex: 1; }
+.footer-logo {
+  font-size: 15px; font-weight: 900;
+  color: #fff; letter-spacing: 0.06em;
+  margin-bottom: 12px;
+}
+.footer-tagline {
+  font-size: 13px; color: rgba(255,255,255,0.45);
+  line-height: 1.6; max-width: 320px;
+}
+.footer-meta {
+  font-size: 11px; color: rgba(255,255,255,0.25);
+  margin-top: 32px;
+}
+
+/* ── Scroll reveal ── */
+.reveal {
+  opacity: 0; transform: translateY(20px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  .container { padding: 0 24px; }
+  .hero-title { font-size: 30px; }
+  .page-nav-list { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .page-nav-link { padding: 12px 14px; font-size: 12px; white-space: nowrap; }
+  section[id] { scroll-margin-top: 108px; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-item { border-right: none; border-bottom: 1px solid var(--hairline); }
+  .mvc-grid { grid-template-columns: 1fr; }
+  .risk-grid { grid-template-columns: 1fr; }
+  .footer-content { flex-direction: column; }
+  .hero-content { padding: 60px 24px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ── -->
+<header class="site-header">
+  <div class="container">
+    <a class="logo" href="#">
+      <div class="logo-mark">
+        <svg viewBox="0 0 18 18" fill="none">
+          <path d="M9 2L15 5.5V12.5L9 16L3 12.5V5.5L9 2Z" fill="white" opacity="0.9"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-sub">Cybersecurity · AI Security Risk</div>
+      </div>
+    </a>
+    <div class="header-meta">
+      <span>2026.06</span>
+      <span class="header-badge">Internal Use Only</span>
+    </div>
+  </div>
+</header>
+
+<!-- ── PAGE NAV ── -->
+<nav class="page-nav" id="page-nav">
+  <div class="container">
+    <ul class="page-nav-list">
+      <li><a href="#intro" class="page-nav-link" data-target="intro">引言</a></li>
+      <li><a href="#logic" class="page-nav-link" data-target="logic">安全逻辑差异</a></li>
+      <li><a href="#risks" class="page-nav-link" data-target="risks">主要安全风险</a></li>
+      <li><a href="#appendix" class="page-nav-link" data-target="appendix">附录</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero" id="intro">
+  <div class="hero-arc-1"></div>
+  <div class="hero-arc-2"></div>
+  <div class="hero-arc-3"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">AI Security Risk Management</div>
+    <h1 class="hero-title">企业AI数字员工<br><em>安全风险分析</em></h1>
+  </div>
+</section>
+
+<!-- ── DATA SECTION (part of 引言 for nav purposes) ── -->
+<section class="data-section" data-nav-group="intro">
+  <div class="container">
+
+    <div class="section-label reveal">引言</div>
+    <h2 class="section-title reveal">AI 数字员工：企业安全治理的新主体</h2>
+
+    <p class="intro-lead reveal">
+      AI Agent 正在从辅助工具演变为能够持有企业系统授权、自主执行跨系统任务的自主实体。<br>
+      每一个协助提效的 AI 数字员工，都是一个<strong>行为边界尚未清晰、运行机制尚未约束的新型主体</strong>——<br>
+      它们带来的安全风险，正在以与部署同等的速度积累。
+    </p>
+
+    <!-- SailPoint callout — GLP design system style -->
+    <div class="glp-callout reveal">
+      <div class="glp-callout-arc"></div>
+      <div class="glp-callout-arc2"></div>
+      <div class="glp-callout-inner">
+        <div class="glp-callout-stat">55%<span style="font-size:36px;font-weight:700;letter-spacing:0">+</span></div>
+        <div class="glp-callout-text">
+          <p class="glp-callout-main">的企业认为 Agentic AI 的主要安全风险在于对<strong>数据安全和权限边界</strong>的挑战。</p>
+          <div class="glp-callout-source">— <a href="https://nhimg.org/wp-content/uploads/2025/09/SailPoint-The-Rising-Risk-of-AI-Agents-Expanding-the-Attack-Surface-report-SP2648-.pdf" target="_blank" rel="noopener">SailPoint: The Rising Risk of AI Agents — Expanding the Attack Surface, 2026</a></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 1: two SailPoint bar charts -->
+    <div class="charts-row reveal">
+
+      <div class="chart-card paper-card">
+        <div class="chart-source-tag">SailPoint, 2026</div>
+        <div class="chart-title-en">In your experience, what makes an Agentic AI a security risk?</div>
+        <div class="chart-title-cn">您认为 Agentic AI 构成安全风险的原因是什么？</div>
+        <div class="bar-chart sailpoint-bars" id="chart-risk-reasons"></div>
+      </div>
+
+      <div class="chart-card paper-card">
+        <div class="chart-source-tag">SailPoint, 2026</div>
+        <div class="chart-title-en">How are AI agent identities different from human identities?</div>
+        <div class="chart-title-cn">AI Agent 的身份与人类身份有何不同？</div>
+        <div class="bar-chart sailpoint-bars" id="chart-identity-diff"></div>
+      </div>
+
+    </div>
+
+    <!-- Rows 2 & 3 as flat 2x2 grid: callouts share row 1, charts share row 2 -->
+    <div class="data-pair-row reveal" style="margin-top:28px">
+
+      <!-- R1 C1: Shadow AI callout -->
+      <div class="glp-callout glp-callout-compact" data-cell="ca">
+        <div class="glp-callout-arc"></div>
+        <div class="glp-callout-arc2"></div>
+        <div class="glp-callout-inner">
+          <div class="glp-callout-stat">85.6%</div>
+          <div class="glp-callout-text">
+            <p class="glp-callout-main"><strong>Shadow AI 的涌现：</strong>仅 14.4% 的组织对其所有 AI Agent 发布至生产环境前进行了全面的安全和 IT 审批，<strong>85.6% 的企业内都有未经审批的 AI Agent 在 IT 控制视野外悄然运行。</strong></p>
+            <div class="glp-callout-source">— <a href="https://www.gravitee.io/state-of-ai-agent-security" target="_blank" rel="noopener">Gravitee: State of AI Agent Security 2026</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- R1 C2: NHI callout -->
+      <div class="glp-callout glp-callout-compact" data-cell="cb">
+        <div class="glp-callout-arc"></div>
+        <div class="glp-callout-arc2"></div>
+        <div class="glp-callout-inner">
+          <div class="glp-callout-stat nhi-stat">21.9%</div>
+          <div class="glp-callout-text">
+            <p class="glp-callout-main">AI Agent 正迅速成为企业运营的参与者，但<strong>「唯一身份」</strong>这一基本安全原则在 Agent 运用场景下很大程度上被忽视。仅 21.9% 的团队将 AI Agent 视为独立的身份实体。<strong>过度授权的 NHI、凭证暴露、长效凭证</strong>等情况是 Agentic 风险的根源与放大器。</p>
+            <div class="glp-callout-source">— <a href="https://www.gravitee.io/state-of-ai-agent-security" target="_blank" rel="noopener">Gravitee: State of AI Agent Security 2026</a> / <a href="https://entro.security/blog/the-owasp-agentic-top-10-2026-what-it-means-for-ai-agents-and-non-human-identities/" target="_blank" rel="noopener">OWASP Top 10 for Agentic Applications 2026</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- R2 C1: Donut chart -->
+      <div class="chart-card paper-card" data-cell="cha">
+        <div class="chart-source-tag">Gravitee, State of AI Agent Security 2026</div>
+        <div class="chart-title-en">AI agents deployed with full approval from IT or security teams</div>
+        <div class="chart-title-cn">获得 IT/安全团队完整审批的 AI Agent 比例</div>
+        <div class="donut-chart-layout">
+          <canvas id="donut-approval" width="160" height="160"></canvas>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+
+      <!-- R2 C2: Bar chart -->
+      <div class="chart-card paper-card gravitee-card" data-cell="chb">
+        <div class="chart-source-tag gravitee-tag">Gravitee, State of AI Agent Security 2026</div>
+        <div class="chart-title-en">Treatment of AI Agents as independent, identity-bearing entities within the security model</div>
+        <div class="chart-title-cn">是否将 AI Agent 视为安全模型中的独立身份实体</div>
+        <div class="bar-chart" id="chart-identity-treatment"></div>
+      </div>
+
+    </div>
+
+  </div>
+</section>
+
+<style>
+.data-section {
+  background: var(--bg);
+  padding: 72px 0 48px;
+  border-top: 1px solid var(--hairline);
+}
+
+/* Row 1 two-column */
+.charts-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+
+/* Row 1 reference aside: add ref badge beside charts */
+.charts-row-with-ref {
+  display: grid;
+  grid-template-columns: 1fr 1fr 120px;
+  gap: 16px;
+  align-items: start;
+}
+
+/* Row 2/3 grouped block (legacy single-column wrapper, retained for safety) */
+.data-group { display: flex; flex-direction: column; gap: 12px; }
+
+/* 2x2 grid: callouts share row 1, charts share row 2 — both rows auto-align */
+.data-pair-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 14px 20px;
+  align-items: stretch;
+}
+.data-pair-row > [data-cell="ca"]  { grid-area: 1 / 1; }
+.data-pair-row > [data-cell="cb"]  { grid-area: 1 / 2; }
+.data-pair-row > [data-cell="cha"] { grid-area: 2 / 1; }
+.data-pair-row > [data-cell="chb"] { grid-area: 2 / 2; }
+/* Chart cards stretch to fill their grid cell so both bottoms align */
+.data-pair-row .chart-card { display: flex; flex-direction: column; }
+.data-pair-row .chart-card > .chart-ref-caption { margin-top: auto; }
+/* Reserve consistent vertical space for chart titles so chart bodies start on the same baseline */
+.data-pair-row .chart-title-en { min-height: 0; }
+
+/* ── Chart ref caption ── */
+.chart-ref-caption {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--muted-soft);
+  text-align: right;
+  line-height: 1.5;
+}
+.chart-ref-caption a {
+  color: var(--muted-soft);
+  text-decoration: none;
+}
+.chart-ref-caption a:hover {
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+/* ── GLP Callout ── */
+.glp-callout {
+  position: relative;
+  background: var(--deep-field);
+  border-radius: 0;
+  padding: 36px 48px;
+  overflow: hidden;
+}
+.glp-callout-arc {
+  position: absolute; right: -120px; bottom: -120px;
+  width: 340px; height: 340px; border-radius: 50%;
+  background: var(--primary); opacity: 0.15; pointer-events: none;
+}
+.glp-callout-arc2 {
+  position: absolute; right: -60px; bottom: -80px;
+  width: 220px; height: 220px; border-radius: 50%;
+  background: var(--lime); opacity: 0.10; pointer-events: none;
+}
+.glp-callout-inner {
+  display: flex; align-items: center; gap: 40px;
+  position: relative; z-index: 1; width: 100%;
+}
+.glp-callout-stat {
+  font-size: 72px; font-weight: 900; line-height: 1;
+  color: var(--lime); flex-shrink: 0; letter-spacing: -2px;
+}
+.nhi-stat { font-size: 56px; }
+.glp-callout-text { flex: 1; }
+.glp-callout-main {
+  font-size: 16px;
+  line-height: 1.7;
+  color: rgba(255,255,255,0.88);
+  margin-bottom: 12px;
+}
+
+/* Compact callout variant — used when callouts sit side-by-side */
+.glp-callout-compact {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.glp-callout-compact .glp-callout-inner { gap: 20px; align-items: center; }
+.glp-callout-compact .glp-callout-stat { font-size: 48px; letter-spacing: -1.5px; }
+.glp-callout-compact .nhi-stat { font-size: 40px; }
+.glp-callout-compact .glp-callout-main {
+  font-size: 13.5px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+.glp-callout-compact .glp-callout-source { font-size: 10.5px; }
+.glp-callout-compact .glp-callout-arc {
+  right: -100px; bottom: -100px; width: 240px; height: 240px;
+}
+.glp-callout-compact .glp-callout-arc2 {
+  right: -40px; bottom: -60px; width: 160px; height: 160px;
+}
+.glp-callout-main strong { color: #fff; font-weight: 700; }
+.glp-callout-en {
+  font-size: 15px; line-height: 1.65;
+  color: rgba(255,255,255,0.88); margin-bottom: 10px;
+}
+.glp-callout-en strong { color: #fff; font-weight: 700; }
+.glp-callout-cn {
+  font-size: 12.5px; line-height: 1.65;
+  color: rgba(255,255,255,0.42); margin-bottom: 10px;
+}
+.glp-callout-source {
+  font-size: 11px; color: rgba(255,255,255,0.45); letter-spacing: 0.03em;
+}
+.glp-callout-source a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dotted rgba(255,255,255,0.3);
+  padding-bottom: 1px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.glp-callout-source a:hover {
+  color: rgba(255,255,255,0.95);
+  border-bottom-color: rgba(255,255,255,0.7);
+}
+
+/* ── Paper card (GLP design system) ── */
+.paper-card {
+  background: var(--surface) !important;
+  border: 1px solid var(--hairline) !important;
+  border-radius: 10px; padding: 22px !important;
+  box-shadow: 0 2px 12px rgba(0, 60, 30, 0.05), 0 1px 3px rgba(0, 60, 30, 0.04) !important;
+  position: relative;
+}
+.external-ribbon {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--deep); border: 1px solid #B8DFC9;
+  padding: 2px 8px; border-radius: 3px;
+  margin-bottom: 10px; background: #E3F5EA;
+}
+.chart-source-tag {
+  display: inline-block; font-size: 10px; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--deep); background: #E3F5EA;
+  padding: 2px 8px; border-radius: 3px; margin-bottom: 8px;
+}
+.chart-title-en {
+  font-size: 13px; font-weight: 700;
+  color: var(--ink); line-height: 1.4; margin-bottom: 2px;
+}
+.chart-title-cn {
+  font-size: 11px; color: var(--muted); line-height: 1.4; margin-bottom: 16px;
+}
+
+/* ── Bar chart (GLP design system) ── */
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 8px; }
+.bar-label {
+  font-size: 11px; color: var(--ink);
+  width: 170px; flex-shrink: 0;
+  text-align: right; line-height: 1.3;
+}
+.bar-track {
+  flex: 1; height: 22px; background: #EDF1ED;
+  border-radius: 2px; position: relative;
+  /* overflow visible so the end-of-bar label can sit just past the fill */
+  overflow: visible;
+}
+.bar-fill {
+  height: 100%; border-radius: 2px; width: 0;
+  transition: width 1.4s cubic-bezier(0.16,1,0.3,1);
+  transition-delay: var(--bar-delay, 0s);
+  position: relative;
+}
+/* GLP-aligned palette v2 — uses literal hex to override any cached rule */
+.bar-fill.sp-blue,
+.bar-fill.gv-orange,
+.bar-fill.gv-midorange,
+.bar-fill.primary {
+  background: #00AA4F !important;
+}
+.bar-fill.sp-pink,
+.bar-fill.gv-lightorange,
+.bar-fill.lime {
+  background: #82BC00 !important;
+}
+.bar-fill.gv-darkbrown {
+  background: #006845 !important;
+}
+.bar-fill.sp-gray,
+.bar-fill.gv-darkred,
+.bar-fill.muted {
+  background: #A6ADB5 !important;
+}
+/* Gravitee card — inherits GLP paper-card styling for consistency */
+.gravitee-card {
+  background: var(--surface) !important;
+  border-color: var(--hairline) !important;
+}
+.gravitee-card .bar-track { background: #EDF1ED; }
+.gravitee-tag {
+  background: #E3F5EA !important;
+  color: var(--deep) !important;
+}
+/* Unified end-of-bar value label — rides at the end of each fill */
+.bar-pct {
+  position: absolute;
+  left: 100%; top: 50%;
+  transform: translateY(-50%);
+  padding-left: 6px;
+  font-size: 11px; font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  transition-delay: calc(var(--bar-delay, 0s) + 0.8s);
+}
+.bar-fill.is-animated .bar-pct { opacity: 1; }
+
+/* ── Donut ── */
+.donut-chart-layout {
+  display: flex; align-items: center; gap: 20px; margin-top: 4px;
+}
+.donut-chart-layout canvas { flex-shrink: 0; }
+.donut-legend { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.legend-item {
+  display: flex; align-items: flex-start; gap: 7px;
+  font-size: 11.5px; color: var(--body); line-height: 1.4;
+}
+.legend-dot {
+  width: 9px; height: 9px; border-radius: 2px;
+  flex-shrink: 0; margin-top: 3px;
+}
+.legend-pct { font-weight: 700; color: var(--ink); margin-right: 2px; }
+
+/* old chart-card (fallback) */
+.chart-card {
+  background: var(--surface); border: 1px solid var(--hairline);
+  border-radius: 10px; padding: 22px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+@media (max-width: 900px) {
+  .charts-row { grid-template-columns: 1fr; }
+  .data-pair-row {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 14px;
+  }
+  /* Preserve pair order: callout A → chart A → callout B → chart B */
+  .data-pair-row > [data-cell="ca"]  { grid-area: 1 / 1; }
+  .data-pair-row > [data-cell="cha"] { grid-area: 2 / 1; }
+  .data-pair-row > [data-cell="cb"]  { grid-area: 3 / 1; }
+  .data-pair-row > [data-cell="chb"] { grid-area: 4 / 1; }
+  .bar-label { width: 120px; }
+}
+</style>
+
+<!-- ── SECTION 2: MANAGE vs CONTROL ── -->
+<section class="section mvc-section" id="logic">
+  <div class="mvc-arc"></div>
+  <div class="container">
+    <div class="section-label reveal">安全逻辑差异</div>
+    <h2 class="section-title reveal">人类员工 vs 数字员工</h2>
+    <p class="section-desc reveal"><strong>数字员工</strong>这一新型主体正在挑战企业为「人」设计的传统安全框架和核心假设。</p>
+
+    <div class="mvc-grid reveal">
+      <div class="mvc-card manage">
+        <div class="mvc-badge manage">人类员工</div>
+        <div class="mvc-keyword">"Manage"<br><span class="q">影响「想不想做」</span></div>
+        <div class="mvc-sub">通过制度、培训、文化影响有意图的主体</div>
+      </div>
+      <div class="mvc-card control">
+        <div class="mvc-badge control">数字员工</div>
+        <div class="mvc-keyword">"Control"<br><span class="q red">限制「能不能做」</span></div>
+        <div class="mvc-sub">在技术层面强制限定执行边界，无法依赖自我约束</div>
+      </div>
+    </div>
+
+    <div class="table-wrap reveal">
+      <table class="assumption-table">
+        <thead>
+          <tr>
+            <th style="width:40%">以「人」为对象的信息安全管理核心假设</th>
+            <th style="width:30%">人类员工时代</th>
+            <th style="width:30%">AI 数字员工时代</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>合规行为靠的是行为人「不想」违规</td>
+            <td class="assumption-col-yes">培训与文化有效强化</td>
+            <td class="assumption-col-no">没有「不想」，只有「能不能」</td>
+          </tr>
+          <tr>
+            <td>身份验证后背后是一个有判断力的人</td>
+            <td class="assumption-col-yes">认证即授信</td>
+            <td class="assumption-col-no">凭证可被叠加、遗忘、劫持</td>
+          </tr>
+          <tr>
+            <td>异常行为会被行为人自己察觉并停止</td>
+            <td class="assumption-col-yes">文化、认知、与他人沟通中察觉「这不对劲」是天然刹车</td>
+            <td class="assumption-col-no">LLM 遇障碍主动推理替代路径，不会停</td>
+          </tr>
+          <tr>
+            <td>风险损害有上限，发现后可及时介入</td>
+            <td class="assumption-col-yes">体力与时间构成自然边界</td>
+            <td class="assumption-col-no">数秒内千次操作，介入前损害已成</td>
+          </tr>
+          <tr>
+            <td>账号日志 指向 一个人的决策序列，可审计</td>
+            <td class="assumption-col-yes">单点日志基本可以分析动机、手段、机会和目的</td>
+            <td class="assumption-col-no">每步单看均合规，但组合编排可形成破坏，须全链路关联分析</td>
+          </tr>
+          <tr>
+            <td>员工离职后其使用的工具威胁自然消失</td>
+            <td class="assumption-col-yes">离职即断开，组织变动是管理漏洞补足的转机</td>
+            <td class="assumption-col-no">NHI 的 Token 持续有效，难以察觉，风险不消失</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── SECTION 3: RISKS ── -->
+<section class="section" id="risks" style="background:var(--bg)">
+  <div class="container">
+    <div class="section-label reveal">主要安全风险</div>
+    <h2 class="section-title reveal">AI数字员工企业中应用安全风险</h2>
+    <p class="section-desc reveal" style="margin-bottom:32px;max-width:none;font-size:13.5px;">以下风险是上述假设失效后在企业部署场景中的主要风险，AI agent 常规安全风险（如提示词注入攻击）均适用于 AI 数字员工场景，此处不重复展示。</p>
+
+    <!-- 智能体安全 -->
+    <div class="domain-header agent reveal">
+      <div class="domain-arc"></div>
+      <div class="domain-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#A3E635" stroke-width="1.8">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="domain-title">智能体安全</div>
+      </div>
+    </div>
+
+    <div class="risk-grid">
+
+      <!-- R1 权限聚合 -->
+      <div class="risk-card reveal">
+        <div class="risk-card-header">
+          <div class="risk-icon a1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+            </svg>
+          </div>
+          <div class="risk-name">权限聚合风险</div>
+        </div>
+        <div class="risk-card-body">
+          <p class="risk-desc">数字员工面向多租户共享复用时，可持续新增群组中各用户的权限，最终该数字员工的权限超越单一员工，打破传统系统中最小授权和职责分离的设计。</p>
+          <div class="risk-section">
+            <div class="risk-section-label">后果</div>
+            <ul class="consequence-list">
+              <li>员工可借助数字员工执行未授权操作，造成违规</li>
+              <li>若实例被攻陷，叠加权限放大攻击者触达范围</li>
+            </ul>
+          </div>
+          <div class="risk-section">
+            <div class="risk-section-label">举例</div>
+            <div class="example-box">群组中数字员工被多个用户授权，汇总 CRM 系统中多个用户跟进客户情况清单并反馈到群中，原本各员工仅能查阅个人对接客户的权限与数据边界被打破。</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- R2 低权限组合越权 -->
+      <div class="risk-card reveal">
+        <div class="risk-card-header">
+          <div class="risk-icon a2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#CA8A04" stroke-width="2">
+              <path d="M17 11l-5-5-5 5M17 18l-5-5-5 5"/>
+            </svg>
+          </div>
+          <div class="risk-name">低权限组合等效越权</div>
+        </div>
+        <div class="risk-card-body">
+          <p class="risk-desc">即使数字员工在多个系统只持有低权限，但通过 LLM 的自主规划能力，可形成等效高权限路径。系统日志每步均显示合规，传统审计方法无法识别。</p>
+          <div class="risk-section">
+            <div class="risk-section-label">后果</div>
+            <ul class="consequence-list">
+              <li>越权操作，审批节点被绕过，潜在欺诈风险</li>
+              <li>传统权限审计、日志审计方法失效</li>
+            </ul>
+          </div>
+          <div class="risk-section">
+            <div class="risk-section-label">举例</div>
+            <div class="example-box">
+              <strong>例 1：</strong>数字员工被赋予 CRM 查询权 + 邮件发送权，LLM 将任务理解为「把 A 客户最近的跟进情况整理并发给外部邮箱」，触发数据外发，导致泄露。<br><br>
+              <strong>例 2：</strong>OA 看员工姓名 + HR 看组织架构 + 报销看银行卡尾号，三者拼接后形成完整的员工画像。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- R3 Shadow AI -->
+      <div class="risk-card reveal">
+        <div class="risk-card-header">
+          <div class="risk-icon a3">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+          </div>
+          <div class="risk-name">Shadow AI 身份积累，扩大公司攻击面</div>
+        </div>
+        <div class="risk-card-body">
+          <p class="risk-desc">AI 大幅降低 Shadow IT 技术门槛，员工可自行部署数字员工并授权访问企业系统，这类实体的新增难以从监控端感知，扩大企业攻击面，是否被攻击亦较难发现。</p>
+          <div class="risk-section">
+            <div class="risk-section-label">后果</div>
+            <ul class="consequence-list">
+              <li>攻击者长期潜伏，带来企业安全隐患</li>
+              <li>离职员工遗留实例形成永久性未关闭后门</li>
+              <li>企业攻击面在不可见中持续扩大</li>
+            </ul>
+          </div>
+          <div class="risk-section">
+            <div class="risk-section-label">举例</div>
+            <div class="example-box">
+              <strong>例 1：</strong>员工自建 agent 持续处理业务数据，缺少记录、安全控制和监控。<br><br>
+              <strong>例 2：</strong>跨 Agent 指令注入——攻击者在 Agent A→B 通道插入伪造消息，Agent B 无法验证消息来源便直接执行。
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- R4 自主失控 -->
+      <div class="risk-card reveal">
+        <div class="risk-card-header">
+          <div class="risk-icon a4">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
+          <div class="risk-name">自主操作失控和级联错误</div>
+        </div>
+        <div class="risk-card-body">
+          <p class="risk-desc">LLM 遇到障碍时会主动推理替代方案，推理路径不可预判，缺乏对操作现实影响的感知。不可逆操作在人类介入前已完成，若错误发生在工作流上游，则可能形成级联扩散，进一步影响下游用户 / 数字员工的决策与操作。</p>
+          <div class="risk-section">
+            <div class="risk-section-label">后果</div>
+            <ul class="consequence-list">
+              <li>系统日志显示操作成功，实际已造成隐形错误</li>
+              <li>数据被不可逆删除、覆盖</li>
+              <li>级联错误扩散至下游决策与操作</li>
+            </ul>
+          </div>
+          <div class="risk-section">
+            <div class="risk-section-label">举例</div>
+            <div class="example-box">PocketOS AI 助手遇到访问障碍，自主推断「删除暂存卷可解决问题」并执行，实际波及生产环境，客户数据永久丢失。</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- UEBA 注释（折叠式） -->
+    <details class="ueba-footnote reveal" open>
+      <summary>
+        <span class="ueba-footnote-marker">注</span>
+        <span class="ueba-footnote-label">传统 UEBA 在数字员工场景下效果显著降低</span>
+        <span class="ueba-footnote-chevron" aria-hidden="true">›</span>
+      </summary>
+      <div class="ueba-note">
+        <div>
+          <div class="ueba-col-label human">人类员工行为特征</div>
+          <ul class="ueba-list">
+            <li>工作时间 9-6 点活跃，节假日静默</li>
+            <li>每分钟操作数量有自然上限</li>
+            <li>行为基线清晰，与机器偏差可感知</li>
+          </ul>
+        </div>
+        <div>
+          <div class="ueba-col-label digital">数字员工行为特征 → UEBA 失效</div>
+          <ul class="ueba-list">
+            <li>全天候无间断调用，操作速率无上限</li>
+            <li>批量执行，凌晨大量操作 = 正常工作状态</li>
+            <li>统一基线无法建立，攻击与正常难以区分</li>
+          </ul>
+        </div>
+      </div>
+    </details>
+
+    <!-- 数据安全 -->
+    <div class="domain-header data reveal">
+      <div class="domain-arc"></div>
+      <div class="domain-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#4ADE80" stroke-width="1.8">
+          <ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+        </svg>
+      </div>
+      <div>
+        <div class="domain-title">数据安全</div>
+      </div>
+    </div>
+
+    <div class="risk-grid">
+      <div class="risk-card reveal">
+        <div class="risk-card-header">
+          <div class="risk-icon d1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+          </div>
+          <div class="risk-name">低质量数据与错误决策</div>
+        </div>
+        <div class="risk-card-body">
+          <p class="risk-desc">因数据源不准确、上下文遗漏、模型幻觉或字段理解错误，生成低质量数据，被下游数字员工或用户误认为可靠依据，错误以机器速度大规模传播。</p>
+          <div class="risk-section">
+            <div class="risk-section-label">后果</div>
+            <ul class="consequence-list">
+              <li>错误经营决策、错误审批</li>
+              <li>误导下游数字员工，错误进一步扩散</li>
+            </ul>
+          </div>
+          <div class="risk-section">
+            <div class="risk-section-label">举例</div>
+            <div class="example-box">记账数字员工将短期债务归类为收入科目，影响下游信任评估 agent，造成高信任评分并批准了风险贷款。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="risk-card reveal">
+        <div class="risk-card-header">
+          <div class="risk-icon d2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </div>
+          <div class="risk-name">数据边界失控</div>
+        </div>
+        <div class="risk-card-body">
+          <p class="risk-desc">权限聚合、低权限组合越权、自建 agent 等导致传统数据访问权限分离设计失效，数据被非授权访问、修改或外发。</p>
+          <div class="risk-section">
+            <div class="risk-section-label">后果</div>
+            <ul class="consequence-list">
+              <li>公司数据被未授权访问、修改或外发</li>
+              <li>数据泄露，违反数据保护法规</li>
+            </ul>
+          </div>
+          <div class="risk-section">
+            <div class="risk-section-label">举例</div>
+            <div class="example-box">群组数字员工被多用户授权，汇总 CRM 多用户客户清单反馈群中，群内用户可看到他人客户信息。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 法律合规 -->
+    <div class="domain-header legal reveal">
+      <div class="domain-arc"></div>
+      <div class="domain-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#BEF264" stroke-width="1.8">
+          <path d="M12 22s-8-4.5-8-11.8A8 8 0 0112 2a8 8 0 018 8.2c0 7.3-8 11.8-8 11.8z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="domain-title">法律 &amp; 合规</div>
+      </div>
+    </div>
+
+    <div class="risk-grid">
+      <div class="risk-card reveal">
+        <div class="risk-card-header">
+          <div class="risk-icon l1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+            </svg>
+          </div>
+          <div class="risk-name">操作黑盒与责任归因困难</div>
+        </div>
+        <div class="risk-card-body">
+          <p class="risk-desc">跨系统多接口、模型工具调用多环节、依赖 AI 决策，若缺少完整审计证据与责任绑定，事故后责任判定极为困难。</p>
+          <div class="risk-section">
+            <div class="risk-section-label">后果</div>
+            <ul class="consequence-list">
+              <li>责任判定困难，事故归因困难</li>
+              <li>整改成本上升，监管应对被动</li>
+            </ul>
+          </div>
+          <div class="risk-section">
+            <div class="risk-section-label">举例</div>
+            <div class="example-box">数字员工发生数据泄露，日志仅记录"调用接口并发送消息"，无法还原触发员工、原始指令、数据源等，难以判断属于用户误用、AI 误判还是控制缺陷。</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="risk-card reveal">
+        <div class="risk-card-header">
+          <div class="risk-icon l2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div class="risk-name">隐私合规风险</div>
+        </div>
+        <div class="risk-card-body">
+          <p class="risk-desc">数字员工被用于处理个人信息，但缺少合法必要性评估和数据主体披露等监管要求措施，为企业带来法律后果风险。</p>
+          <div class="risk-section">
+            <div class="risk-section-label">后果</div>
+            <ul class="consequence-list">
+              <li>无合法依据的数据处理持续进行</li>
+              <li>无法响应数据主体权利请求</li>
+              <li>潜在监管违规后果</li>
+            </ul>
+          </div>
+          <div class="risk-section">
+            <div class="risk-section-label">举例</div>
+            <div class="example-box">HR 将面试者个人信息交由数字员工处理，但未在隐私条款中更新并获取同意；若数字员工被攻击导致数据泄露，对企业带来违规后果。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── APPENDIX ── -->
+<section class="appendix-section" id="appendix">
+  <div class="container">
+    <div class="section-label reveal">附录</div>
+    <details class="appendix-collapse reveal">
+      <summary>
+        <h2 class="section-title appendix-title">缓释措施参考</h2>
+        <span class="appendix-toggle" aria-hidden="true">
+          <span class="appendix-toggle-label-closed">展开查看</span>
+          <span class="appendix-toggle-label-open">收起</span>
+          <span class="appendix-chevron">›</span>
+        </span>
+      </summary>
+      <div class="table-wrap" style="margin-top:16px;">
+        <table class="control-table">
+          <thead>
+            <tr>
+              <th style="width:14%">控制领域</th>
+              <th style="width:58%">控制描述</th>
+              <th style="width:28%">对应风险</th>
+            </tr>
+          </thead>
+          <tbody id="control-table-body">
+          </tbody>
+        </table>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer class="site-footer">
+  <div class="footer-arc"></div>
+  <div class="footer-arc-2"></div>
+  <div class="container">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <div class="footer-logo">GLP DIGITAL TECHNOLOGY</div>
+        <div class="footer-tagline">AI Security Risk Management<br>Cybersecurity · Internal Use Only</div>
+        <div class="footer-meta">© 2026 GLP DT · 企业AI数字员工安全风险分析 · 2026.06</div>
+      </div>
+      <div class="footer-refs">
+        <div class="footer-refs-title">参考来源 References</div>
+        <ol class="footer-refs-list">
+          <li>
+            <a href="https://nhimg.org/wp-content/uploads/2025/09/SailPoint-The-Rising-Risk-of-AI-Agents-Expanding-the-Attack-Surface-report-SP2648-.pdf" target="_blank" rel="noopener">
+              SailPoint: The Rising Risk of AI Agents — Expanding the Attack Surface
+            </a>
+          </li>
+          <li>
+            <a href="https://www.gravitee.io/state-of-ai-agent-security" target="_blank" rel="noopener">
+              State of AI Agent Security 2026 — Gravitee
+            </a>
+          </li>
+          <li>
+            <a href="https://entro.security/blog/the-owasp-agentic-top-10-2026-what-it-means-for-ai-agents-and-non-human-identities/" target="_blank" rel="noopener">
+              OWASP Top 10 for Agentic Applications 2026 — Entro Security
+            </a>
+          </li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+.footer-refs { flex-shrink: 0; max-width: 440px; }
+.footer-refs-title {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 12px;
+}
+.footer-refs-list {
+  list-style: none; padding: 0;
+  counter-reset: ref-counter;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.footer-refs-list li {
+  counter-increment: ref-counter;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.footer-refs-list li::before {
+  content: counter(ref-counter);
+  font-size: 10px; font-weight: 700;
+  color: var(--lime);
+  background: rgba(130,188,0,0.15);
+  width: 18px; height: 18px;
+  border-radius: 3px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.footer-refs-list a {
+  font-size: 12px; line-height: 1.5;
+  color: rgba(255,255,255,0.45);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.footer-refs-list a:hover { color: rgba(255,255,255,0.85); }
+@media (max-width: 768px) {
+  .footer-refs { max-width: 100%; }
+}
+</style>
+
+<script>
+/* ── Tab switcher ── */
+/* ── Scroll reveal ── */
+const revealEls = document.querySelectorAll('.reveal');
+const io = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      io.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.08 });
+revealEls.forEach(el => io.observe(el));
+
+/* ── Page nav: smooth scroll + active section tracking ── */
+(function setupPageNav() {
+  const navLinks = document.querySelectorAll('.page-nav-link');
+  if (!navLinks.length) return;
+  const sections = Array.from(navLinks).map(l => document.getElementById(l.dataset.target)).filter(Boolean);
+  const linkByTarget = {};
+  navLinks.forEach(l => { linkByTarget[l.dataset.target] = l; });
+
+  // Smooth scroll on click
+  navLinks.forEach(link => {
+    link.addEventListener('click', e => {
+      const id = link.dataset.target;
+      const target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+      window.scrollTo({
+        top: target.getBoundingClientRect().top + window.pageYOffset - 110,
+        behavior: 'smooth'
+      });
+      // Update hash without jumping
+      history.replaceState(null, '', '#' + id);
+    });
+  });
+
+  // Sections grouped under nav links (e.g. data-section maps to "intro")
+  const groupedSections = [...sections];
+  document.querySelectorAll('[data-nav-group]').forEach(el => {
+    el._navGroup = el.dataset.navGroup;
+    groupedSections.push(el);
+  });
+
+  // Active state via IntersectionObserver — pick the topmost visible section
+  const navObs = new IntersectionObserver(entries => {
+    const visible = entries.filter(e => e.isIntersecting);
+    if (visible.length === 0) return;
+    visible.sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+    const top = visible[0].target;
+    const current = top.id || top._navGroup;
+    if (!current) return;
+    navLinks.forEach(l => l.classList.toggle('is-active', l.dataset.target === current));
+  }, {
+    rootMargin: '-120px 0px -60% 0px',
+    threshold: 0
+  });
+  groupedSections.forEach(s => navObs.observe(s));
+
+  // Default the first link as active on load
+  if (navLinks[0]) navLinks[0].classList.add('is-active');
+})();
+
+/* ── Control table data ── */
+const controls = [
+  ['agent','专项专Agent：禁止同一实例跨部门/跨群组共享复用，不同场景独立部署，各自持有最小权限集合','权限聚合风险'],
+  ['agent','动态授权与权限复核：新增授权前展示已累积权限总量，超阈值须IT安全审批；每季度审查并清理闲置授权','权限聚合风险'],
+  ['agent','群组级权限隔离：同一数字员工对每个用户独立维护权限边界，输出内容仅对有权限的用户可见','权限聚合风险'],
+  ['agent','NHI身份清单与短效凭证（JIT）：为每个实例登记责任人、用途、授权系统；凭证有效期≤24小时，任务完成自动吊销','权限聚合 / 不可见NHI积累'],
+  ['agent','离职流程覆盖NHI清除：识别并吊销离职员工创建的所有实例授权，逐一检查各SaaS平台','不可见NHI积累'],
+  ['agent','AI工具白名单：超出白名单的授权申请自动拒绝并通知IT安全','不可见NHI积累'],
+  ['agent','NHI异常行为检测：启用行为基线监控，识别凌晨大量操作、异常接口调用等偏离基线行为','不可见NHI积累'],
+  ['agent','限制单实例接入系统数量（建议≤3个）：减少低权限跨系统串联路径','低权限组合越权'],
+  ['agent','限制任务级权限边界：数据读取权与外部发送权严格拆分；高风险权限组合须经额外审批','低权限组合越权'],
+  ['agent','跨系统职责分离与行为关联监控：设置高风险操作组合约束；建立跨系统行为关联日志，异常路径自动告警','低权限组合越权'],
+  ['agent','策略网关/工具防火墙：工具调用前规则校验；接入AI安全护栏，检测并拦截提示词注入攻击','低权限越权 / NHI / 失控'],
+  ['agent','限制自主操控边界：默认只读，写操作逐次授权；设置单次任务最大步数、工具调用次数上限','自主操作失控'],
+  ['agent','不可逆操作人工审批：删除、付款、外发、权限变更强制设置人工审批节点；关键节点HITL','自主操作失控'],
+  ['agent','分步执行与预演机制：高影响操作先预演评估范围，人工确认后再执行；支持回滚/补偿机制','自主操作失控'],
+  ['agent','应急关停机制：保留一键关停特定数字员工的能力，异常时立即切换为只读或完全暂停','自主操作失控'],
+  ['data','有效数据源标注：数字员工输出须标注数据来源与置信度，低置信度结果须附提示；定期抽检输出质量','低质量数据与错误决策'],
+  ['data','高风险场景禁止全自动决策：财务审批、合规判断、审计结论等须经人工复核','低质量数据与错误决策'],
+  ['data','知识库版本管理：数据源实施版本管理，文档入库打标签，检索请求须带权限过滤条件','低质量数据与错误决策'],
+  ['data','数据访问范围限定与输出隔离：授权时限定可检索范围；多用户场景下输出仅对有权用户可见','数据边界失控'],
+  ['data','敏感数据DLP管控：数字员工对数据外发等活动纳入 DLP 监控范围','数据边界失控'],
+  ['data','最小化检索返回：只返回必要片段；高敏文档只返回摘要，不返回原文','数据边界失控'],
+  ['legal','全链路操作证据链：记录全链路操作日志，日志具备防篡改能力','操作黑盒归因困难'],
+  ['legal','责任绑定与审批一致性校验：记录发起人、审批人及执行参数；执行前校验审批与执行内容一致','操作黑盒归因困难'],
+  ['legal','AI推理过程记录（CoT日志）：高影响力场景要求AI输出结构化推理说明','操作黑盒归因困难'],
+  ['legal','隐私合法性评估与ROPA登记：处理个人信息前完成合法性评估并纳入数据处理活动记录','隐私合规风险'],
+  ['legal','数据主体权利响应路径：具备响应访问、更正、删除请求的操作路径','隐私合规风险'],
+  ['legal','离职与下线审查：员工离职触发实例合法性审查，确认授权已吊销','隐私合规 / NHI积累'],
+  ['legal','定期对抗测试与演练：每半年开展提示词注入、越权攻击、Shadow AI排查演练','全部风险'],
+];
+
+const domainLabel = { agent:'智能体安全', data:'数据安全', legal:'法律及合规' };
+const tbody = document.getElementById('control-table-body');
+controls.forEach(([domain, desc, risk]) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
+    <td><span class="domain-pill ${domain}">${domainLabel[domain]}</span></td>
+    <td>${desc}</td>
+    <td><span class="risk-tag">${risk}</span></td>
+  `;
+  tbody.appendChild(tr);
+});
+</script>
+
+<script>
+/* ── Bar chart renderer (GLP style — unified end-of-bar label + stagger) ── */
+function renderBarChart(containerId, data, colorClass) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  data.forEach(({ label, pct, cls }, i) => {
+    const row = document.createElement('div');
+    row.className = 'bar-row';
+    const delay = (i * 90) + 'ms';
+    row.innerHTML = `
+      <div class="bar-label">${label}</div>
+      <div class="bar-track">
+        <div class="bar-fill ${cls || colorClass}" data-pct="${pct}" style="width:0%; --bar-delay:${delay}">
+          <span class="bar-pct" data-target="${pct}">0%</span>
+        </div>
+      </div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+/* Count-up tween for percentage labels */
+function countUp(el, target, duration, delay) {
+  const isFloat = !Number.isInteger(target);
+  const start = performance.now() + delay;
+  function frame(now) {
+    if (now < start) { requestAnimationFrame(frame); return; }
+    const t = Math.min((now - start) / duration, 1);
+    // ease-out cubic
+    const eased = 1 - Math.pow(1 - t, 3);
+    const v = target * eased;
+    el.textContent = (isFloat ? v.toFixed(1) : Math.round(v)) + '%';
+    if (t < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ── Donut chart renderer (pure canvas, no lib) ── */
+function renderDonut(canvasId, segments, outerR, innerR) {
+  outerR = outerR || 88; innerR = innerR || 54;
+  const canvas = document.getElementById(canvasId);
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cx = canvas.width / 2, cy = canvas.height / 2;
+  let start = -Math.PI / 2;
+  let drawn = 0;
+  const total = segments.reduce((s, d) => s + d.pct, 0);
+
+  function drawArc(pct, color) {
+    const angle = (pct / total) * 2 * Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx + outerR * Math.cos(start), cy + outerR * Math.sin(start));
+    ctx.arc(cx, cy, outerR, start, start + angle);
+    ctx.arc(cx, cy, innerR, start + angle, start, true);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    start += angle;
+  }
+
+  function animate() {
+    const step = 1.5;
+    if (drawn >= 100) return;
+    drawn = Math.min(drawn + step, 100);
+    ctx.clearRect(0, 0, 200, 200);
+    let s2 = -Math.PI / 2;
+    const pctDone = drawn / 100;
+    let remaining = pctDone * total;
+    for (const seg of segments) {
+      const take = Math.min(seg.pct, remaining);
+      if (take <= 0) break;
+      const angle = (take / total) * 2 * Math.PI;
+      ctx.beginPath();
+      ctx.moveTo(cx + outerR * Math.cos(s2), cy + outerR * Math.sin(s2));
+      ctx.arc(cx, cy, outerR, s2, s2 + angle);
+      ctx.arc(cx, cy, innerR, s2 + angle, s2, true);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      s2 += angle;
+      remaining -= take;
+    }
+    if (drawn < 100) requestAnimationFrame(animate);
+  }
+  animate();
+}
+
+/* ── Intersection Observer → trigger bar fill, label fade-in, and count-up ── */
+let chartsTriggered = false;
+const chartObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting && !chartsTriggered) {
+      chartsTriggered = true;
+      setTimeout(() => {
+        document.querySelectorAll('.bar-fill[data-pct]').forEach((bar, i) => {
+          const pct = parseFloat(bar.dataset.pct);
+          // Per-bar stagger delay (matches CSS --bar-delay)
+          const delayStr = bar.style.getPropertyValue('--bar-delay').trim();
+          const delayMs = parseFloat(delayStr) || 0;
+          bar.style.width = pct + '%';
+          bar.classList.add('is-animated');
+          // Count-up tween synced with width transition
+          const pctEl = bar.querySelector('.bar-pct');
+          if (pctEl) countUp(pctEl, pct, 1100, delayMs);
+        });
+      }, 200);
+    }
+  });
+}, { threshold: 0.1 });
+
+const chartSection = document.querySelector('.data-section');
+if (chartSection) chartObs.observe(chartSection);
+
+/* ────────────────────────────────────────────────
+   DATA
+──────────────────────────────────────────────── */
+
+// Chart A — Agentic AI security risk reasons (SailPoint original colors)
+renderBarChart('chart-risk-reasons', [
+  { label: 'Accesses privileged data',                          pct: 60, cls: 'sp-blue' },
+  { label: 'Unintended actions (app failures, alert storms…)',  pct: 58, cls: 'sp-blue' },
+  { label: 'Sharing privileged data',                           pct: 57, cls: 'sp-blue' },
+  { label: 'Making decisions based on inaccurate data',         pct: 55, cls: 'sp-blue' },
+  { label: 'Accessing inappropriate data',                      pct: 54, cls: 'sp-blue' },
+  { label: 'Sharing inappropriate data',                        pct: 54, cls: 'sp-blue' },
+  { label: 'Providing inaccurate data (erroneous, incomplete…)',pct: 49, cls: 'sp-blue' },
+  { label: 'Can be used by an internal bad actor',              pct: 38, cls: 'sp-blue' },
+  { label: 'Can be hacked by external entity',                  pct: 29, cls: 'sp-blue' },
+  { label: 'AI agents are not a security risk',                 pct: 1,  cls: 'sp-pink' },
+]);
+
+// Chart B — AI agent identity differences (SailPoint original colors)
+renderBarChart('chart-identity-diff', [
+  { label: 'AI agents often require access to more systems and data', pct: 54, cls: 'sp-blue' },
+  { label: 'AI agents are harder to govern',                          pct: 40, cls: 'sp-blue' },
+  { label: "AI agents access doesn't require approval from teams outside IT", pct: 35, cls: 'sp-blue' },
+  { label: 'AI agents are given access faster (fewer steps, etc.)',  pct: 34, cls: 'sp-blue' },
+  { label: 'AI agents have fewer compliance requirements',            pct: 23, cls: 'sp-blue' },
+  { label: 'AI agents identities are not different from human identities', pct: 10, cls: 'sp-pink' },
+  { label: 'Other',                                                   pct: 3,  cls: 'sp-gray' },
+]);
+
+// Chart C — Donut: IT approval status (Gravitee) — GLP green palette
+const donutData = [
+  { label: 'All agents have full approval',   pct: 14.4, color: '#82BC00' }, // lime — highlight the rare "good" outcome
+  { label: 'Most agents have approval',       pct: 43.1, color: '#00AA4F' }, // primary green — largest segment
+  { label: 'Some agents have approval',       pct: 34.3, color: '#006845' }, // deep green
+  { label: 'Hardly any have approval',        pct: 8.3,  color: '#A6ADB5' }, // muted — de-emphasized
+];
+renderDonut('donut-approval', donutData, 80, 50);
+
+// Build donut legend
+const legendEl = document.getElementById('donut-legend');
+donutData.forEach(d => {
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  item.innerHTML = `<div class="legend-dot" style="background:${d.color}"></div>
+    <div><span class="legend-pct">${d.pct}%</span>${d.label}</div>`;
+  legendEl.appendChild(item);
+});
+
+// Chart D — Independent identity treatment (Gravitee)
+renderBarChart('chart-identity-treatment', [
+  { label: 'Planning to',                      pct: 26,   cls: 'gv-orange'    },
+  { label: 'Yes (Full Independent Identity)',  pct: 21.9, cls: 'gv-darkbrown' },
+  { label: 'Partially (For some agents)',      pct: 20.7, cls: 'gv-midorange'  },
+  { label: 'No (Using human/service accounts)',pct: 6.5,  cls: 'gv-lightorange'},
+  { label: 'Not a priority',                   pct: 5.9,  cls: 'gv-darkbrown'  },
+  { label: 'Unsure',                           pct: 18.9, cls: 'gv-darkred'    },
+]);
+</script>
+</body>
+</html>
