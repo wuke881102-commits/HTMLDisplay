@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI安全风险管理框架</title>
+<style>
+:root{
+  --brand-50:#E3F5EA;--brand-100:#C0E6D0;--brand-200:#90D4A8;--brand-300:#60C080;
+  --brand-400:#30AA60;--brand-500:#00AA4F;--brand-600:#008E43;--brand-700:#006845;
+  --brand-800:#005A3C;--brand-900:#004A30;
+  --accent-lime:#82BC00;--accent-emerald:#00D47B;--accent-forest:#228B22;--accent-mint:#38A169;
+  --success:#10B050;--success-bg:rgba(16,176,80,.12);
+  --warning:#F0A800;--warning-bg:rgba(240,168,0,.12);
+  --error:#C83A3A;--error-bg:rgba(200,58,58,.12);
+  --info:#0095D4;--info-bg:rgba(42,157,143,.12);
+  --surface-page:#F9FAFC;--surface-elevated:#FFFFFF;--surface-container:#FFFFFF;
+  --surface-subtle:#F0F1F3;--surface-hover:#EDEEF0;--surface-active:#E5E7EB;
+  --border-default:#DDE3EA;--border-subtle:#E8ECF0;--border-strong:#C5CCD3;--border-focus:#00AA4F;
+  --text-primary:#42464A;--text-secondary:#555B61;--text-tertiary:#737A82;
+  --text-disabled:#A6ADB5;--text-inverse:#FFFFFF;--text-brand:#00AA4F;
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei','Helvetica Neue',Arial,sans-serif;
+  --font-mono:'SF Mono','Menlo','Monaco','Consolas','JetBrains Mono',monospace;
+  --text-5xl:60px;--text-4xl:44px;--text-3xl:34px;--text-2xl:26px;--text-xl:20px;
+  --text-lg:16px;--text-base:14px;--text-sm:13px;--text-xs:11px;
+  --space-0-5:2px;--space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;
+  --space-5:20px;--space-6:24px;--space-8:32px;--space-10:40px;--space-12:48px;
+  --space-16:64px;--space-20:80px;--space-24:96px;
+  --radius-xs:2px;--radius-sm:4px;--radius-md:6px;--radius-lg:8px;--radius-xl:12px;--radius-2xl:16px;--radius-full:9999px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.03);
+  --shadow-md:0 4px 12px rgba(0,0,0,.1),0 0 0 1px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.05);
+  --t-fast:150ms cubic-bezier(0,0,.2,1);--t-base:200ms cubic-bezier(0,0,.2,1);--t-mod:300ms cubic-bezier(0,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-sans);background:var(--surface-page);color:var(--text-primary);
+  font-size:var(--text-lg);line-height:1.75;-webkit-font-smoothing:antialiased}
+
+/* status bar */
+.statusbar{font-family:var(--font-mono);font-size:var(--text-xs);background:var(--surface-subtle);
+  border-bottom:1px solid var(--border-default);color:var(--text-tertiary);
+  padding:var(--space-2) var(--space-6);display:flex;align-items:center;gap:var(--space-3);
+  letter-spacing:.04em;flex-wrap:wrap}
+.pulse{width:8px;height:8px;border-radius:var(--radius-full);background:var(--brand-500);
+  display:inline-block;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,170,79,.4)}50%{opacity:.5;box-shadow:0 0 0 5px rgba(0,170,79,0)}}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;height:56px;display:flex;align-items:center;gap:var(--space-2);
+  padding:0 var(--space-6);background:rgba(249,250,252,.82);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--border-default);overflow-x:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav .brand{font-weight:800;color:var(--brand-600);white-space:nowrap;margin-right:var(--space-4);
+  font-size:var(--text-base);letter-spacing:.02em}
+nav a{color:var(--text-tertiary);text-decoration:none;font-size:var(--text-sm);font-weight:600;
+  padding:var(--space-1) var(--space-3);border-radius:var(--radius-lg);white-space:nowrap;
+  transition:all var(--t-fast)}
+nav a:hover{color:var(--brand-600);background:var(--surface-hover)}
+
+/* hero */
+.hero{position:relative;overflow:hidden;color:#fff;text-align:center;
+  padding:var(--space-16) var(--space-8) var(--space-12);
+  background:linear-gradient(135deg,var(--brand-500) 0%,var(--brand-600) 60%,var(--brand-700) 100%)}
+.hero::before{content:"";position:absolute;top:-120px;right:-80px;width:340px;height:340px;
+  border-radius:var(--radius-full);background:rgba(255,255,255,.12)}
+.hero::after{content:"";position:absolute;bottom:-140px;left:-60px;width:300px;height:300px;
+  border-radius:var(--radius-full);background:rgba(130,188,0,.25)}
+.hero .inner{position:relative;z-index:1;max-width:880px;margin:0 auto}
+.hero .eyebrow{display:inline-flex;align-items:center;gap:6px;font-family:var(--font-mono);
+  font-size:var(--text-xs);letter-spacing:.12em;text-transform:uppercase;
+  background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);
+  padding:var(--space-1) var(--space-3);border-radius:var(--radius-full);margin-bottom:var(--space-5)}
+.hero h1{font-size:var(--text-4xl);font-weight:800;letter-spacing:.01em;line-height:1.2;margin-bottom:var(--space-4)}
+.hero p{font-size:var(--text-lg);color:rgba(255,255,255,.9);max-width:680px;margin:0 auto}
+.hero .pyramid{margin:var(--space-10) auto 0;max-width:560px;width:100%;display:block;
+  background:#fff;border-radius:var(--radius-2xl);box-shadow:var(--shadow-lg);padding:var(--space-4)}
+
+/* layout */
+.wrap{max-width:880px;margin:0 auto;padding:var(--space-12) var(--space-6) var(--space-24)}
+section{margin-bottom:var(--space-12);scroll-margin-top:72px}
+
+/* headings */
+h2{font-size:var(--text-3xl);font-weight:800;color:var(--text-primary);line-height:1.3;
+  margin:var(--space-12) 0 var(--space-5);padding-bottom:var(--space-3);border-bottom:2px solid var(--brand-100);
+  display:flex;align-items:baseline;gap:var(--space-3)}
+h2 .num{color:var(--brand-500);font-family:var(--font-mono);font-weight:800}
+h3{font-size:var(--text-2xl);font-weight:700;color:var(--text-primary);margin:var(--space-10) 0 var(--space-4)}
+h3 .num{color:var(--brand-500);font-family:var(--font-mono);margin-right:var(--space-2)}
+h4{font-size:var(--text-xl);font-weight:700;color:var(--brand-700);margin:var(--space-8) 0 var(--space-3)}
+h5{font-size:var(--text-lg);font-weight:700;color:var(--text-primary);margin:var(--space-5) 0 var(--space-2)}
+p{margin:0 0 var(--space-4);color:var(--text-secondary)}
+.lead{font-size:var(--text-xl);color:var(--text-tertiary);line-height:1.7;
+  border-left:4px solid var(--brand-300);padding-left:var(--space-5);margin:var(--space-5) 0 var(--space-8);
+  background:var(--brand-50);border-radius:0 var(--radius-lg) var(--radius-lg) 0;
+  padding-top:var(--space-4);padding-bottom:var(--space-4);padding-right:var(--space-4)}
+strong{color:var(--text-primary);font-weight:700}
+hr{border:none;border-top:1px solid var(--border-default);margin:var(--space-10) 0}
+
+/* badges */
+.badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--font-mono);
+  font-size:var(--text-xs);font-weight:600;padding:var(--space-0-5) var(--space-2);
+  border-radius:var(--radius-md);letter-spacing:.04em;vertical-align:middle}
+.badge.brand{background:var(--brand-50);color:var(--brand-600);border:1px solid var(--brand-500)}
+.badge.warning{background:var(--warning-bg);color:#9a6b00;border:1px solid var(--warning)}
+.badge.error{background:var(--error-bg);color:var(--error);border:1px solid var(--error)}
+.badge.success{background:var(--success-bg);color:var(--success);border:1px solid var(--success)}
+
+/* cards */
+.card{background:var(--surface-elevated);border-radius:var(--radius-2xl);padding:var(--space-6);
+  box-shadow:var(--shadow-sm);transition:all var(--t-base);border:1px solid var(--border-subtle)}
+.card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:var(--space-4);margin:var(--space-5) 0}
+.card h5{margin-top:0}
+.card p{font-size:var(--text-base);line-height:1.7;margin-bottom:0}
+.card-num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  border-radius:var(--radius-lg);font-family:var(--font-mono);font-weight:800;font-size:var(--text-base);
+  margin-right:var(--space-3);flex:0 0 auto}
+
+/* domain block (2.1 / 2.2 / 2.3.3) */
+.domain{margin:var(--space-4) 0;border-radius:var(--radius-xl);overflow:hidden;border:1px solid var(--border-subtle)}
+.domain .dh{display:flex;align-items:center;gap:var(--space-2);padding:var(--space-3) var(--space-4);
+  background:var(--surface-subtle);font-weight:700;font-size:var(--text-base);color:var(--text-primary)}
+.domain .db{padding:var(--space-4);background:var(--surface-elevated)}
+.domain .db p{margin-bottom:var(--space-3)}.domain .db p:last-child{margin-bottom:0}
+.domain .db .eg{font-size:var(--text-base);color:var(--text-tertiary);font-style:italic;
+  background:var(--surface-subtle);padding:var(--space-2) var(--space-3);border-radius:var(--radius-md);
+  margin-top:var(--space-2)}
+
+/* alerts */
+.alert{display:flex;gap:var(--space-3);padding:var(--space-4);border-radius:var(--radius-lg);
+  margin:var(--space-5) 0;font-size:var(--text-base);line-height:1.7;align-items:flex-start}
+.alert .ico{font-size:var(--text-xl);line-height:1.4;flex:0 0 auto}
+.alert.info{background:var(--brand-50);border:1px solid var(--brand-300);color:var(--brand-800)}
+.alert.error{background:var(--error-bg);border:1px solid var(--error);color:#8a2a2a}
+.alert.success{background:var(--success-bg);border:1px solid var(--success);color:#0a6a30}
+.alert.warning{background:var(--warning-bg);border:1px solid var(--warning);color:#7a5600}
+.alert strong{color:inherit}
+
+/* figure */
+figure{margin:var(--space-6) 0;text-align:center}
+figure img{max-width:100%;height:auto;border-radius:var(--radius-xl);box-shadow:var(--shadow-md);
+  border:1px solid var(--border-subtle);background:#fff}
+figure.dark img{background:#000;padding:var(--space-2)}
+figcaption{font-size:var(--text-sm);color:var(--text-tertiary);margin-top:var(--space-3);font-style:italic}
+
+/* table */
+.tbl-wrap{overflow-x:auto;border-radius:var(--radius-xl);border:1px solid var(--border-default);
+  box-shadow:var(--shadow-sm);margin:var(--space-5) 0;background:var(--surface-elevated)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:var(--text-base)}
+thead th{background:var(--surface-subtle);font-family:var(--font-mono);font-size:var(--text-xs);
+  text-transform:uppercase;letter-spacing:.05em;color:var(--text-secondary);font-weight:700;
+  padding:var(--space-3) var(--space-4);text-align:left;border-bottom:1px solid var(--border-default);
+  vertical-align:middle}
+tbody td{padding:var(--space-3) var(--space-4);border-bottom:1px solid var(--border-subtle);
+  color:var(--text-secondary);vertical-align:top;line-height:1.6}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--surface-hover)}
+td .cat{font-family:var(--font-mono);font-weight:800;color:var(--brand-600)}
+td.center{text-align:center;font-weight:600;color:var(--text-primary)}
+.cap-yes{color:var(--success);font-weight:700}.cap-ltd{color:var(--warning);font-weight:700}.cap-no{color:var(--text-disabled);font-weight:700}
+.tag{display:inline-block;font-family:var(--font-mono);font-size:var(--text-xs);font-weight:700;
+  padding:1px 7px;border-radius:var(--radius-sm);background:var(--warning-bg);color:#8a6200;margin:1px 0}
+
+/* dos/donts */
+.dd-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--space-5);margin:var(--space-5) 0}
+.dd{border-radius:var(--radius-2xl);padding:var(--space-6);box-shadow:var(--shadow-sm);border:1px solid var(--border-subtle)}
+.dd.dos{background:var(--success-bg)}.dd.donts{background:var(--error-bg)}
+.dd h4{margin-top:0;display:flex;align-items:center;gap:var(--space-2)}
+.dd.dos h4{color:var(--brand-700)}.dd.donts h4{color:var(--error)}
+.dd ul{list-style:none;display:flex;flex-direction:column;gap:var(--space-3)}
+.dd li{font-size:var(--text-base);line-height:1.6;padding-left:var(--space-6);position:relative;color:var(--text-secondary)}
+.dd.dos li::before{content:"✓";position:absolute;left:0;color:var(--success);font-weight:800}
+.dd.donts li::before{content:"✕";position:absolute;left:0;color:var(--error);font-weight:800}
+.dd li strong{display:inline}
+
+/* appendix list */
+.deflist{list-style:none;display:flex;flex-direction:column;gap:var(--space-3);margin:var(--space-4) 0}
+.deflist>li{padding-left:var(--space-6);position:relative;color:var(--text-secondary);font-size:var(--text-base);line-height:1.7}
+.deflist>li::before{content:"";position:absolute;left:0;top:11px;width:8px;height:8px;border-radius:var(--radius-sm);background:var(--brand-400)}
+.deflist .term{color:var(--brand-700);font-weight:700}
+.refs{font-size:var(--text-sm);color:var(--text-tertiary);border-left:3px solid var(--border-strong);
+  padding:var(--space-3) var(--space-4);background:var(--surface-subtle);border-radius:0 var(--radius-md) var(--radius-md) 0;
+  margin-top:var(--space-5);line-height:1.8}
+.refs a{color:var(--brand-600);word-break:break-all}
+
+/* footer */
+footer{text-align:center;padding:var(--space-10) var(--space-6);color:var(--text-tertiary);
+  font-size:var(--text-sm);border-top:1px solid var(--border-default);background:var(--surface-subtle)}
+
+@media(max-width:680px){
+  .hero h1{font-size:var(--text-3xl)}
+  h2{font-size:var(--text-2xl)}h3{font-size:var(--text-xl)}
+  .dd-grid{grid-template-columns:1fr}
+  .card-grid{grid-template-columns:1fr}
+  body{font-size:var(--text-base)}
+}
+
+/* ===== framework composite (pyramid + 6 cards) ===== */
+.hero-panel{background:#fff;border-radius:var(--radius-2xl);box-shadow:var(--shadow-lg);
+  padding:var(--space-8) var(--space-6);margin:var(--space-10) auto 0;max-width:780px}
+.fw-wrap{display:flex;gap:var(--space-8);align-items:center;justify-content:center;flex-wrap:wrap}
+.fw-pyramid{flex:0 0 auto;width:280px;max-width:78vw}
+.fw-pyramid svg{width:100%;height:auto;display:block}
+.fw-cards{flex:1 1 340px;display:grid;grid-template-columns:1fr 1fr;gap:var(--space-3);min-width:280px}
+.fw-card{position:relative;display:flex;align-items:center;gap:var(--space-3);overflow:hidden;
+  background:linear-gradient(135deg,var(--brand-600) 0%,var(--brand-800) 100%);color:#fff;
+  border-radius:var(--radius-lg);padding:var(--space-3) var(--space-4) var(--space-3) var(--space-5);
+  box-shadow:var(--shadow-sm);transition:transform var(--t-base),box-shadow var(--t-base)}
+.fw-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent-lime)}
+.fw-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.fw-card .n{font-family:var(--font-mono);font-weight:800;font-size:var(--text-xl);opacity:.9;line-height:1}
+.fw-card .t{font-weight:700;font-size:var(--text-base);line-height:1.3}
+.fw-title{text-align:center;font-weight:800;color:var(--text-primary);margin-top:var(--space-6);
+  font-size:var(--text-lg);letter-spacing:.04em}
+@media(max-width:560px){.fw-cards{grid-template-columns:1fr}.fw-pyramid{width:220px}}
+
+/* ===== breakout wide blocks ===== */
+.breakout{width:min(1160px,95vw);position:relative;left:50%;transform:translateX(-50%)}
+
+/* ===== framework control-domain table ===== */
+table.fw{min-width:940px;table-layout:fixed;font-size:var(--text-sm);border-collapse:collapse;width:100%}
+table.fw th{padding:var(--space-3);text-align:center;color:#fff;font-family:var(--font-sans);
+  text-transform:none;letter-spacing:0;font-size:var(--text-base);font-weight:800;line-height:1.45;
+  vertical-align:middle;border:2px solid #fff}
+table.fw th small{display:block;font-weight:600;font-size:var(--text-xs);opacity:.95;margin-top:3px}
+th.h-area{background:#3A3F44}
+th.h-no{background:#C0392B}
+th.h-mid{background:#E8961E}
+th.h-yes{background:#2E8B45}
+table.fw td{padding:var(--space-3) var(--space-4);vertical-align:top;border:1px solid var(--border-default);
+  line-height:1.65;font-size:var(--text-sm);color:var(--text-secondary);background:var(--surface-elevated)}
+td.area{background:var(--surface-subtle);text-align:center;font-weight:700;color:var(--text-primary);
+  vertical-align:middle;font-size:var(--text-base)}
+table.fw td.mid{background:#FFFCF4;color:var(--text-secondary);vertical-align:middle;text-align:center}
+.mid-inner{display:inline-block;text-align:left;max-width:230px}
+td.mid .lead{font-style:italic;font-weight:700;color:#8a6200;background:none;border:none;padding:0;
+  margin:0 0 var(--space-2);font-size:var(--text-sm);line-height:1.6}
+td.mid ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+td.mid li{padding-left:15px;position:relative;font-style:italic}
+td.mid li::before{content:"·";position:absolute;left:3px;color:var(--warning);font-weight:800}
+.fw .item{position:relative;padding-left:16px;margin-bottom:var(--space-2)}
+.fw .item:last-child{margin-bottom:0}
+td.no .item::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--error)}
+td.yes .item::before{content:"";position:absolute;left:0;top:8px;width:6px;height:6px;border-radius:50%;background:var(--brand-500)}
+.fw .plain{padding-left:0}
+.t-no{color:var(--error);font-weight:700}
+.t-yes{color:var(--brand-700);font-weight:700}
+tr.eg td{background:var(--surface-page);font-style:italic;color:var(--text-tertiary);font-size:var(--text-xs)}
+tr.eg td.area{font-style:normal}
+tr.eg ul{list-style:none;display:flex;flex-direction:column;gap:5px}
+tr.eg li{padding-left:15px;position:relative;line-height:1.55}
+tr.eg .eg-no li::before{content:"·";position:absolute;left:3px;color:var(--error);font-weight:800}
+tr.eg .eg-yes li::before{content:"·";position:absolute;left:3px;color:var(--brand-500);font-weight:800}
+.fw-foot{font-size:var(--text-xs);color:var(--text-tertiary);font-style:italic;text-align:right;margin-top:var(--space-2)}
+
+/* ===== flowchart ===== */
+figure.flow{margin:var(--space-6) auto}
+figure.flow svg{width:100%;max-width:600px;height:auto;display:block;margin:0 auto;
+  border:1px solid var(--border-subtle);border-radius:var(--radius-xl);background:#fff;
+  box-shadow:var(--shadow-sm);padding:var(--space-4)}
+
+
+/* ===== 2.3.1 grouping table ===== */
+table.grp{min-width:1060px}
+table.grp th{white-space:nowrap}
+table.grp td.center{white-space:nowrap}
+table.grp .cat{white-space:nowrap}
+table.grp tbody td{padding:var(--space-4)}
+</style>
+</head>
+<body>
+
+<div class="statusbar">
+  <span class="pulse"></span>
+  <span>AI SECURITY · RISK MANAGEMENT FRAMEWORK</span>
+  <span style="margin-left:auto">VER 1.0 · 内部文档</span>
+</div>
+
+<nav>
+  <span class="brand">AI安全风险管理框架</span>
+  <a href="#s1">1 必要性</a>
+  <a href="#s2">2 风险框架</a>
+  <a href="#s23">2.3 需管控风险</a>
+  <a href="#s233">OpenClaw风险</a>
+  <a href="#s3">3 行动建议</a>
+  <a href="#sa">附录A</a>
+</nav>
+
+<header class="hero">
+  <div class="inner">
+    <h1>AI 安全风险管理框架</h1>
+    <p>安全已成为决定 AI 能否被广泛应用、可信赖运营的核心条件。安全应主动前移到项目启动和技术选型阶段，成为企业 AI 落地的关键前提。</p>
+    <div class="hero-panel">
+    <div class="fw-wrap">
+      <div class="fw-pyramid"><img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAIiAcgDASIAAhEBAxEB/8QAHQABAAICAwEBAAAAAAAAAAAAAAUGBAcCAwgBCf/EAEgQAAICAQMCAwQHBAcFCAIDAAABAgMEBQYREiEHMVETIkFhCBQ1cZGhsTJCcoEVIzZSc8HRJDM3Q2IWNFN0ouHw8ReyJYKS/8QAHAEBAAEFAQEAAAAAAAAAAAAAAAQBAgMFBgcI/8QAOREAAgEDAgMGBQMDAwQDAAAAAAECAwQRBSESMUEGEyJRYXEUMjSBkTOx0UKhwSPh8QcVJPBSYpL/2gAMAwEAAhEDEQA/APZYALQAAAAAAAAAAAAAAAAAVAABXIAAGQAAMgAAoAAAAAAAcbrI1VSsk+FFcs5EBu7O9lQsWt8Sl+1x6FspcKyZrek61RQRQMLf/wBU8b7Nu5lnGNnUr2Lb7KfEeF+pt48S/SEzsjTfFHGzsWx13U1wnCSfdNJHqvwi3ZTvDZOFqkJp3dCjdFfuyX/xEG0uOKcqcuaOo7QaOqFrQu6a8Mkk/f8A3LeADYHIgAFcgAAZAAAyAABkAADIAAGQAAMgAAZAABaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACqAABUAAAHDItjTTO2T4UVya/1LKlmZc7n+8+y+RYt353RVHErfeX7f3FTIteeXg3+mW/DDvHzZ5o+k1/b+P+BH9ET/0Td9/0DuiW3863jD1DtBt9oT/9+EiA+k1/b+P+BH9Eaz07Ltwc6jLok42UzU4teqfJoZVXSuHNeZ6xRsIX+jxt5/1R/D6M/TAFK8GN307y2Ph6grOrJhBV5C579aXdl1OkhNTipLqeH3NvO2qyo1FhxeGAAXGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqgAAVAOvJuhRRO6b4jFcs7Ct7wzmorEhLz7yLZy4Vkz21F1qigV7UMiWVlTtk/NmOAQG8nVxiorCPNH0mv7fx/wI/ojVZtT6TX9v4/4Ef0Rqs0dx+rI9T0f6Gl7I3V9FPe729vJaLl29OFqHEFy+0Z+Uf1PZyaaTT5T7o/MzEvtxcmvIom4WVyUoyXmmj3r4Fbwq3hsPEynYnlURVV657pry/I2ml3GU6T+xwPbzSeCcb6mtntL36MvwANuecAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUAACoOrMvjj407pvhRXJr7NyJ5OTO6b5bZP7wzueMOD8u8iskStPLwdBplvwQ43zf7AAGA2Z5o+k1/b+P+BH9EarNqfSa/t/H/AAI/ojVZpLj9WR6lo/0NL2QNv/Rf3zLa+9IablW9OBqD6J8+UZfCX5cGoDsxrp4+RXfXJxnCSkmvVGOlUdKakuhnv7Kne207epykv+GfpnFqSTXdM+mufo/b1r3jsTGtssTzcZeyvXPflJd/zNjHWU5qpFSXU+fLy1qWleVCot4vAABeRgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAV/eO7dN2rRC7UqsqUJvhOmvq/wAwCwA19jeJtepVOejbc1rL9OcVpfqQeB4ra9q248nbum7XjDUaE+uGRc4Ncc/DpfoAbdBr3buf4oT1aL1jSNLjgylxLovfVFev7PcvWoZX1PBsyXTbd0R5cKo9Un9yKoGQdOdkQxsWd03woopVPiTi5NsqcTb+u23RfDj9Uf8AqQO797a9dB04u1sxRguWrk4P9Ck3hGa3p95USfIkcu+eRkTum+XJ8nUa00ffW59x5GRi6NpOJTkY74shdb3X/pLHtvK3tLUfZ67gYUcZr/eVWd1/6UQnBrmdLTrwlhRTx7Fo8u7fB8jKMlzCcZL1i+ThlwVmJdBt8Sg12+41z4LQzfrutxty77senIlXXGyTlxw/mUSymy+dThnGOOZrL6TX9v4/4Ef0Rqs2z9I+UH4hR6o9cfYRXb7kasuplFuXS1H4cmnuKLcnNb7no+jajCNKnb1FwvhWG2sP2659DpAOUIuclGK5bIaTbwjoZSjCLlJ4SNq/Rn3v/wBk99V0ZVrjgZ/FVib7J/uv8Wj29TdVfWrKbIWQflKL5R+a2NW6n7VKTnB89u3DPTf0aN8ajfOrRMbTs7PhOSeRkWWykqV8k+e3c6DTnKEeCXujyHtmqNzX+KoLZeGT23fTbny6npEBeR8m2otxXL47I2Rw59BrLRPEjWNZ3JqWg4W3qXl4Unyp5DSaXx/Z+4z9U1jdb/2ezJ0zSMmVbmq3NWNpJ+XKXoAX4GnfAfdG7tw65rFOrZFWRg4drrU1BJuXLS4/A3E+y5AANabr8WtP0y/U8HTtMzMzO07/AH8JV9MIr157+j+BMeHG8svcm07Nwanpn9G0x5ceZN9UVz37pAFzBqjwT8QNT3hrus42bdjvHxpP2EY8Kfml5ehtcAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHC6mm5cXVV2JfCcU/1OZX96bs0za+BK/Lm7b2v6rGr72WP4JJdwCr+POvYG3Ni5MKsn6nnXrpxvYpKXPP3eiZW/o5aXpuLt17w1XMU9S1G2UXddLj07f+oxcraGq7qwdT3lvatqMceT0/Cb/3Ufg2vx9PMzfAvb2n7n8EadO1Kvrg77OiS/ahLiPDX3AG567IWRUq5xnF/GL5RyPO92bvvwo3JTjZFuRq+37Z8RfDm0ufL48M9B4lyyMWq9JxVkVLh/DkqDV3iVvfWNrbxwdIwsDClVn8KF1ia6X258vvNa1bh3fZ4o/0NbqVWVTJOdq+Cj6Lt8zaXi5t/B3NqGCrbJVywp9XVDs35duf5EHpW0tD0zOeoYmK1l9PDtk+ZP8AIj1Kizg3FnaVFFS5Z/YpnhVCMPEDc3SkuLmbRNWeFk3/APkfc1fw9q3+ZtJ9lyYaj3NlZ/p/d/uQ+6MfWsjE6dHzK8WSi+uU1zyuPuNYeEuBGzceo2Zus3RvqyJ9dEP2JvnvJ9ix69r26Ncz7tE0PTrtOrimrsy5Pjp+XkV7wq+s6fXrNEdM/pO2ORKFl3WouXH8mXxyosjVZRnWi1nH3KF431ShvyxQtjKDSacXz24RQsyM5zk/JL5ls8TMynN3LaqcCeB0+662+e/rzwVG5UwscZdUmvmQbpYi0+T9f+TqNAqOdaNSC8UU0ko5bWd3nMfbfcxTIVTrrja59LfkdM3Hq91NL5nOy6VnSpeUTV03COeLn0O7vI3Nbu1SWIvPFnGcY5Y3W7OyVjlJy5ny/Qs2wN1a1tzUZw0rMuxHkx6JuPHL/Er9XM+l1NcfFeh15t0vrKlCTTj5MnOUqUe9z1/JytOlSv63wHd4XC877xxssrC+x7Z8FM7xDlD2G68Cc8OcOqnJnKPV+T/yNqGp/oz75W7tkwxMmzqz9PSqt585L4P80jZmt59OmaTlZ984whRVKbcnwuy5N3SqKpBSXU8wvrOpZXE6FTnF4NEbOytSxPE3eOpaPjwyr6INxql5T447EXDU7fE3xNjmwpvxcfT8Gbya3LjpklL5+vBkeH+vvSNO1vXqapZWsa3lyhgY8Fy+OWuX6LsiPt0PdHhrr+JuDLnLJr1iLqzYVwbUXJNcPz8uUXkQ2J9GeEP+z+q2pLqnn28v14kzbZpP6OGo14+qbg0GyThNZLuphLs3FuT/ANDcuLmYuU7FjX12+zl0z6JJ8P0YB5z3/ZhU773pjX2ypnfiRcHGLfLTm+OyO2/fUdT8LdJ2tpMLIZGTBUZVlUG/Y1xXS5Pj18yy7ahRqHj/ALmxciuF1Lx1CcGuU1zPszP3Ffp3hpq1ONo23FVi6lyp5dMe9c+e3PC+bAKl9Sw7cfFwdlaNqWFqenrlai+IV3Pzal1Pv5v4Fv2b4oak8laTunb+Zi5db6JZFcOquT/k2yg7p3ZvfMwK9p6lVkVajk5SWLkQi4udb78/r+B6A2fp2VpW3MPAzcuzLyKq1Gds3y5PgAk6bI21Qthz0ySaOYAAAAAABXAAAGAAAMAAAYAAAAABQAAAAAAAAAAAAAAAAAAAAAAirdv6Vdqy1TIxY3ZUVxGVnvKP3J+RKgAgt/aflaps3U9OwO2RdR018evKILwK0HUNueHuNpmp47x8mNkpyg/Ncpf6F6AB15GPRkRUb6KrYp8pTgpL8zp1PJhhYU7Oy4XEUZRUd253tchY0H7sPP7yypLhjklWdDvqqj0IS+2V10rJvlyfLIbdGJn5el2f0ZkujLgm6+3Kk/RkqCDnfJ1LinHhNZeDW3dd07U9T1XXaXTdky8n+98zZp9PhWUuJ5LKNJUocKI3cuJmZej5Fen3ewynB+zkl5v0Kb4UaPre3dH1HJ1bDsnlX2ufsoLlyNiH0qpYWCkqKlNTzujy1435uVPebuy9MWBY6101ccduF3fzKFOVF0HJ+5P9TZP0mv8AiBH/AAI/ojVhqq91LjcGsryO90rQ6DtqdxTk41Gk3JPn6NcsfYHKEVJ8OSivmcQQU8M6qcXKLSeH5mVXdXQvc5lJ+bOcq6siPXCajL4pmEfU2vJkpXW3DKKcfI0dTQkp9/QqyjV6y55Xk1yx5eRsjwG3fdsnfeNdZb/sWVJVZEU+3D8vz4PYW8Nuz3jRj489RlXpEuJ2Qq87l6c+h+e0ZyjNTjJqUXyme1fot73huXZNel5N3Ofp6UJJvvKHkn+TJ+m3C4nT5Loch210aoqMb1viktpNLHs8f2Nk6TtnRNLlVPD0+mE6YKEJdKbil6fgSWVi42VBQyaKrop8pTipJP8AmdwNyeaGo/FPw71izXIbs2TfHF1SEemypdo2L7vUzfAHRtyaRoupQ3Ji20ZV+T7ROx/tdvM2eADWGwtm6xpPiruPX87pli5rTon8X3f+pO6zXvLLzJ016do88RS5rnbNykvR8OPBcgAatzNhbrzty0bhyNfpjl0Q6KYKiMoQXfy5XzZatq6burBzpvWNarzsZrtH2UYtP+SLQAAAAAAAAAC4AAAAAAAAAAAFGAACgAAAAAAAAAAAAAAAAAAAAAAAAAAAMTV8pYeFO3n3uOI/eUC2crLJTk+W3zyTW6853ZXsIS9yHn95BEOtPilg6TTrfuqfE+bAAMRsQAAAAADzP9Jr/iBH/Aj+iNWG0/pNf8QI/wCBH9EasNHcfqyPUdH+hpeyAAMJsgAAAXzwM3hbs7fuHm9bjjXSVV6+Di3xz/LllDPqbTTT4aL4TcJKS6GC5t4XNGVGotpLDP0yw8irKxasmmSlXbBTi18U1yjtNKfRR3x/2h2g9FzburNwH0rqfeUPh+HZG6zrKNVVYKa6nz5qVjOwup28+cX/AMMAAyEEAAAAAAAAAAAAAAuAAAAAAAAAAABRgAAoAAAAAAAAAAAAAAAAAAAAAAAAAfJrqg488crjk+gAqep7eyYznbTNWJttr4kHfRbRJxshKP3o2QdOTjY98Wrq4y+bXcwSoJ7o2tDVJx2msmuATOu4elYqcqsxKf8A4fPJBwtrs/ZkjVu9tlV7nvI8XllZN5RqKrHiing5jkcAzuRlwAAUyXYPM/0mv+IEf8CP6I1YbT+k1/xAj/gR/RGrDT1/1GenaP8AQ0vZAAGE2QB9hGU5KMIuUm+El8S87J8MtwbiyK3ZV9RxZPvdd2SRiq16VLHeSSz5vBhr3FKhHjqSwiirv5Fo2hsLdG6ciNWlaXfOMmv6ycHGC/m+x6j8OfAPZek+zzMy+Wr5KXL6u0E/u5aZuTTsDC07HjRg4tOPXFcKNcFFfkbm207vUpylt6bnCap28o0swtIcT83svxz/AGNJ+A/gpqWydWhrmp6qvrDh0yx6vLh8dm+/Pkb1AN3Rowox4YcjzbUdSuNRrOtXeZfgAAyEEAAAAAAAAAAAAAAuAAAAAAAAAAABRgAAAAAAAAAAAAAAAAAAAAAAAAABtJcsoAYuZqOHiRbuyIR4+HPJVdwavm3Xzqxb/Z1p8Lp7N/zKplfWXNyucpP18zg9b7Zysm4W9Fyx1fL+3+xvLTRu9SdSWPQuepbyorbhiU+0fwlLyK1qG4NRzG+u5xj/AHY+REA801HtRqeoZVSo0vJbI6C3023ofLHL9TlOyc3zKTf3nxNp8p8HwGgUmnlPcn4SMmnLsh2l7yMunKrs+PS/RkWDptN7W6hZYjKXHHyf88zFKjGRNpp+QImrIsr8pdvRmZTmwl2muGd9pvbCwvMRqPgl68vyR5UZRPOP0mv+IEf8CP6I1Ybp8dtvatuDxFhDS8Sd0XTFOaXursvic9qeDEIuF+v5XU/P2Nb/AMyup6zZ2k26k17LdneWF/QtrGl3kt8cuppzAwMzPtVWHjW3Tfkox5NjbU8H9X1BQv1W1YVL79PnJr8zd2h7f0fRKVXpuDVTx+8orl/zJM4m+7XV6mY20eFeb3ZAudfqT2orC8+pVtr7C25oNcXRhwvuXnbYuWy0xSikopRS+CXABylavVry46sm36miqVZ1ZcU3lmRj5mTjy6qrpxfyZP6dvDNo4jkRV0fV+ZWATLHV72wlm3qOPp0/HIh1rSjXWJxTNm6bubTstJSn7Gb+EiYqtrtipVzjJP0Zprq6e/PB2Vbhv09/1GTNNfCL7HeaZ/1DrrELulxesdn+ORp63Z5Tf+i/sbkBTdibss1i+eJlqMbUuYNdufUuR6bp2oUdQoKvRezOeu7Wpa1HTqLcAAmkYAAAAAAAAAAAqAACuQAAMgAAZAABRgAAqAAAAAAAAAAAAAAAAAAAAAARm4sxY2FKEZcTmuF9xJyajFt+S7lH3BmvLzZ8P3IvhGm1u++Ftmo/NLZE6wt++q78kRs31SbPj4a4a5QB5y9zpzHuxKrO691mFdiW190upfIlQay60m3r74w/QywrSiQbTXmfCYtoqs/aiufVGHdgzj3rfUvQ5+50avR3h4l6EqFxGXPYwwcpxlF8Si0cTUNNPDM4ABQDhc9XC59eO4AKgAAqUAOq7IqqXM5L7jAyNSb7VR4+bL405S5GSFGc+SJKc4wXMpJIwsjUoR7VLqfr8CMttssfM5NnAkwoJcyZC0ivmO+/KutfvSaXojpPgM6WNkSVFR2Rn6Fnz03U6cqDacJJv5o3rpmXXnYNWTVJSjOKZ57Nk+E+s9UbNKun5e9Vz+h3PYnVvh7l2s34Z8vf/c5ntLYd7RVeK3jz9jYgAPWjggAAAAAAAAAAAAAAAAAAAAAAAAAC4AAAAAAAAAAAAAAAAAAAA+Tkoxcm+Eg9gRe5cz6thuuMuJz7fyKVJ8vkkNdzXl5kpJ+4u0fuI4821m9+LuW18q2R1Fjb9zSWebAANUTQACjAABQHGyuE1xKKZiXYKfet8fJmaCLcWdG4X+pH+S+NSUeTIa2myt+9F/edZONJrhpMx7sOufePus0NzoM470Xn0ZJhcr+oiw+x0arf9Ru9i11S45Ii/LutfeXC9EaX4aopOMljBsKVCVRcS5Erfm0VdurqfoiPv1C6zlQ9xGGCRCjGJMhbwj6n2TcnzJtv5nwAykgAAAAAAGXpGbbgahTlVSalCXPZmIC6FSVOSnF4a3LZwU4uMuTPQWkZteo6dTl1PmNkUzLNb+FGtcSlpN0vdfvVt+vxX5GyD3vRNSjqVnCuufJ+65nlepWbs7iVN8unsAAbYgAAAAAAAAAAAAAAAAAAAAAAAFwAAAAAAAAAAAAAAAAAABEbmzVj4jpjLidn5IlpyUIOcnwkuWUTWsuWXmTnz7vPC+40evX3w1vwx+aW38k/T7fvauXyRgyfL5PgB56dMAAAAAUYAAKAAAAAAAqm7PtRfwkQS+7PtRfwkQcne/US9zqLT9CPsAARiQAAAAAAAAAAAUYMrS8uzBzqsmttShJM3voudVqOm05dUk1OK54fk/iefjYPhRrPs75aVdL3bPer5+D9PzO17Fat8Ld/DTfhn+/T88jmu0lh39Dvo84/sbMAB6+efgAAAAAAAAAAAAAAAAAAAAAAFwAAAAAAAAAAAAAAAABxtnGuuU5PhRXLKNpLLCWSI3RmqjF9hGXEp+f3FOk+XyzM1jLeXmTs593n3fuMI811a9+LuXJclsjqrKh3NJLqAAawlgAAAAFGAACgAAAAAAKpuz7UX8JEEvuz7UX8JEHJ3v1Evc6i0/Qj7AAEYkAAAAAAAAAAAFGAZGn5VuFmV5NMumcHymY4Kwk4SUovDRbKKkmnyN/bf1CvU9Koy62n1R7/ACZnmr/CrWlj5U9Nvn7lr5r5flL/AOI2ge9aBqcdSsoVf6uT91/7k8t1Sydncyp9Oa9gADcmuAAAAAAAAAAAAAAAAAAAAK5AAAyAABkAADIAAGQAAMgEJurN9jjKiL96fnx6EzdZGqqVk3xGK5ZQdVypZWZO2T832XojRa/ffD2/dx+aX7dTY6db97U4nyRit8vk+AHn50gAAAAAAABRgAAoAAAAAACqbs+1F/CRBL7s+1F/CRByd79RL3OotP0I+wABGJAAAAAAAAAAAAAAAwDvwsieLlV31tqUJJrg3rtvUoarpFOXF95R4kvR/E0GXnws1n6rny0+6fFd37PPwZ2HY3Vfg7zuZvw1Nvv0/g53tFYfEW/eRXij+3U2oAD2TB54AAMAAAYAAAwAABgAADAAAAAAKAAAAAAAAAAAAAAHC+2NNMrJvhRXJRtRWWVSy8IhN153sqVjRfeS5kVNvl8mTqeTLKy52yfm+33GKeaapeO7uJT6cl7HVWlBUaSj1AANeSgAAAAVbfm769tSwqKqFlZeXaq41c90m0ufzMlGjOtNQgstlk5xpx4pciT1fcuh6TOUNQ1GimcVy4OS5IzTt9aLqV6q06vNyuXx1Qp5iv58lX8QNVyNT25qOPPTsOFsaXKTcZdcV95H7Qu1fG21pVUMnoovj080xipR7vz5RtoadT7jjl82cc9uWfIhSuZ95wrl7G4Vy4p8NfeDWFOj74r3ip4Gp3vTa+HN5PTxZ68cI2dDlQj1tdXHvP5msuLdUcYmpZ8unuS6VRzzlYwRW6NfwNuacs/UZSjT1KPurl8mLXvHb9uBLKq1CluNXtfZSklPj7iL3vtrJ3TlVSjqFEcTFXXXV1cqc/n8vIq2bU6L8XQte0XGphlTUZ5mJLs4+XD5fz9Cbb2lvUprLbl1x5ffn9iPUr1Iye2xaNA8RtJ1HC+sZFNuO3NxhBLly+Zcse2N9ELoJqM1yuVwyg4D0rbGo2W5OtY8tM6V7KmVTbr/AJqP+ZctF1fTNYxVkaZl1ZFXrD4fyMN7RhF8dKLUfPfHtyMlCcntN7kBvObrzpWKPU4w549SobY3FRrjvhXTOqymXE4stm9r6KM5yvtjXHo/efyNSbR13T9JlrF9j55ucocJ912NBS034uFzKMG5prhx6vDN67z4d0E5JRaefwXvWdYwdIqhbnTlCub4Ukuy+8y8a+rJohfRNTrmuYyXxK7HUFuPR0v6IlZXavKxrj9SM1fUtd0WjFxsDCp4b4jTDlvgwU9H71KgvDVTecyWMf4f9jNPUe7bqPenhYwnkvIbS82kYWiZd+bp1d+TjSxrWverl8GQHijFrbyuhOcLIWLhxfHqQLSxde8jayeG3jPMl17pU7d14rOFnyLTZdTWuZ2RivmyMy9y6JizULc+rlvjtJdjAqp0yjQFmyrjbfXT1S5m+efu5Kdqeatfw9J6sCGMrcjjt+8uYm403Q6NzUfHxcCeG9l0b5b55GuvNTqUYrhxxNZS3fVL08zadFtd1UbapqcJLlNfE7Dqxao041VUFxGEEuP5EJvyzKp0KV2HkTosjJe9HjybRore3VzcxoweOJ4TZtKtZ0aLqSWcLJOuytS6HOKl6cnRn5+HgRhLLvhTGb4i5Pjlmv8ARsCWXvLHV+VdJRoja+qXHU+OTK3pHJ1/XKdM06KnDD9+xt+7z6fmbyOg0o3UKU6nh4eKTxjC+5rHqtR0JVIw3zhLnkv0JRnBTi04tcpr4n0g9va5i5UPqNyWNmUrpnTJ/oThoLm2qW1RwmsfwbWhWhWgpReQd2JfZjZEL621KEk0dIMEZOLyjK0msM3xtXVIato9OTF8y46Zr0aJU1P4X619S1F4N0+Kr/LnyUjbB7v2d1RalYxqN+JbP3X8nl2r2Ts7mUFye69gADemsAAAAAAAAAAAAAAKMAAFAAAAAAAAAAAAACA3ZnKFaxYPu+8u5N5NsaKJ2yfCiuSg6jkzycqds33k/wADn+0N93FDuo85fsbLTbfvKnG+SMZ93yADgzowAAAAAAQWp7V0rUdeo1rKrlPKoXFfL92Pz4J0r/iBq2doe2b9T0+EJ21Ncxn5NGe27x1FGm8N7fkx1eHhzJbIqm6MvTMCzNr1/U5XVZUHXBQxpdS5+HVyfNBxqNSxdOw69v6hXiYv7GRO32b48+eHErus5Grbp17QsXKWOqrq/rMXCC7Ncdn2+ZMbJWq7l07VZ6rq99MMZyhCFKUVwl6rg39Sj3VBNy3678uiwkkayM+Kpsv/AHn1Nq1pRrjGL5jFcJ88kdudag9BzI6VGMsx1tVJvhclA8DbtSyL9V+sZ9uRiUXOuuM3y+zffk2iaK5o/CV+DPFjH8mwpVO+p55ZNebV27k6Dsy3M1eeVZnQjK22uN3u9lzx+R0adqmLr+3J6ti6PhpV8/8Ae5Rb5X38F13fYqtsajOT7fV5/wD6s1f4b6fnW7RVtOjV3QlKTVtmROKff+6uxs6E+/pzr1OfEvRe3NESou7kqceWCd2nTXvraeRRnaZTp9Ls6FKpcdaT+BbNqbU0bbNLr0miVXUuJNvnkrvhTuW/V55mBLSYYlWLLp66v2G+3b8y/EO/qVadSVH5Y88ZyZ7aEJRU+b8zX3ihbo1WR7bVVTOMYe6pcN/yRq7ZmnU6xTqilJVYDs56VH3u3BfN+be0TB3FLVtRy7ZRa5ULZNwT+7krPhxfixeq2ucI0SvfS/g1wiJGorezrzt3JyzHfGyeeUfX1J6g6tejGqklh+7WOb9PQ56NLNhqidWVHC0bHj0KFsuHPj49+DswsbUFuH61pGqRysJy/ra5z6nH7u5G+IkdLspqnhXylbK1dcYTbXHPft5E5ga9oOmYdVdMJL3F1ShD48fEsrqrK3jXo023NOPC4rp1b5tvOz2MlJwVV0qksKLTznz6LyXoWoqHilZ//CVYy/btuikvXzLPi5dGTiRyqp81Nc8/Ip+oQzdw7hrysWjqw8L9hz7KyX/xGj0Ok6d4q1TZU93nbfovds2mp1FO37uG7nsseXV/gifEKqGBiYTxbZV5FtajdXD96Pqz7k24awtt24bXsIWJS+T90tmlbdirL8zVJLJyr10vnvGC9EVvVtnZmDpuTPEu9pCuxXU1+nD5f6HTWWp2c1C3nU8UXz6S4k0//wA52b6GluLK4i5Vow2kuXVYaf8AfG5sOL5hFryaTILfz421f347x/VEPg73otx8HGrj/tcpKq2D/d47c/kZ3iZf7LbTXxsnFL8Uc9aaXc2mo0IVo4zLb7M29e+o17OpKm84X7ogY6PuD2+Bq2HfVYvYKPVL3ehcLz7mdXpNenSjjWa9KmzMfXKUOzk/Tq5LJpkaVtzHpyLFGEqVFtvjzRT8rRtOxcDJWdqrvUJuzGSk3KPyNvb6hO7nKnOXDwvC4YZbWXj08L9jXVbSNCKnFZys7yxjZZ/KEsHSdV1yWk1Ty687GffLUm3L+fHyLpo2BlYNfs78+eVFLhdfPKKnsbM0nTsSWTmZUfreRLmTku8V6F6pthdVG2qSlCS5TXxNbr9avTl8Os8C2y1zfVptbLPRE3SqVOS73bifReXTPqcgAcwbs7Me2dN0LYNqUXymjeW0dUjq2i05HK9ol0zXozRJcfDPWng6p9Utm1Tf2+5nW9kNW+BvVTm/BPZ+/Rmg7QWHxNvxxXijv9uptwAHtB5yAAAAAAAAAAAAAAUYAAKAAAAAAAAAAAHVlXRx8ed0vKK5KSkopt8iqTbwiC3bnKMViwffzl/oVYyNQunfkztn5yfJjnmOo3ju7iVR8unsdXa0VRpqIABCJIAAAAAAI7celVa3o9+m3zcIXLhyXmiRBdCbhJSjzRSSUlhkRom39P0zBxseNUbJ48OiFsl7yRE7g2bC7bl+m6JkTwLrJufXF+bfnyW0GWN1VjPjT3zkxujBx4cFZ8OdrQ2pof1N2q3Isl12z9WWYAxVqs603Um8tl0IRhFRjyRGbo0yesaFladC32UroOKl6Fd27sGjT9EpwMjUsyThz1KuSUX+RdQZKd1Vp0+7i8LOS2VGE5cTW5Fbb0DTtv41mPp0JQhZLqlz8WSoBhnOU5OUnll8YqKwim77xKM7Jni5EFOucOGmVnTtu6Vg4H1KvGjOlvqal8WW3dn2ov4SIOZurqvTqTpwm1HOcZ6+Z0ltQpTpwnKKbxgxMfS9Px/9ziVQ+5GR7Gnjj2UP/wDJzBCnWqTeZSb+5LjThFYSwfOiHR0dK6fQQjGEemEVFeiPoLMsuwgH3XDAKFSDytq6NkahDOeMoXRl1cx7csk9RwMXUMb6vlVqdaaaT+RkglTvribi5Tb4eW/L2MEbWjHiSivFz9THuwcW7GjjXUxsqiklF/I4U6Xp9K4rxK4/yMsGNXFVLhUnj3L3Sg3nhWTpeJivzx6/wO2EYwioxSSXkkfQY3OUtmy5RS5IAAtLgc6LJVWxsg+JRaaOAKptPKKNZWGby2Zq8NX0Wq3n+tguma+a+JNmofDTVp4Orxxpt+yv91r5/A28u65Pc+zOq/8AcbGM5fNHZ+66/c8w1my+EuXFfK90AAdCaoAAAAAAAAAAAowAAAAAUAAAAAAAPkkpLiSTT+DPoAIzO0XEyeXFezk/iivahoWVj8yhH2kP+kuc5whHqnKMV6t8Fa3FvvbWhxl9b1Gqc1+5U+t/kaTUNKsaic6mIPz5Eyjf1aPXK9SuzrnB8Si1wcCn7u8YcTKbhpWlpeltnd/5EdoPiViXuNWqUOmbf7ce6/A4W5p0qVThpz4l5mzoavQqPEnhmwQY2BqGFn1KzEya7Yv0kuTJMBtVJSWUAACoAAAABRgAAoAAAAAACqbs+1F/CRBL7s+1F/CRByd79RL3OotP0I+wABGJAAAAAAAAAAAAAAAABh52p4eHFu66PPonyyAv3bJXxePQuhPv19+SVRtKtZ7LbzNVfa1Z2W1Se/kt2XXCwMvMsVeNROyT8kkXPQvD3Ku6bdRt9jHz6F5lf2Z4waPiVRx8/SljeSdlK7fe0bT0Hd239arjLB1KmTf7kpKMvwfc9B0Psxpc8SrVeOXlyX8s5S77VVa3hoLhX9zv0fb2l6XFfV8eLmv35LlksfItSXMWmvVH09EoW9K3goUoqK9DnqtWdWXFN5YABmMYAAAAAAAAAABRgAAqAACjAABQAAhd56xDRdCvym17RrprXPmzFXrQoU5VZvCSyUbwss6Ne3ptzRFP6/qVUJw7OCacufuNbbm8caK3OrQ8Jz9LLe35dyjala866yeR/Wdb5fJB5mh02cyol7OXp8Dzat2yuKzcYrgX5IbuGzJ3J4g7l1tyV+fZXXL92p9HH4FVttstm52TlOT823y2ZGXp+VjP3624+qMQ1s7idw+KcuItbbPoCPpQoZGBn5uBarcTJsqkvgpPj8C8aB4lZdPTVqtMbYLt1x8zX4Kp4JFC7rUHmEsG/wDRdx6Pq8V9Uy4Ob/ck+JIlzzXVZZVNTqslCS8nFlq2/vzWNM6a75fW6V8J+ZcpG9t9ci9qyx6o3UCraBvjRtUShOz6tc/3Z/Es9c4WRUq5xnF/GL5Km7pV6dVZg8nIABmUAAoAAAAAACqbs+1F/CRBL7s+1F/CRByd79RL3OotP0I+wABGJAAAAAAAAOu++miPVbZGC+bKpN7ItlJRWZPCOwSaiuZNJL4ld1LdGPTzDFg7ZevwK3n6tnZkn7S1xi/3Yk+jp1Wpu9kc7fdp7O2zGm+N+nL8lw1HcGBiJxU/a2L4RK1qO4s7K5jW1TD5eZDfeDa0bClS3xlnGX3aO9u8pS4Y+S/k+zlKcuqcpSfq3yfACaaFvO7B2Y+Rfj2e0ousqmv3oSaf5HWfJNRXLaQWc7BvG7LvtrxO3PovTGOW8iuK46bfe5/m+TZ22vG3S8jpr1nFljS+M6/eX8/Lg843ZlcO0feZh3ZVtnbnheiOm02pqcMYliP/ANt/9zVXPaC3ttk+J+S/k9xbd3Fo24KZW6Rn1ZSh+30S5cfvJU8k+Am7Ht3eFdORY1i5fFU032TfZfmz1rGSlFSi+U1yn6na29V1IZfM2Gk6nHUKPHjDT3R9ABINqAAAAAAAAUYAAKgAAowAAUANK+L2v/0hqqwaJ80Y/Z/OXqbM31rMNF0C6/qSsmuiv72eesq6V+RO2b5lKTbOD7aapwU1Zwe73ft0RFuZ4XCjqAB5uQw0muGuV6GBmaTi5HLUPZyfxiZ4LozlB5iwngq+Zo+TRzKte0j8vMjpRlGXTJOL9GXk6MnDxslcW1rn1XmTqd81tNF6n5lNBNZmhTjzLGn1L+6yJvouol021yiydTqwqfKy5NM6wAZSp84+JNaJujWdJmvq+VKVa/cm+UQwBfCpKm8xeGbZ0DxIwcnpq1Kp49j7da7pl1wc3EzalZi5FdsX/dlyecGZenann6farMPKsra+Cl2/ArxG5t9bqQ2qrK/uejAat0DxLur6atWoVkf/ABIeZftH1/StWrUsPLhKT/db7orlG9t76hcfJLfyJQAFSYAAAVTdn2ov4SIJfdn2ov4SIOTvfqJe51Fp+hH2AAIxIADaS5bSRF6jruDh8xdismv3Yl8KcqjxFZI9xdUbePFVkkvUlDEzdRw8OLd10U/RPuVHUdyZmTzGnimD9PMhbJzsk5WTlNv4tmzo6XJ71Hg5O+7X04ZjbRy/N8izaluqcuYYVfC/vSK9l5eTlS6si2U/k32OkG1pW1Ol8qOOvdUur15rTyvLp+D4fQDOa8AHTbkVV+clz6F8Kc6j4YLLMdWrClHim8I7jhZZCC5lJIwLs2cu0F0r1MWUpSfMm2bi30WpPeq8L+5z932jpU9qK4n59DOuzl5Vr+bMS26yx+9JnWDe29jQofJHfzOYutTubr9SW3l0AAJZAOVNkqrYWwbjKDUk18Gj194H7tW6NoVe2mvreIlVYue7S7J/gjx+bD8Cd1vbm8qK7rXHDyn7O1PyXLXckW1Xu5+jN3oN/wDB3Sy/DLZ/4Z67B8rnGyuM4vmMlymfTcHp4AAAAAAABRgAAqAACjADaSbfkgV3xA1uOi6DbYpJXWpwrXz/APoj3NxC2oyqz5RWSjeFlmsfFrXXqWtvDqnzj4/urh9nL4lHOzItlddKyb5lJ8tnWeG315O8uJ1585M1cpOTywACIUAAAAAKgHG2uu2PTZBSXzOQKp45AiMzQ6bOZY8vZv0fkQ+Xp+VjN9dbcfVdy3h8NcNJr0ZKp3k47PcuUmUYFry9KxMhNqPs5esSGy9GyqeZVr2kF6eZPp3VOfXBepJkYz4cpxcXxJNP0ZxM7Kg50XW0WKymyVc15OLOAKBPBcdA8QNX0/pry39bpXb3vNGwtA3rouqpR9t9Xuf7lj4/M0YE2nynw18UXKRsrfVa9HZvK9T0vCUZxUoSjKL+KfJ9NC6FuzWdJklTkysrX7lj5X5mwNA8RtNy+mvUYPFsf73nEu4kb621ehW2l4X6mfuz7UX8JEGRu7V9OWXHIWVXKuUFw4vnkpepbrfeGFX/AP2kc3Xtqla4lwrqdU9YtLO3i6k98cluy03XVUxcrbIwS9WQWpbnxaOYY8XbP1+BUsvNysuXVfdKXy57GOTaOlwjvUeTlr7tdWqZjbR4V5vdkjqGs5+a2p2uEH+7Ej/vANlCEYLEVg5SvcVa8uOrJt+oABeYQDjOcYLmTSMS7OiuVWuX6kihaVq78ESJc31C1WassenUzG0ly3wY92ZXDsveZgW32WP3pHUby30SK3rPPojmrvtJJ+GhHHqzvuy7bOUn0r5HQ235gG6pUadJYgsHOV7irXlxVJZYABlMAAAAAAAPsJOMlJPho+AA9c+A27FuPaFVF9nVmYa9nZz5yXr+ZsU8e+Cm7Z7X3dS7JtYmS1Xaue3D8vz4PYFVkLa42VyUoyXKa+KNvbVeOG/NHp2gX/xdqlJ+KOz/AMHIAEk3gAAAABRgAAqAACjAbSTbfCRorxU196trcqKpf7Pj+7H5v1Nn+I2tx0fb9rhYo32ror9fvNAXTdlkpyfdvk8+7aaphRs4PnvL/C/yRLmf9KOAAPOyIAAAAAAAAVAAAAAAAAAB0ZWHjZMeLalz6oh8zQZx5ljWdX/SyfBmhcVKfJlVJopN+PdRJxtrlFo6i82wrui42wU18yLzNCos97Hl7OXo/InU72EtpbF6kitAzMzTcvFfv1tr1j3MN9vMlpprKLgACoPrlJ9nKT+9nwAA+o+nxB9vN8FyB9Bj3ZVdfbnqfyMO7Msnyo+6jYW+mV6++ML1NVd6za222cvyRn23V1rmUl9xh3Z0n2rXHzMNtt8sG9t9IoUt5+JnMXfaC5rbU/CvTn+TlOyc3zKTZxANqkksI0cpOTy3kAAqWgAAAAAAAAAAAAAAH2EnCalF8NPlM9Z/R/3Wtf2hXh32dWXhJQly+7j5J/kzyWXbwb3VZtjeGNdKbWNfJV3Lntw+3P8ALkz29Xu5+huNEv8A4O6TfyvZnsgHDHthfRXdXJShZFSi18Uzmbk9S5gAAAAFGAABkA+SkoxcpPhJctn0qnibri0fQJRrl/X5HMIrnvx8f1I15dQtKEq1TlFZKSkorLNYeKGuPV9enGuT9hRzCC57fP8ANFROVs5WWOcm22+WzieF3d1O7ryrT5yeTVyk5PLAAI5QAAAAAAAAqAAAAAAAAAAACjAAAB955XDSa9GYObpWJld+n2cvWJmgvhUlB5iwm0VnM0TJp5lV/Ww+XmRk4ThLpnFxfoy9JtHTk4uNkpq6qL+ZNp33SaL1PzKSfJOMVzJpHbuaMdOzvq9HLTjzyyCnZOb5lJs6ey0qdzBVG8RZpL/XqVtJ04LMl+DPuzYR7QXUzDtyLLH3lwvRHUDorfT6FD5Vv5s5W71W5utpSwvJAAE01oAAAAAAAAAAAAAAAAAAAAAABTIATaaa7NAAHq76PW7o69tWOn5NqeZhLpab7uPwf6G0Dxj4R7nntfeGLlym1jzl0XL/AKWeysa6vIx676pKUJxUotfE29rV44YfNHpnZ6/+KtlGT8Udn/g7AAScm+AAAAAKA42TjXXKcnxGK5ZoPxK1yWs6/Y4S5oqfRWvhx6mzvFLXlpOhSx65cZGQumPHml6/kaJnJyk5PzZ53201TLjZwfrL/C/yRLmf9KOIAPPyIAAAAAAAAAAAVAAAAAAAAAAABRgAAAAAAAAAo++vtlfwL9EQJPb6+2V/Av0RAnqekfQ0vZHnWqfWVPcAA2ZAAAAAAAAAAAAAAAAAAAAAAAAAAALQAAAItpprzR6n+jpu/wDpvbX9E5VqllYS4jy+7h8P8zywWzwq3Nbtjd2JmKbVM5qFq+DT7flyZ7ep3c8m20a+dldRk/lezPaQOrDyKsvFqyaJqdVsVKMl8UztNyepp5WUAACoONk411ynOSjGK5bZyKT4ta6tN0N4dU+L8nt2fdR+P6kS/vIWdvOvPlFFspcKyzWXiHrc9Z162xSbqrfRWvRf/ZWj7JuUnJvls+HhlzcTuasqs+cnk1knxPLAAMJQAAAAAAAAAAAqAAAAAAAAAAACjAAAAB12X01zjCy2EJS8k33Z2FXFpZaAB947cnwoCj76+2V/Av0RAk9vr7ZX8C/RECep6R9DS9kedap9ZU9wD51R56epc+h9NmQWmuYAAKAAAAAAAAAAAAAAAAAAAAAAAFoAAAAT4fIAB6h+jbu3+lduPRcq3nJxP2OfNw/9uDbp4n8NNy27W3Xi6lGT9ipdN0eezg33PaGm5dOfgUZlElKu6CnFr5m2tKvHDD5o9J7OX/xNt3cn4obfboZAAJR0JwyLYUUzusfEYRcm/uPPe/danrOvXXOTdcX0wXyRs3xc1/8Ao7SFgUT4vyOz+UTSTfL5PNu2mqcdSNnB7Ld+/REO5nvwo+AA4QigAAAAAAAAAAAAAFQAAAAAACP1PUMzEsUadNnkwf70Wv8AUkDpz3bHBulRLpsjBuL+aRntpRVRcUU0/PP+CseZHxztYtjzDS1Wn/fkv9SL17Wdc0yNU7aaI12S6epc9iNs1POzNuZOXkakq76pOMa4Phvz+Zx1P61PZ+FdmXu6c7k035pdjr7fS4Uq0e9hDHFwteLyzs2SIwSe5Oxw9w5FUb69WqiprqUel/6E3hxyI48Y5U4ztS95x8mMH/uNH8CO5900uzOVu7qVV8Dikk+iS/YwSlnYqviDUpf0fJNxl7ZLqT47cosTnjRwowtuj7PoUXLn5FO3zhWUvGnk51t0J2r+r58lyvJEpqFWFTt+NWNONEuOqPt1z+Pkb2paxqWVrBTb3lul6/nb2MrinGJhYuTh6Lq85x1WzJpt/Zp4bfP4Ftw8iOVjxvjCUFL4S8yh+0qu13FyI4lk6qIedNb4lL/4y76dl2ZlTssxbKGvJS+Jj1234YwqYblhZba+ywsfkpVXJlR3z9sr+Bfoir3ZDfVGvs4+fqWHxDvdWt1wjw5Sgv8AIgJQ99zbrjJ+Z2eiRSsaMpeSOKr28ad3OrWWU28fZ9V5GOlGMY2V9U7JepnQ6uldXHV8THg65T6fa9/l2OEachXOUZcR5+L8zbzSnzePcpd043KxUlwtbpyzv5JctvsZp05ds6q+uKT79+TtXl3MfUP9xx8zDSSc0manTqcal3CE1lNnPm119blFLjkxsicmoOu5ybfByyLLKqVF94yXC+R1+zVaoXblvlkmlBLxM6Cxto0mqssbt4SSw0k8567EhBNQSb5fBwvt9lDr6XI7DpzP+7siwSlNZOctIxq3MVNZTe51RyLZXqCikn3GfbKDjGD4fPc6oWqu+M+Gk4nOv2ntJWyqcm/JP0JTgoyUsbHRu0p0q0KrppRUeW275dfIy62pQTT57eZyMJK6uXVUl3feHPkZVU5SXvQcWR50+HdPY0V5Y91/qQknH3WV9v42OYAMRrgAAAAAAAC0AAAAAAA9OfRp3b/SehT0LKt5vxP911Pu4f8A2zzGWHw93Dkba3RialTNqMZpWJP9qL+BmoVO7mmbTSL52V1Gp0ez9j26CO0jUac/Epy6JqdN8VOEvVA3R6qmmso0LvfWJazrt+S5cw54gufJEEWDcG1NY0mcnfjTlHn9qK5T/AgJRcW0000eC3qr9/KVwmpN5eTWSznc+AAiloAAAAAAAAAAAAABUAADIAAGQA0mmn5NcMAZBG4eh6bje04x1Prk5Pq79yJ8QY11aNjwqUYRVy4S+HkWgqe59uZudm0yxb28dyUpwk+0fuN7pF0ql9Crc1cKO+/sZacsyzJll05t6djt+brX6HRrWRqGPjdWnYyvsfbh/Ay8av2OPXSnyoRUTmahVYxrcfCpLPJ8mY875Ne6/gZ1Tws/UMjryrbl/Vc+7HuuxJbus1T+inG3DolCyPT1R7uK9fIytwbeys/V8fKov/qYzUpwk/L7iT1WvVb4/VcSNddTXErZd2jqnqVOXw0sxbjlvoo77L7ffJn41sVXQsjNWXRpGBlwlUo8zsUE3EteJp2XTf7SzU7LFz3i4LhkRLZ1FWP14mVZXmLv7RPs2S23oarXiOrVZRnZF8RkviiNq11QrxdW2mvJpxSk358t/wCxSpJNZiyr78qhLXY2Ne8oLj8EVvJhKMvapdSXmiz76+2Fx/cX6IrVkLrPdk1CL9DsNEk/gqWX/Sjha1aSv5uc0op438vTr+DHxFG3Klao8JeSM8w7MedPE8dvn4r1Oyu+58KdLXzNvVXeeKL2KalT+Nar0JJxSxhvDWPRmQYebJTthVz2XdmX5r0OFdMIcvjlvzbMVOag+Jmusa9O2m6st2uS9fP7GPKuWT5+7CK935nRL2ka0pp/1cvMkzjOKnFxkuUzJC4xtjYn2+tOm1GUPAuS8vP89T4rIdEZc+fkdec+Md/edH1SyNkemXME+eDJyqndX0p8PkpiEJxaexYqdpb3VKcKmYt5fpv1FcVLHj7qb47cmO55E/eS6XB9/mjK6ZKtRjJJo4SqnJNSs8/PgQnFNtlttc04SlKeHl9cvC67eqOnCg52yvfK58kZh0Rx+lJKySSO6Kaik3yW1ZKTymYNSrQr1e8hLK5JY5Jcj6ADFk1oAAyAABkABeZ2SSceUUwXJZOEU2+x8a4fBzq8z7YuVyhjYrw+HJx4XRyceHxyc/8AlH2PeHBXBVxycIR6nxyfO6f3HKHaSMnD0/MzshU4eNbdOT4ShFspgoo8S25noT6N261qOjy29kWc5GKuqnl+cfT+XAIHwb8Md14Gu42t3Wx0+Fb96Mu7lH4rt6oG3tpS7vEkel6HUuPhIxrQaa2Xt0PRdtddsHCyEZxfmmuSp7g2Doup8zqr+q2v96C7fgW4FLqyt7uPBWgpL1N1KKlzNF7h8PdY07qspr+s1LvzDu/wKffRbTY67YOE4+aa7o9SNJrhrlENre2dH1euSysSHW/KcVw0cXqHYmEsytJ49Hy/JHnbL+k84A2XuLwxyaeq3TLvbQ/uS/aKDqOl5+n2uvLxrKpL4SRxF9pV3YyxXg169PyRZU5R5owgfWuD4a8tAAAAAAAAAAAAAAAAAAAACAABUAAAAAAFH3z9sL+BfoiBJ7fP2wv4F+iIE9U0j6Gl7I861T6yp7gcv1AJ5AAAAAAAAAAAAAAAAAAAAAAAAAByrfHZnEFUVTwztiuJM4wfvNfA51czXEU3L0SLZtDw43NuS2MsbBnVRLv7WxcR/wBS5RcniJIp0alWSjSi2/QqUo8Q4RLbZ21revXqvTMC69Pt1Ri+lfez0JszwP0bTui/W7XnWrh+z8of5M2ppumYGm0RpwcSmiEVwlCKRMhZye8tjprPsvWqNSrvhXl1NC7M8CLZuGRuC9wXZumv/U3HtrZ+hbeo6NPwKoS4463FOT/mWIE2FGEOSOrs9LtbRf6cd/PqdWPFxUufUHaDIbAAAAAAAGJqWm4Oo0urNxq7oP4SRlgtnCM1wyWUOZrncfhjiX9VmlWexl/cn3X8jXWvbW1fSLGsjFm4fCUV1L8UeizhdVVdBwtrhZF+akuUctqHZGyusypeCXpy/Bgnbxly2PLbTXmj4b43D4f6NqfVbTB4tz57wXb8PI1zuHw/1nTeqyqn6xUvjX3Zw2odmb+yy+Hij5r+OZFnQlEpoOy2qyqcoTg4yi+Gn8DrOf5GIAAAAAAAAAAAAAAIAAFQAAAAAAUffP2wv4F+iIEnt8/bC/gX6IgT1TSPoaXsjzrVPrKnuAATyAAAAAAAAAAAAAAAAAAAAAAASeg6Bq+uZKo0vBuyZt8Pojzx95uDZPgNl5HRfuPJ+rwa5dVfd/z8uDJClOfyonWmnXN28UoZ9en5NJYmJk5dypxaLbrJeUYRcn+RszZfgtuTWui/OUcDGbXLs/a4+7nk9E7W2TtzblEa9O06pTX/ADJxUpfi+5YydTskt5s6yy7KQjiVzLPouX5NfbO8JdqbfULZ4izcqP8AzLuHw/l27F/qrrqgoVwUYrySRyBMjCMFhI6mhbUrePDSikgAC4zgAAAAAAAAAAAAAAAAAANJrhpNAAEJru1tG1etrIxYRsflZFcNGutx+GOXj9Vum2+3h3fQ/wBr/Q3ADTahoFjf71IYl5rZmOdKMuZ5j1DTc3AtdWVj2VyXnyjDfY9OanpeBqVTrzcau5P+9Hlooe4vDHGu6rdKtdb8+iff8zhtQ7GXVDMrd8a8uTIs7aS5GnwTWubZ1bSLGsnFmof30uY/iQzTXmjka1GpRlwVItP1I7TXM+AAxgAAAAAIAAFQAAAAAAUffP2wv4F+iIEnt8/bC/gX6IgT1TSPoaXsjzrVPrKnuAATyAAAAAAAAAAAAAADsx8e/ItjVRVOyyXZRiuWwV5nWfYxcnxFNv0RsjZng9ufXum7Ip+oY74fVauJfg+DduzfB7a+hdF2TQs/Ij36rVzHn7mSKdtUn0wbqy0G7ut+HhXmzzntLYG5dyWwWFp9sam+HbNdKX4m69l+BGl4XRka9kPLsXDdUe0efmblx6KceqNVFca4RXCjFcJHYTqdpCPPc62y7N2tv4qnjfry/BgaTo+l6Tjxo07Cpx64+ShEzwCUlg6CMVFYisIAAFwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB13003wcLqoWRfmpLkqO4fD3R9R6rMaLxbn8Y+TLkCJd2FveR4a8FJFsoqXM0NuPYWs6W5WV0vIqT/ar78IqllVlcmpwcWvPlHqRpNcNcogtd2no2rxbvxYwsf/MguGcXqHYmLzK0nj0f8kadt/8AE86A2LuLwzzsZTt06cciC7qHlIoudp+ZhWurJx7K5Lt70WjiL3TLqylivBr16fkjShKPNGIACCi0AAqAAAAAACj75+2F/Av0RAk9vn7YX8C/RECeqaR9DS9kedap9ZU9wACeQAAAAAAAAk2+Em2WTa2yNx7ivjDT9PtcG+9k49MUvvZVJt4Rkp0p1ZcMFl+hWzP0jRtU1bIWPp2FdkWP4Qib+2Z4C4eP0X7hyvbz+NVfZfz8zb2haBpGiYyx9MwKceCX7sfMl07OUt5bHS2XZe4q+Ku+Ff3PP+yvAnUszoyNevWJW+7rj3kbq2nsHbW26orC0+udq87bF1N/j5FpBOp0IU+SOtstHtLPeEcvze7EUorhJJL4IAGY2gAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMHVNJ0/U6nXmYtdqfxcVyv5mcC2pTjUjwzWUGsmtNxeGFNilbpVzi/P2c/9TXWt7c1bSJtZmLOEV+/x7v4npA68jHoyIOF9ULIvzUlycpqHY+zuMyo+CXpy/BHnbxly2PLjTXmj4bz3D4d6TqPVZif7JY/7vkzW+49i6zpMnONDyKf79fkkcNqHZy/sctx4o+a3/3I06MolUB2W1WVy4nCUX80dZoTEAAMgo++ftlfwL9EQJPb6+2V/Av0RAnqmkP/AMGl7I861T6yp7gAGwIABmabpeoalfGnBxLb7JeShE2tsrwM1rUowyNatWBU+/s/Of8AmjJCnKfyol2tjcXUsUot/t+TUFVVls1CuDlJ9kkvMv2zfCXdW4JQtniSwsWXnZcnF/yXxPRu0PDjbG264vGwYXXrzutXL/DyLfCMYRUYRUUvglwTadl1mzrLLsoliVzL7L+TWGzfBjbei9F+dF5+RHh+/wDs8/d3RsrExcbEpVOLRXTWvKMIpJfgdwJsKcYLEUdVbWdC2jw0opAAFxJAAAAAAAAAAAAAAK4AAAwAABgAADAAAAAAKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB91wwACv67tDRdWUpW4sa7X+/DszXO4vDPUcXru06cciteUfKS/1NzA0modnrG+y5wxLzWzMc6UZczzBmYOXh2OvIosrkvhKLRjHpnVdH07U6nXmYtc+f3ulJ/iUDcXhfXNSs0m/iXwrn5ficNqHY27oZlbvjX4ZFnbyXLc8276+2V/Av0RApN+SNvar4S7t1ncvs/qX1fHikpXWcqL8vLsbI2Z4I7f0nov1SUs7IXfh9o/+51mj2db4OnGSw0upxNfRLu7vKjjHCzzZ5321tDcG4ciNWm6ddYn++4tQX8/I3PsvwErrcMjceV7Tun7Grt/JvvybxwcLEwaVTh41VEEuOK4KP6GQb2nZwj825v7LsxbUcSq+N/2/BD7c2zoe3qFVpOn04/C4coxXU/vZMAEtJLZHRQhGnHhisIAAF4AAAAAAAAAAAAAAAAAAABcAAAACrZviLsfCzp4OXufTqcmEumVUrPeT9Cz1zhZXGyElKMlymvigDkDA17WtK0HAefrGfThYqkou22XEeX5I6dt7k0LcdFt+hapjahVVLpnKmXKi+OeGASoAKMAAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAXAHDIbVE2nw+lgAH5/7olKW8dQlKTb+u2d2/wDrZ7n2DKU9m6VKcnKTx48tvlsAAon0qv8AhTd/5qr/ADK59Db+y+s/+cj/APogADfQAKMH/9k=" alt="AI安全风险管理框架金字塔：可接受风险 / 需管控风险 / 不可接受风险" style="width:100%;height:auto;display:block"></div>
+      <div class="fw-cards"><div class="fw-card"><span class="n">1</span><span class="t">法律合规风险</span></div><div class="fw-card"><span class="n">4</span><span class="t">智能体安全风险</span></div><div class="fw-card"><span class="n">2</span><span class="t">模型安全风险</span></div><div class="fw-card"><span class="n">5</span><span class="t">数据安全风险</span></div><div class="fw-card"><span class="n">3</span><span class="t">内容安全风险</span></div><div class="fw-card"><span class="n">6</span><span class="t">系统安全风险</span></div></div>
+    </div>
+    <div class="fw-title">AI 安全风险管理框架 · 3 层风险分类 × 6 大控制领域</div>
+  </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ===== 1 ===== -->
+  <section id="s1">
+    <h2><span class="num">1</span> AI 安全风险管理必要性</h2>
+    <p class="lead">安全已成为决定 AI 能否被广泛应用、可信赖运营的核心条件。安全应主动前移到项目启动和技术选型阶段，成为企业 AI 落地的关键前提。</p>
+
+    <h3><span class="num">1.1</span> 外部因素推动</h3>
+
+    <h5>1.1.1 AI 技术和应用发展迅速，但安全方面仍普遍存在风险</h5>
+    <p>2026 年 1 月引发广泛关注的 OpenClaw，于 2026 年 2 月被发现存在高危远程代码执行漏洞，攻击者可通过恶意链接一键接管用户系统，窃取 AI 助手权限和敏感数据。</p>
+
+    <h5>1.1.2 法律法规监管趋严，行业标准与规范正在逐步建立完善</h5>
+    <p>修订后的《网络安全法》将人工智能正式纳入国家网络安全法律体系，从 2026 年 1 月 1 日起正式生效，为后续专项立法预留了制度空间。</p>
+
+    <h5>1.1.3 严峻的外部威胁与攻击演进</h5>
+    <p>攻击者已将 AI 转化为高效“犯罪工具”，包括但不限于使用 AI 快速生成恶意代码、勒索软件、通过深度伪造邮件、照片和视频进行钓鱼和公众误导等。</p>
+
+    <h3><span class="num">1.2</span> 内部因素推动</h3>
+
+    <h5>1.2.1 AI 应用的发展需配套完善的 AI 安全风险管理框架</h5>
+    <p>通过 AI 风险管理框架建设可以识别公司内存在的 AI 安全风险，并执行有针对性的风险缓释措施，以体系化管控 AI 安全风险水平。</p>
+
+    <h5>1.2.2 AI 应用场景扩张同时前置安全设计，降低潜在安全改造成本</h5>
+    <p>目前公司 AI 应用已在处理企业敏感数据、大量企业知识库等数据。在 AI 应用场景扩展、AI agent 权限扩大的发展趋势下，公司需建立风险管控机制，以协助 AI 应用尽早考虑安全措施（安全左移），降低后续改造成本。</p>
+
+    <h5>1.2.3 AI 安全供应链风险及暴露面增加，需及时管控潜在安全威胁和漏洞</h5>
+    <p>公司 AI 应用依赖三方模型和三方 AI 模块，且与互联网存在交互，安全供应链风险及暴露面增加，需要进一步识别并管理 AI 风险以应对当下严峻的外部安全威胁。</p>
+  </section>
+
+  <!-- ===== 2 ===== -->
+  <section id="s2">
+    <h2><span class="num">2</span> AI 安全风险管理框架 — 不可接受风险及可接受风险</h2>
+    <div class="alert info"><span class="ico">📌</span><div>AI 安全风险管理框架包括 <strong>3 层风险分类</strong>，<strong>6 大控制领域</strong>。</div></div>
+
+    <div class="tbl-wrap breakout">
+      <table class="fw">
+        <colgroup><col style="width:8%"><col style="width:38%"><col style="width:15%"><col style="width:39%"></colgroup>
+        <thead><tr>
+          <th class="h-area">控制领域</th>
+          <th class="h-no">不可接受风险 AI 应用<small>（符合任一条即为不可接受）</small></th>
+          <th class="h-mid">需管控风险</th>
+          <th class="h-yes">可接受风险 AI 应用<small>（符合所有条为可接受）</small></th>
+        </tr></thead>
+        <tbody><tr><td class="area">法律合规</td><td class="no"><div class="item"><span class="t-no">不合规应用：</span>使用 AI 进行涉及欺骗操纵、利用群体弱势、社会评分及分类、行为/情绪预判、生物识别、侵犯人权、违背伦理及法律、威胁公司利益等行为</div></td><td class="mid" rowspan="6"><div class="mid-inner"><div class="lead">AI 应用安全风险识别、评估、缓释：</div><ul><li>AI 安全护栏</li><li>安全控制前置</li><li>漏洞扫描</li><li>……</li></ul></div></td><td class="yes"><div class="item"><span class="t-yes">合规应用</span></div></td></tr><tr><td class="area">模型安全</td><td class="no"><div class="item"><span class="t-no">非公司批准模型：</span>使用未经公司批准的外部模型或 AI 应用处理公司非公开数据</div></td><td class="yes"><div class="item"><span class="t-yes">公司已评估通过的模型</span></div></td></tr><tr><td class="area">内容安全</td><td class="no"><div class="plain">/（AI 安全护栏）</div></td><td class="yes"><div class="plain">/（AI 安全护栏）</div></td></tr><tr><td class="area">数据安全</td><td class="no"><div class="item"><span class="t-no">数据直接修改：</span>未经人为审查，AI 直接决策并执行对公司敏感数据的读取、新增以外的修改动作</div><div class="item"><span class="t-no">数据安全威胁：</span>任何可能导致公司敏感数据泄露、篡改或丢失的 AI 应用</div></td><td class="yes"><div class="item"><span class="t-yes">公开数据为主：</span>AI agent 处理数据范围明确，以公开数据为主</div><div class="item"><span class="t-yes">本地处理：</span>数据本地存储，数据处理活动不涉及跨境、交换、委托处理</div></td></tr><tr><td class="area">智能体安全</td><td class="no"><div class="item"><span class="t-no">模块不透明：</span>使用来源不明、功能和内部逻辑不可见、不可验证的封装 AI 模块*</div></td><td class="yes"><div class="item"><span class="t-yes">简单节点：</span>AI 应用仅处理业务环节中的简单节点，AI 处理结果人工可控，AI 应用的失效/不可用对业务流程的正常运行不造成实质影响</div><div class="item"><span class="t-yes">轻微影响：</span>影响用户范围在单个部门日常运营工作以内</div></td></tr><tr><td class="area">系统安全</td><td class="no"><div class="item"><span class="t-no">基础架构不可控：</span>AI 应用涉及的开发系统架构在公司运营环境之外</div></td><td class="yes"><div class="item"><span class="t-yes">AI Agent 无外网交互</span></div></td></tr><tr class="eg"><td class="area">举例</td><td class="eg-no"><ul><li>使用 AI 应用进行带社会歧视或偏见的简历筛选</li><li>使用 Kimi / Gemini / 元宝 处理公司数据</li><li>AI 应用在用户对话中识别出文件删除要求后，立刻直接执行删除操作</li><li>三方 AI 模块声称“可以自动优化”，但无法声明是否把客户数据用于模型训练</li><li>私自使用外部设备通过公司 API key 接入公司订购的大模型服务</li></ul></td><td class="mid"></td><td class="eg-yes"><ul><li>获取外部公开信息后通过 AI 整理为 Newsletter 提供给某部门业务组</li><li>获取 Bloomberg 汇率，通过 AI 整理后提供给财务部门业务组</li></ul></td></tr></tbody>
+      </table>
+      <div class="fw-foot">* AI 模块：AI 应用所使用的组件化单元，例如 agent、agent skills、模型、工具、plugin 等。</div>
+    </div>
+    <figcaption style="text-align:center">图：6 大控制领域 × 3 层风险分类对照</figcaption>
+
+    <h3><span class="num">2.1</span> 不可接受风险 AI 应用 <span class="badge error">符合任一条即为不可接受</span></h3>
+
+    <div class="domain"><div class="dh">⚖️ 法律合规领域 <span class="badge error">❌</span></div><div class="db">
+      <p><strong>不合规应用：</strong>使用 AI 进行涉及欺骗操纵、利用群体弱势、社会评分及分类、行为/情绪预判、生物识别、侵犯人权、违背伦理及法律、威胁公司利益等行为。</p>
+      <div class="eg">例如：使用 AI 应用进行带社会歧视或偏见的简历筛选</div>
+    </div></div>
+
+    <div class="domain"><div class="dh">🧠 模型安全领域 <span class="badge error">❌</span></div><div class="db">
+      <p><strong>非公司批准模型：</strong>使用未经公司批准的外部模型或 AI 应用处理公司非公开数据。</p>
+      <div class="eg">例如：使用 Kimi / Gemini / 元宝 处理公司数据</div>
+    </div></div>
+
+    <div class="domain"><div class="dh">📝 内容安全领域</div><div class="db">
+      <p>/（通过 AI 安全护栏管控）</p>
+    </div></div>
+
+    <div class="domain"><div class="dh">🤖 智能体安全领域 <span class="badge error">❌</span></div><div class="db">
+      <p><strong>模块不透明：</strong>使用来源不明、功能和内部逻辑不可见、不可验证的封装 AI 模块*。</p>
+      <div class="eg">例如：三方 AI 模块声称“可以自动优化”，但无法声明是否把客户数据用于模型训练<br>* AI 模块：AI 应用所使用的组件化单元，例如 agent、agent skills、模型、工具、plugin 等。</div>
+    </div></div>
+
+    <div class="domain"><div class="dh">🗄️ 数据安全领域 <span class="badge error">❌</span></div><div class="db">
+      <p><strong>数据直接修改：</strong>未经人为审查，AI 直接决策并执行对公司敏感数据的读取、新增以外的修改动作。</p>
+      <p><strong>数据安全威胁：</strong>任何可能导致公司敏感数据泄露、篡改或丢失的 AI 应用。</p>
+      <div class="eg">例如：AI 应用在用户对话中识别出文件删除要求后，立刻直接执行删除操作</div>
+    </div></div>
+
+    <div class="domain"><div class="dh">🏗️ 系统安全领域 <span class="badge error">❌</span></div><div class="db">
+      <p><strong>基础架构不可控：</strong>AI 应用涉及的开发系统架构在公司运营环境之外。</p>
+      <div class="eg">例如：私自使用外部设备通过公司 API key 接入公司订购的大模型服务</div>
+    </div></div>
+
+    <h3><span class="num">2.2</span> 可接受风险 AI 应用 <span class="badge success">符合所有条方为可接受</span></h3>
+
+    <div class="domain"><div class="dh">⚖️ 法律合规领域 <span class="badge success">✅</span></div><div class="db"><p><strong>合规应用</strong></p></div></div>
+    <div class="domain"><div class="dh">🧠 模型安全领域 <span class="badge success">✅</span></div><div class="db"><p><strong>公司已评估通过的模型</strong></p></div></div>
+    <div class="domain"><div class="dh">📝 内容安全领域</div><div class="db"><p>/（通过 AI 安全护栏管控）</p></div></div>
+    <div class="domain"><div class="dh">🤖 智能体安全领域 <span class="badge success">✅</span></div><div class="db">
+      <p><strong>简单节点：</strong>AI 应用仅处理业务环节中的简单节点，AI 处理结果人工可控，AI 应用的失效/不可用对业务流程的正常运行不造成实质影响。</p>
+      <p><strong>轻微影响：</strong>影响用户范围在单个部门日常运营工作以内。</p>
+    </div></div>
+    <div class="domain"><div class="dh">🗄️ 数据安全领域 <span class="badge success">✅</span></div><div class="db">
+      <p><strong>公开数据为主：</strong>AI agent 处理数据范围明确，以公开数据为主。</p>
+      <p><strong>本地处理：</strong>数据本地存储，数据处理活动不涉及跨境、交换、委托处理。</p>
+    </div></div>
+    <div class="domain"><div class="dh">🏗️ 系统安全领域 <span class="badge success">✅</span></div><div class="db">
+      <p><strong>AI Agent 无外网交互</strong></p>
+      <div class="eg">例如：获取外部公开信息后通过 AI 整理为 Newsletter 提供给某部门业务组；获取 Bloomberg 汇率，通过 AI 整理后提供给财务部门业务组</div>
+    </div></div>
+  </section>
+
+  <!-- ===== 2.3 ===== -->
+  <section id="s23">
+    <h2 style="font-size:var(--text-2xl)"><span class="num">2.3</span> 需管控风险 AI 应用</h2>
+    <p>在此类别的 AI 应用需经过 AI 应用安全风险识别、评估、缓释。包括如接入 AI 安全护栏、安全控制检查、漏洞扫描等缓释方式。</p>
+
+    <h3><span class="num">2.3.1</span> LLM 应用分组及关键控制</h3>
+    <div class="tbl-wrap breakout"><table class="grp">
+      <thead>
+        <tr>
+          <th rowspan="2">分类</th><th rowspan="2">说明</th>
+          <th colspan="3" style="text-align:center">Agent 化程度</th>
+          <th rowspan="2">示例</th><th rowspan="2">关键控制措施</th><th rowspan="2">状态/下一步</th>
+        </tr>
+        <tr><th style="text-align:center">自主决策</th><th style="text-align:center">记忆</th><th style="text-align:center">工具使用</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="cat">类别 1</span></td>
+          <td>基于 OpenClaw、Hermes 等开源框架自研的高自主性 AI Agent，具备自主规划决策、有跨用户/跨组织级记忆，可自行规划并使用工具等特性</td>
+          <td class="center cap-yes">具备</td><td class="center cap-yes">具备</td><td class="center cap-yes">具备</td>
+          <td>数字员工 POC</td>
+          <td>目前方案：<span class="tag">安全养虾平台</span></td>
+          <td><em>沙箱资源需求待提供</em></td>
+        </tr>
+        <tr>
+          <td><span class="cat">类别 2</span></td>
+          <td>三方提供的 AI 服务，安全措施由第三方控制</td>
+          <td class="center cap-ltd">有限</td><td class="center cap-yes">具备</td><td class="center cap-yes">具备</td>
+          <td><em>Aily 智能助手企业版；企业版 Claude Code</em></td>
+          <td>安全合规评估；商业合同约束安全责任；用户意识培训（Dos &amp; Don'ts）</td>
+          <td>已有合同约束</td>
+        </tr>
+        <tr>
+          <td><span class="cat">类别 3</span></td>
+          <td>自研 LLM 应用及 AI Agent，具备有限的记忆和工具，没有自主规划和行动能力，产出通常可控（i.e. 带有部分 AI 能力，没有 AI 能力对应模块会失效）</td>
+          <td class="center cap-no">无</td><td class="center cap-ltd">有限</td><td class="center cap-ltd">有限</td>
+          <td><em>AI Buddy；Dify Workflow；内容洞察</em></td>
+          <td><strong>数据调用控制</strong><br>· 无敏感数据 — 确认符合安全要求<br>· 有敏感数据 — case by case 安全评估<br>对于相应的安全实践：沙箱隔离、<span class="tag">AI 安全护栏</span></td>
+          <td>建立评估机制</td>
+        </tr>
+        <tr>
+          <td><span class="cat">类别 4</span></td>
+          <td>自研应用系统，其主要功能不依赖 AI 能力实现</td>
+          <td class="center cap-no">无</td><td class="center cap-no">无</td><td class="center cap-ltd">有限</td>
+          <td><em>Dashboard；Portal</em></td>
+          <td>传统系统安全管理流程（如外网发布申请、渗透测试等）</td>
+          <td>已有应用安全测试</td>
+        </tr>
+      </tbody>
+    </table></div>
+
+    <h3><span class="num">2.3.2</span> 关于应用数据调用的安全风险判断逻辑</h3>
+    <figure class="flow"><svg viewBox="0 0 840 1130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="应用数据调用安全风险判断逻辑流程图"><defs><marker id="arr" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#9AA0A6"/></marker></defs><rect x="260.0" y="20.0" width="320" height="52" rx="26.0" fill="#00AA4F" stroke="#00AA4F" stroke-width="0"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="13.5" font-weight="600" fill="#fff"><tspan x="420" y="46.0">开始：AI 应用 → 系统数据（接口）</tspan></text><rect x="255.0" y="110.0" width="330" height="92" rx="8" fill="#EEF3FF" stroke="#7C93C9" stroke-width="1.6"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" font-weight="600" fill="#33415c"><tspan x="420" y="138.5">前提：</tspan><tspan x="420" y="156.0">1. 使用公司批准的大模型（有合同或公司订阅）</tspan><tspan x="420" y="173.5">2. 为接口创建单独的 AI 账号</tspan></text><polygon points="420,238 538,310 420,382 302,310" fill="#FFF3D6" stroke="#F0A800" stroke-width="1.8"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="700" fill="#6b4e00"><tspan x="420" y="310.0">接口是否为只读？</tspan></text><polygon points="560,410 688,490 560,570 432,490" fill="#FFF3D6" stroke="#F0A800" stroke-width="1.8"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11.5" font-weight="700" fill="#6b4e00"><tspan x="560" y="481.8">接口是否涉及敏感数据？</tspan><tspan x="560" y="498.2">（财务、合同、个人信息等）</tspan></text><rect x="30.0" y="661.0" width="180" height="58" rx="8" fill="#E3F5EA" stroke="#30AA60" stroke-width="1.6"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#1f5130"><tspan x="120" y="690.0">风险可接受</tspan></text><rect x="305.0" y="658.0" width="230" height="64" rx="8" fill="#E3F5EA" stroke="#30AA60" stroke-width="1.6"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" font-weight="600" fill="#1f5130"><tspan x="420" y="681.2">风险可接受，</tspan><tspan x="420" y="698.8">仍需防滥用与篡改</tspan></text><rect x="605.0" y="661.0" width="230" height="58" rx="8" fill="#E3F5EA" stroke="#30AA60" stroke-width="1.6"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" font-weight="600" fill="#1f5130"><tspan x="720" y="690.0">风险相对较高，需要管控</tspan></text><rect x="30.0" y="791.0" width="180" height="58" rx="8" fill="#E3F5EA" stroke="#30AA60" stroke-width="1.6"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" font-weight="600" fill="#1f5130"><tspan x="120" y="820.0">仍需保护 API 凭据</tspan></text><rect x="305.0" y="788.0" width="230" height="64" rx="8" fill="#E3F5EA" stroke="#30AA60" stroke-width="1.6"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" font-weight="600" fill="#1f5130"><tspan x="420" y="811.2">人为监督</tspan><tspan x="420" y="828.8">（human in the loop）</tspan></text><rect x="605.0" y="788.0" width="230" height="64" rx="8" fill="#E3F5EA" stroke="#30AA60" stroke-width="1.6"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="12.5" font-weight="600" fill="#1f5130"><tspan x="720" y="811.2">最小权限原则</tspan><tspan x="720" y="828.8">写操作需审批 / 审计</tspan></text><rect x="240.0" y="930.0" width="360" height="76" rx="8" fill="#C0E6D0" stroke="#00AA4F" stroke-width="2"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="13" font-weight="600" fill="#0a5a30"><tspan x="420" y="959.0">最终措施：</tspan><tspan x="420" y="977.0">保护 API 凭据 + 保护大模型调用凭据</tspan></text><rect x="255.0" y="1060.0" width="330" height="52" rx="26.0" fill="#00AA4F" stroke="#00AA4F" stroke-width="0"/><text text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="13.5" font-weight="600" fill="#fff"><tspan x="420" y="1086.0">结束：持续监控与轮换凭据</tspan></text><polyline points="420,72 420,110" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="420,202 420,238" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="302,310 120,310 120,661" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="538,310 560,310 560,410" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="560,570 560,600 420,600 420,658" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="688,490 720,490 720,661" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="120,719 120,791" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="420,722 420,788" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="720,722 720,788" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="120,849 120,920 270,920 270,930" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="420,852 420,930" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="720,852 720,920 570,920 570,930" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><polyline points="420,1006 420,1060" fill="none" stroke="#9AA0A6" stroke-width="1.6" marker-end="url(#arr)"/><g><rect x="238.5" y="290" width="17.0" height="18" rx="4" fill="#EEF0F2"/><text x="247" y="303" text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#555B61" font-weight="600">是</text></g><g><rect x="474.5" y="350" width="171.0" height="18" rx="4" fill="#EEF0F2"/><text x="560" y="363" text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#555B61" font-weight="600">否（可写：POST/PUT/DELETE 等）</text></g><g><rect x="442.0" y="587" width="66.0" height="18" rx="4" fill="#EEF0F2"/><text x="475" y="600" text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#555B61" font-weight="600">否（非敏感数据）</text></g><g><rect x="689.5" y="530" width="17.0" height="18" rx="4" fill="#EEF0F2"/><text x="698" y="543" text-anchor="middle" font-family="-apple-system,'PingFang SC','Microsoft YaHei',sans-serif" font-size="11" fill="#555B61" font-weight="600">是</text></g></svg><figcaption>图：AI 应用 → 系统数据（接口）调用的安全风险判断逻辑</figcaption></figure>
+
+    <section id="s233">
+    <h3><span class="num">2.3.3</span> 原生 OpenClaw 主要安全风险概览</h3>
+    <div class="alert warning"><span class="ico">⚠️</span><div>下文列示原生 OpenClaw 的主要安全风险。其中，标注 <strong>⚠️</strong> 的风险项表示其风险水平初步判断相对较高；标注 <strong>⭕</strong> 的风险项表示该场景存在触发不可接受风险的可能。</div></div>
+
+    <h4>1 法律合规领域</h4>
+    <div class="domain"><div class="dh">1.1 安全合规评估风险 </div><div class="db"><p>安全评估标准不完善，可能触发网络安全审查；调用境外 API 易引发数据出境合规问题。</p></div></div>
+    <div class="domain"><div class="dh">1.2 责任边界风险 <span class="badge error">⭕ 可能不可接受</span> </div><div class="db"><p>OpenClaw 开源且缺乏明确商用版本，若企业使用 OpenClaw 发生违规无法追责 AI，各相关方责任边界不易厘清。</p></div></div>
+
+    <h4>2 模型安全领域</h4>
+    <div class="domain"><div class="dh">2.1 可使用非公司提供模型，带来潜在模型安全风险 <span class="badge error">⭕ 可能不可接受</span> </div><div class="db"><p>企业难以集中控制 OpenClaw 的模型接入，若接入被投毒开源模型，可能引发失误操作、数据被不当处理甚至泄露。</p></div></div>
+
+    <h4>3 内容安全领域</h4>
+    <div class="domain"><div class="dh">3.1 提示词注入攻击风险 </div><div class="db"><p>恶意指令隐藏于网页、邮件等，诱导 OpenClaw 执行恶意输入，导致泄露密钥、执行高危操作。</p></div></div>
+
+    <h4>4 智能体安全领域</h4>
+    <div class="domain"><div class="dh">4.1 权限过高风险 <span class="badge warning">⚠️ 风险较高</span> <span class="badge error">⭕ 可能不可接受</span> </div><div class="db"><p>OpenClaw 被授予极高系统权限，放大安全威胁。安全漏洞、AI 幻觉导致的理解偏差、记忆压缩丢失等问题都可能导致权限失控或滥用，造成数据或系统被篡改、泄露或丢失。</p></div></div>
+    <div class="domain"><div class="dh">4.2 功能插件（skills）投毒风险 </div><div class="db"><p>OpenClaw 的模块化插件平台（ClawHub）缺乏安全审核，部分插件已被确认存在恶意病毒、木马，可造成盗取密钥等风险。</p></div></div>
+    <div class="domain"><div class="dh">4.3 安全机制绕过风险 </div><div class="db"><p>OpenClaw 的架构缺陷导致安全机制易被绕过，修改安全配置，甚至实施“合法工具链”组合攻击。</p></div></div>
+
+    <h4>5 数据安全领域</h4>
+    <div class="domain"><div class="dh">5.1 企业敏感数据、凭证与密钥明文泄露风险 <span class="badge warning">⚠️ 风险较高</span> <span class="badge error">⭕ 可能不可接受</span> </div><div class="db"><p>OpenClaw 加载和运行过程中明文凭证和密钥暴露点多且分散，极易泄露；若被攻击或 AI 决策失误将放大敏感数据被意外分发、篡改、删除甚至泄露的风险。</p></div></div>
+    <div class="domain"><div class="dh">5.2 隐私安全风险 </div><div class="db"><p>依赖高频截屏与底层接口，可“看见”全部屏幕行为轨迹，一旦安全防线被突破会导致隐私及生产机密曝光。</p></div></div>
+
+    <h4>6 系统安全领域</h4>
+    <div class="domain"><div class="dh">6.1 安全漏洞风险 </div><div class="db"><p>截至 2026 年 3 月已披露漏洞 82 个（超危 12 个、高危 21 个）；“ClawJacked”漏洞可通过恶意网页远程控制系统。</p></div></div>
+    <div class="domain"><div class="dh">6.2 公网暴露与远程入侵风险 </div><div class="db"><p>OpenClaw 默认安全配置薄弱，可能造成管理端口暴露公网、弱凭证等，极易遭受攻击。</p></div></div>
+    </section>
+  </section>
+
+  <!-- ===== 3 ===== -->
+  <section id="s3">
+    <h2><span class="num">3</span> 行动建议</h2>
+    <div class="dd-grid">
+      <div class="dd dos">
+        <h4>✅ Dos</h4>
+        <ul>
+          <li><strong>用官方守底线：</strong>只从公司指定渠道获取，确保电脑杀毒软件正常，并及时对 AI 工具升级。</li>
+          <li><strong>关键操作必确认：</strong>对发送、修改、删除等操作，必须亲自审核批准。</li>
+          <li><strong>结果务必验证：</strong>对 AI 生成的内容（数据、结论、代码）保持怀疑，进行交叉核对。</li>
+          <li><strong>遵循最小权限：</strong>只授予 AI 完成当前任务所必需的最低访问权限。</li>
+          <li><strong>行为需要留痕：</strong>保持操作日志功能开启，不响应“突破限制”类指令，并定期排查异常登录、异常操作。</li>
+          <li><strong>遇疑优先求助：</strong>对任何不确定请求或异常，立即联系 IT 团队。</li>
+        </ul>
+      </div>
+      <div class="dd donts">
+        <h4>⛔ Don'ts</h4>
+        <ul>
+          <li><strong>禁止透露敏感信息：</strong>绝不在对话中输入密码、密钥、令牌等任何机密。</li>
+          <li><strong>禁止处理核心数据：</strong>严禁处理个人信息、银行卡、公司商业秘密等数据信息。</li>
+          <li><strong>禁止数据脱离管控：</strong>严禁将工作数据上传至个人云盘、网盘中利用 AI 工具进行处理。</li>
+          <li><strong>禁止安装危险插件：</strong>对要求“下载文件”“运行脚本”或“索要密码”等 AI 应用插件一律拒绝。</li>
+          <li><strong>禁止执行越权访问：</strong>不授权 AI 访问与任务无关的聊天记录、通讯录或文档库。</li>
+          <li><strong>禁止授信异常链接：</strong>不轻易同意它访问网页或点击链接的请求，需先向 IT 确认。</li>
+        </ul>
+      </div>
+    </div>
+    <div class="alert info"><span class="ico">ℹ️</span><div>目前龙虾在公司场景仍不能确保安全，不能在公司电脑上安装。升级迭代将会解决安全的问题，鼓励大家在个人电脑上（非工作场景）尝试使用。</div></div>
+  </section>
+
+  <!-- ===== Appendix ===== -->
+  <section id="sa">
+    <h2 style="font-size:var(--text-2xl)">附录 A · LLM Application 范围说明</h2>
+    <p><span class="badge brand">DEFINITION</span> <strong>大语言模型应用（LLM Application，LLM 应用）：</strong>是构建于大语言模型之上的软件应用，用于执行生成式、对话式、分析性或决策性任务。它们能够生成自然语言、跨信息进行推理、适应新颖或模糊的输入、维持多轮对话，并通过工具调用和 API 调用采取行动。</p>
+
+    <h5>LLM 应用包括如下类型：</h5>
+    <ul class="deflist">
+      <li><span class="term">AI 助手（AI Assistants）</span>面向客户，负责管理跨聊天、语音和邮件渠道的自然语言交互，可解析自由形式的问题、检索相关信息，无需依赖固定对话树即可引导用户完成任务。</li>
+      <li><span class="term">副驾驶（Copilots）</span>在组织内部与员工协同工作，增强并辅助其能力。</li>
+      <li><span class="term">检索增强生成应用（RAG Applications）</span>将大语言模型与外部知识库连接，使模型能够基于经过验证的最新信息生成响应，不再局限于训练阶段的静态知识。</li>
+      <li><span class="term">AI 智能体（AI Agent）</span>扩展了 LLM 应用概念，能够自主规划、推理并执行行动，可调用工具、查询 API 并执行工作流，无需在每一步骤都依赖人工输入。AI Agent 的核心能力特征包括：规划与推理、记忆与状态保持、行动与工具调用。</li>
+    </ul>
+
+    <div class="card-grid">
+      <div class="card"><h5>规划与推理</h5><p>Agent 能够进行推理并决定实现目标所需的步骤，包括制定、跟踪、更新行动计划以处理复杂任务。</p></div>
+      <div class="card"><h5>记忆与状态保持</h5><p>保留和回溯信息的能力，信息可以来自之前的运行、为执行当前运行而经过的步骤（行动前的推理、调用过的工具、检索到的信息等）。</p></div>
+      <div class="card"><h5>行动和工具使用</h5><p>Agent 能够采取行动来完成任务，并将调用工具作为行动的一部分。Agent 可以通过外部 API 调用和专用的工具接口访问更高级的工具。</p></div>
+    </div>
+
+    <div class="refs">
+      <strong>参考资料</strong><br>
+      Databricks. <em>LLM Apps: Use Cases, Building Blocks &amp; Key Risks.</em> <a href="https://www.databricks.com/blog/llm-apps">databricks.com/blog/llm-apps</a><br>
+      OWASP Top 10 for LLM Applications 2025. <a href="https://genai.owasp.org/llm-top-10/">genai.owasp.org/llm-top-10</a><br>
+      OWASP Agentic AI — Threats and Mitigations. <a href="https://genai.owasp.org/resource/agentic-ai-threats-and-mitigations/">genai.owasp.org/resource/agentic-ai-threats-and-mitigations</a>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  AI 安全风险管理框架 · 内部文档 v1.0 &nbsp;·&nbsp; 3 层风险分类 × 6 大控制领域
+</footer>
+
+</body>
+</html>
