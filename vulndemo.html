@@ -1,0 +1,1913 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vulnerability Hub · 安全态势中心</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#f0f4f8;
+    --surface:#ffffff;
+    --surface-2:#f8fafc;
+    --surface-3:#f1f5f9;
+    --border:#e2e8f0;
+    --border-light:#f1f5f9;
+    --text:#0f172a;
+    --muted:#64748b;
+    --subtle:#94a3b8;
+    --accent:#2563eb;
+    --accent-bg:rgba(37,99,235,.08);
+    --accent-border:rgba(37,99,235,.2);
+    --color-critical:#dc2626;
+    --color-critical-bg:rgba(220,38,38,.07);
+    --color-critical-border:rgba(220,38,38,.2);
+    --color-high:#ea580c;
+    --color-high-bg:rgba(234,88,12,.07);
+    --color-high-border:rgba(234,88,12,.2);
+    --color-medium:#d97706;
+    --color-medium-bg:rgba(217,119,6,.07);
+    --color-medium-border:rgba(217,119,6,.2);
+    --color-low:#16a34a;
+    --color-low-bg:rgba(22,163,74,.07);
+    --color-low-border:rgba(22,163,74,.2);
+    --danger:var(--color-critical);
+    --danger-bg:var(--color-critical-bg);
+    --warn:var(--color-high);
+    --warn-bg:var(--color-high-bg);
+    --safe:var(--color-low);
+    --safe-bg:var(--color-low-bg);
+    --purple:#7c3aed;
+    --purple-bg:rgba(124,58,237,.07);
+    --font:'Sora','PingFang SC','Noto Sans SC','Microsoft YaHei',system-ui,sans-serif;
+    --r:12px;
+    --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+    --shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.05);
+    --shadow-md:0 4px 12px rgba(15,23,42,.08),0 2px 4px rgba(15,23,42,.05);
+    --shadow-lg:0 16px 48px rgba(15,23,42,.12),0 4px 12px rgba(15,23,42,.08);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.6}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+  ::-webkit-scrollbar-thumb:hover{background:#94a3b8}
+
+  /* Header */
+  header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow-sm)}
+  .header-left{display:flex;align-items:center;gap:14px}
+  .header-logo{width:40px;height:40px;background:linear-gradient(135deg,#1d4ed8,#2563eb);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 10px rgba(37,99,235,.35)}
+  .header-logo svg{width:20px;height:20px;fill:#fff}
+  header h1{font-size:16px;font-weight:700;color:var(--text);line-height:1.2;letter-spacing:-.2px}
+  .header-sub{font-size:11px;color:var(--muted);margin-top:2px;font-weight:500}
+  .header-time{font-size:12px;color:var(--muted);background:var(--surface-2);border:1px solid var(--border);padding:6px 14px;border-radius:20px;font-weight:500}
+
+  /* Tabs */
+  .tabs{background:var(--surface);border-bottom:1px solid var(--border);padding:0 32px;display:flex}
+  .tab-btn{padding:0 20px;height:50px;background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:all .15s;margin-bottom:-1px;letter-spacing:.1px}
+  .tab-btn:hover{color:var(--text)}
+  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+  /* Tab Content */
+  .tab-content{display:none;padding:28px 32px}
+  .tab-content.active{display:block}
+
+  /* Stat Cards */
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px 28px;position:relative;overflow:hidden;transition:box-shadow .2s;box-shadow:var(--shadow-sm)}
+  .stat-card:hover{box-shadow:var(--shadow-md)}
+  .stat-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--card-color,var(--accent));border-radius:var(--r) 0 0 var(--r)}
+  .stat-card::after{content:'';position:absolute;right:-10px;top:-10px;width:90px;height:90px;border-radius:50%;background:radial-gradient(circle,var(--card-color,var(--accent)) 0%,transparent 70%);opacity:.06}
+  .stat-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.5px;margin-bottom:12px;text-transform:uppercase}
+  .stat-value{font-size:48px;font-weight:800;line-height:1;color:var(--card-color,var(--text));margin-bottom:10px;letter-spacing:-2px;font-variant-numeric:tabular-nums}
+  .stat-sub{font-size:12px;color:var(--muted);line-height:1.5}
+
+  /* Section Title */
+  .section-title{font-size:11px;font-weight:700;color:var(--muted);margin:32px 0 14px;display:flex;align-items:center;gap:10px;text-transform:uppercase;letter-spacing:.6px}
+  .section-title::before{content:'';display:inline-block;width:3px;height:13px;background:var(--accent);border-radius:2px;flex-shrink:0}
+
+  /* Charts */
+  .charts-row{display:grid;gap:16px;margin-bottom:16px}
+  .c4{grid-template-columns:repeat(4,1fr)}
+  .c3{grid-template-columns:repeat(3,1fr)}
+  .c2{grid-template-columns:1fr 1fr}
+  .product-cmdb-row{grid-template-columns:3fr 2fr;align-items:stretch}
+  .product-cmdb-row>.chart-card{align-self:stretch}
+  .cmdb-col{display:flex;flex-direction:column;gap:16px}
+  .cmdb-col .chart-card{flex:1;min-height:0}
+  .product-cmdb-row>.chart-card canvas{max-height:none}
+  .chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;transition:box-shadow .2s;box-shadow:var(--shadow-sm)}
+  .chart-card:hover{box-shadow:var(--shadow-md)}
+  .chart-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px;letter-spacing:-.1px}
+  .chart-subtitle{font-size:11px;color:var(--muted);margin-bottom:18px}
+  canvas{max-height:200px}
+
+  /* Filter Bar */
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
+  .filter-bar-main{flex-wrap:nowrap;overflow-x:auto}
+  .filter-bar-main>select,.filter-bar-main>input,.filter-bar-main>button,.filter-bar-main>.filter-info{flex:0 0 auto}
+  .filter-label{font-size:11px;font-weight:700;color:var(--muted);white-space:nowrap;text-transform:uppercase;letter-spacing:.5px}
+  select,input[type=text]{background:var(--surface-2);border:1px solid var(--border);color:var(--text);padding:7px 12px;border-radius:8px;font-size:13px;font-family:var(--font);outline:none;transition:border-color .15s,box-shadow .15s}
+  select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+  select option{background:#fff}
+  .filter-reset{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--font);font-weight:600;transition:all .15s;margin-left:auto}
+  .filter-reset:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+  .filter-export{background:var(--accent-bg);border:1px solid var(--accent-border);color:var(--accent);padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-family:var(--font);font-weight:700;transition:all .15s;white-space:nowrap}
+  .filter-export:hover{background:var(--accent);border-color:var(--accent);color:#fff}
+  .filter-export:disabled{opacity:.65;cursor:not-allowed}
+  .filter-info{font-size:13px;font-weight:600;color:var(--text);white-space:nowrap}
+
+  /* Table */
+  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;box-shadow:var(--shadow-sm)}
+  .vtable{width:100%;border-collapse:collapse;font-size:13px}
+  .vtable thead{position:sticky;top:0;z-index:10;background:var(--surface-2)}
+  th{padding:10px 14px;text-align:left;color:var(--muted);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.5px;cursor:pointer;user-select:none;white-space:nowrap;border-bottom:1px solid var(--border)}
+  th:hover{color:var(--text)}
+  th .sort-arrow{margin-left:4px;opacity:.3;font-size:10px}
+  th.sorted .sort-arrow{opacity:1;color:var(--accent)}
+  .vtable-body{max-height:calc(100vh - 320px);overflow-y:auto}
+  .vtable-body tr{border-top:1px solid var(--border-light);transition:background .1s;border-left:3px solid transparent}
+  .vtable-body tr:hover{background:var(--surface-2)}
+  .vtable-body tr[data-rl="CRITICAL"]{border-left-color:var(--color-critical)}
+  .vtable-body tr[data-rl="HIGH"]{border-left-color:var(--color-high)}
+  .vtable-body tr[data-rl="MEDIUM"]{border-left-color:var(--color-medium)}
+  .vtable-body tr[data-rl="LOW"]{border-left-color:var(--color-low)}
+  td{padding:10px 14px;vertical-align:middle}
+  td.muted{color:var(--muted)}
+  .vuln-empty{text-align:center;padding:48px;color:var(--subtle);font-size:13px}
+
+  /* Badges */
+  .badge{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:700;margin:1px;white-space:nowrap}
+  .b10{background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.25)}
+  .b95{background:rgba(234,88,12,.1);color:#ea580c;border:1px solid rgba(234,88,12,.25)}
+  .b90{background:rgba(37,99,235,.1);color:#2563eb;border:1px solid rgba(37,99,235,.25)}
+  .b-poc{background:rgba(217,119,6,.1);color:#d97706;border:1px solid rgba(217,119,6,.25)}
+  .b-net{background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.25)}
+  .b-loc{background:rgba(217,119,6,.1);color:#d97706;border:1px solid rgba(217,119,6,.25)}
+  .b-adj{background:rgba(37,99,235,.1);color:#2563eb;border:1px solid rgba(37,99,235,.25)}
+  .b-st1{background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.25)}
+  .b-st2{background:rgba(217,119,6,.1);color:#d97706;border:1px solid rgba(217,119,6,.25)}
+  .b-st3{background:rgba(100,116,139,.1);color:#64748b;border:1px solid rgba(100,116,139,.2)}
+  .b-st4{background:rgba(22,163,74,.1);color:#16a34a;border:1px solid rgba(22,163,74,.25)}
+  .b-linux{background:rgba(37,99,235,.1);color:#2563eb;border:1px solid rgba(37,99,235,.25)}
+  .b-win{background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.25)}
+  .b-atype{background:rgba(71,85,105,.08);color:#475569;border:1px solid rgba(71,85,105,.2);font-size:10px}
+  .tag-chip{display:inline-block;padding:2px 8px;border-radius:20px;background:var(--surface-2);color:var(--muted);font-size:10px;margin:1px;border:1px solid var(--border)}
+
+  /* Pagination */
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--border-light);color:var(--muted);font-size:12px}
+  .page-btns{display:flex;gap:4px;flex-wrap:wrap}
+  .page-btn{padding:5px 11px;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);border-radius:8px;cursor:pointer;font-size:12px;font-family:var(--font);font-weight:600;transition:all .1s}
+  .page-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .page-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* Detail Panel */
+  #detail-panel{display:none;position:fixed;top:0;right:0;bottom:0;width:540px;background:var(--surface);border-left:1px solid var(--border);z-index:1000;overflow-y:auto;box-shadow:var(--shadow-lg)}
+  .panel-header{padding:20px 24px;background:var(--surface-2);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;position:sticky;top:0;z-index:10}
+  .panel-title{font-size:14px;font-weight:700;color:var(--text);max-width:450px;word-break:break-all;line-height:1.4}
+  .panel-close{background:var(--surface);border:1px solid var(--border);color:var(--muted);width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+  .panel-close:hover{background:var(--color-critical-bg);color:var(--color-critical);border-color:var(--color-critical-border)}
+  .panel-body{padding:20px 24px}
+  .panel-section{margin-bottom:22px}
+  .panel-section-title{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border-light);font-weight:700}
+  .panel-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .panel-field{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;transition:border-color .15s}
+  .panel-field:hover{border-color:var(--accent-border)}
+  .panel-field-label{font-size:10px;color:var(--subtle);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+  .panel-field-value{font-size:13px;color:var(--text);word-break:break-all}
+  .panel-field.full{grid-column:1/-1}
+  .panel-item{background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;transition:border-color .15s}
+  .panel-item:hover{border-color:var(--accent-border)}
+  .panel-ip{display:inline-block;background:var(--accent-bg);border-radius:5px;padding:3px 8px;margin:2px;font-size:11px;color:var(--accent);font-weight:600;border:1px solid var(--accent-border)}
+
+  /* Buttons */
+  .btn-detail{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);padding:5px 14px;border-radius:8px;cursor:pointer;font-size:11px;font-family:var(--font);font-weight:600;transition:all .15s}
+  .btn-detail:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+
+  /* Loading */
+  #loading{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999}
+  #loading h2{color:var(--text);font-size:18px;margin-bottom:8px;font-weight:700}
+  #loading p{color:var(--muted);font-size:13px}
+  .spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;margin-bottom:20px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #load-status2{text-align:center;padding:8px;color:var(--muted);font-size:12px;background:var(--surface);border-bottom:1px solid var(--border);font-weight:500}
+
+  /* Risk level badges */
+  .rl-CRITICAL{background:var(--color-critical-bg);color:var(--color-critical);border:1px solid var(--color-critical-border);font-weight:700}
+  .rl-HIGH    {background:var(--color-high-bg);color:var(--color-high);border:1px solid var(--color-high-border);font-weight:700}
+  .rl-MEDIUM  {background:var(--color-medium-bg);color:var(--color-medium);border:1px solid var(--color-medium-border);font-weight:600}
+  .rl-LOW     {background:var(--color-low-bg);color:var(--color-low);border:1px solid var(--color-low-border);font-weight:500}
+
+  /* Intel micro badges */
+  .ib-kev{background:rgba(37,99,235,.1);color:#2563eb;border:1px solid rgba(37,99,235,.25);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap}
+  .ib-rw {background:rgba(220,38,38,.1);color:#dc2626;border:1px solid rgba(220,38,38,.25);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap}
+  .ib-ep {background:rgba(124,58,237,.1);color:#7c3aed;border:1px solid rgba(124,58,237,.25);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap}
+  .ib-itw{background:rgba(220,38,38,.12);color:#b91c1c;border:1px solid rgba(220,38,38,.3);padding:2px 8px;border-radius:5px;font-size:11px;font-weight:700;white-space:nowrap}
+
+  /* Quick-filter toggle buttons */
+  .qf-btn{background:var(--surface-2);border:1px solid var(--border);color:var(--muted);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:12px;font-family:var(--font);font-weight:600;transition:all .15s;white-space:nowrap}
+  .qf-btn:hover{border-color:var(--accent);color:var(--accent)}
+  .qf-btn.active{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+  .qf-btn.active-danger{border-color:var(--color-critical);color:var(--color-critical);background:var(--color-critical-bg)}
+  .qf-btn.active-warn{border-color:var(--color-high);color:var(--color-high);background:var(--color-high-bg)}
+  .qf-btn.active-purple{border-color:var(--purple);color:var(--purple);background:var(--purple-bg)}
+
+  /* Tooltip */
+  .tip{position:relative;display:inline-flex;align-items:center;gap:4px}
+  .tip-icon{width:14px;height:14px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);color:var(--muted);font-size:9px;display:inline-flex;align-items:center;justify-content:center;cursor:help;flex-shrink:0;font-weight:700}
+  .tip-icon:hover+.tip-text,.tip-icon:focus+.tip-text{display:block}
+  .tip-text{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);border:1px solid var(--border);color:#fff;font-size:11px;padding:8px 12px;border-radius:8px;white-space:normal;width:220px;z-index:200;box-shadow:var(--shadow-md);line-height:1.55;pointer-events:none}
+
+  /* EPSS progress bar */
+  .epss-bar-wrap{height:5px;background:var(--surface-3);border-radius:3px;margin-top:6px;overflow:hidden}
+  .epss-bar{height:100%;border-radius:3px;transition:width .4s}
+
+  /* Intel sub-cards in detail panel */
+  .intel-card{background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px}
+  .intel-card-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .intel-card-title .stale{font-size:10px;color:var(--subtle);font-weight:400;text-transform:none;letter-spacing:0;margin-left:auto}
+  .intel-field{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin-bottom:8px;align-items:start}
+  .intel-field-label{font-size:10px;color:var(--subtle);font-weight:700;white-space:nowrap;text-transform:uppercase;letter-spacing:.3px;padding-top:2px}
+  .intel-field-value{font-size:12px;color:var(--text);word-break:break-word}
+  .intel-source{margin-top:10px;font-size:10px;color:var(--subtle);border-top:1px solid var(--border-light);padding-top:8px}
+  .intel-signals{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+  .collapsible-toggle{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;font-family:var(--font);padding:0;display:flex;align-items:center;gap:4px;transition:color .15s;font-weight:600}
+  .collapsible-toggle:hover{color:var(--text)}
+  .collapsible-body{overflow:hidden;max-height:0;transition:max-height .25s ease}
+  .collapsible-body.open{max-height:800px}
+
+  /* Copy button */
+  .copy-btn{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:2px 8px;border-radius:5px;cursor:pointer;font-size:10px;font-family:var(--font);transition:all .15s;margin-left:6px;font-weight:600}
+  .copy-btn:hover{border-color:var(--accent);color:var(--accent)}
+  /* Threat source panel */
+  .isp{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:0;display:flex;align-items:stretch;margin-top:-10px;overflow:hidden;box-shadow:var(--shadow-sm)}
+  .isp-section{flex:1;padding:16px 20px;border-left:3px solid transparent}
+  .isp-section.cisa{border-left-color:var(--accent)}
+  .isp-section.epss{border-left-color:var(--color-low)}
+  .isp-section.vc{border-left-color:var(--purple)}
+  .isp-divider{width:1px;background:var(--border);flex-shrink:0}
+  .isp-header{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .isp-badge{font-size:10px;font-weight:700;letter-spacing:.6px;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+  .isp-badge.cisa{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border)}
+  .isp-badge.epss{background:var(--color-low-bg);color:var(--color-low);border:1px solid var(--color-low-border)}
+  .isp-badge.vc{background:var(--purple-bg);color:var(--purple);border:1px solid rgba(124,58,237,.2)}
+  .isp-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border-light)}
+  .isp-row:last-child{border-bottom:none}
+  .isp-lbl{font-size:12px;color:var(--muted)}
+  .isp-val{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;min-width:40px;text-align:right;color:var(--text)}
+  /* ── Filter bar + stat cards same row ── */
+  .fb-stats-row{display:flex;align-items:stretch;gap:16px;margin-bottom:20px}
+  .fb-stats-row .rl-fb-bar{flex-shrink:0;padding-bottom:0;align-self:stretch;align-items:center}
+  .fb-stats-row .stat-grid{flex:1;margin-bottom:0;align-content:start}
+
+  /* ── Risk-level filter bar ── */
+  .rl-fb-bar{display:flex;align-items:stretch;gap:10px;padding:0 0 22px;flex-wrap:wrap}
+  .rl-fb-label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;align-self:center}
+  .rl-fb{background:var(--surface);border:1px solid var(--border);color:var(--muted);padding:8px 14px;border-radius:10px;cursor:pointer;font-size:12px;font-family:var(--font);font-weight:600;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-width:76px;box-shadow:var(--shadow-sm)}
+  .rl-fb:hover{border-color:var(--text);color:var(--text);box-shadow:var(--shadow)}
+  .rl-fb-num{font-size:16px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .rl-fb-tag{font-size:9px;letter-spacing:.5px;text-transform:uppercase;font-weight:700}
+  /* always-on colors for each level */
+  .rl-fb.rl-critical{border-color:#fca5a5;color:var(--color-critical)}
+  .rl-fb.rl-high{border-color:#fdba74;color:var(--color-high)}
+  .rl-fb.rl-medium{border-color:#fcd34d;color:var(--color-medium)}
+  .rl-fb.rl-low{border-color:#86efac;color:var(--color-low)}
+  /* active = filled background */
+  .rl-fb.active.rl-all{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+  .rl-fb.active.rl-critical{border-color:var(--color-critical);background:var(--color-critical-bg)}
+  .rl-fb.active.rl-high{border-color:var(--color-high);background:var(--color-high-bg)}
+  .rl-fb.active.rl-medium{border-color:var(--color-medium);background:var(--color-medium-bg)}
+  .rl-fb.active.rl-low{border-color:var(--color-low);background:var(--color-low-bg)}
+  /* Threat intel highlight chips */
+  .intel-chips{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .intel-chip{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;display:flex;flex-direction:column;gap:6px;position:relative;box-shadow:var(--shadow-sm);transition:box-shadow .2s,border-color .2s;overflow:hidden}
+  .intel-chip::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0}
+  .intel-chip.c-accent::before{background:var(--accent)}
+  .intel-chip.c-danger::before{background:var(--color-critical)}
+  .intel-chip.c-warn::before{background:var(--color-medium)}
+  .intel-chip.c-purple::before{background:var(--purple)}
+  .intel-chip:hover{box-shadow:var(--shadow-md)}
+  .intel-chip.c-accent:hover{border-color:var(--accent)}
+  .intel-chip.c-danger:hover{border-color:var(--color-critical)}
+  .intel-chip.c-warn:hover{border-color:var(--color-medium)}
+  .intel-chip.c-purple:hover{border-color:var(--purple)}
+  .intel-chip-num{font-size:36px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums}
+  .intel-chip.c-accent .intel-chip-num{color:var(--accent)}
+  .intel-chip.c-danger .intel-chip-num{color:var(--color-critical)}
+  .intel-chip.c-warn   .intel-chip-num{color:var(--color-medium)}
+  .intel-chip.c-purple .intel-chip-num{color:var(--purple)}
+  .intel-chip-lbl{font-size:13px;font-weight:600;color:var(--text)}
+  .intel-chip-sub{font-size:11px;color:var(--muted)}
+
+
+  /* ── Intel chip 折叠 ── */
+  .intel-chip-main{display:flex;flex-direction:column;gap:4px}
+  .intel-chip-arrow{display:none}
+  .intel-chip-desc{display:block;font-size:12px;color:var(--muted);line-height:1.65;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+  .intel-chip-cta{display:inline-flex;align-items:center;gap:4px;margin-top:10px;font-size:11px;font-weight:700;padding:5px 12px;border:1px solid currentColor;border-radius:6px;background:transparent;cursor:pointer;font-family:var(--font);transition:opacity .15s;opacity:.8}
+  .intel-chip-cta:hover{opacity:1}
+  .intel-chip.c-accent .intel-chip-cta{color:var(--accent)}
+  .intel-chip.c-danger .intel-chip-cta{color:var(--color-critical)}
+  .intel-chip.c-warn   .intel-chip-cta{color:var(--color-medium)}
+  .intel-chip.c-purple .intel-chip-cta{color:var(--purple)}
+  .knowledge-single{grid-template-columns:1fr}
+
+  /* ── 风险分级判断依据 ── */
+  .rl-criteria-wrap{margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;box-shadow:var(--shadow-sm)}
+  .rl-criteria-note{font-size:12px;color:var(--muted);line-height:1.65;margin-top:12px;padding-top:10px;border-top:1px solid var(--border-light)}
+  .rl-criteria-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:0}
+  .rl-crit-card{border:1px solid var(--border);border-top:3px solid var(--rlc);border-radius:10px;background:var(--surface-2);overflow:hidden;cursor:pointer;transition:box-shadow .18s,border-color .18s}
+  .rl-crit-card:hover{box-shadow:var(--shadow);border-color:var(--rlc)}
+  .rl-crit-card.active{box-shadow:0 0 0 2px var(--rlc);background:var(--rlbg)}
+  .rl-crit-header{padding:10px 12px 8px;background:var(--rlbg);display:flex;justify-content:space-between;align-items:center}
+  .rl-crit-count{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--rlc);line-height:1}
+  .rl-crit-body{padding:8px 12px 12px;display:flex;flex-direction:column;gap:4px}
+  .rl-cond-chip{font-size:11px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 9px;line-height:1.45}
+  .rl-cond-chip.rl-cond-muted{color:var(--muted)}
+  .rl-cond-or{font-size:10px;color:var(--subtle);text-align:center;letter-spacing:.4px;text-transform:uppercase;padding:1px 0;font-weight:600}
+
+  /* ── 漏洞常识 ── */
+  .knowledge-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px}
+  .knowledge-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:22px;box-shadow:var(--shadow-sm)}
+  .knowledge-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
+  .knowledge-rows{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+  .knowledge-row{display:flex;align-items:baseline;gap:10px;font-size:12px;color:var(--muted);line-height:1.6}
+  .knowledge-row .badge{flex-shrink:0}
+  .knowledge-note{font-size:12px;color:var(--muted);line-height:1.7;border-top:1px solid var(--border);padding-top:12px;margin:0}
+  .knowledge-terms{display:flex;flex-direction:column;gap:12px}
+  .knowledge-term{display:grid;grid-template-columns:80px 1fr;gap:10px;align-items:baseline}
+  .term-name{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.3px;white-space:nowrap}
+  .term-desc{font-size:12px;color:var(--muted);line-height:1.65}
+
+  /* ── Host ranking ── */
+  .rank-medal{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums}
+  .rank-1{background:#fef3c7;color:#92400e;border:1px solid #fbbf24}
+  .rank-2{background:#f1f5f9;color:#475569;border:1px solid #94a3b8}
+  .rank-3{background:#fff7ed;color:#9a3412;border:1px solid #fb923c}
+  .rank-n{background:var(--surface-2);color:var(--muted);border:1px solid var(--border)}
+
+  /* ── Responsive ── */
+  @media(max-width:1280px){.intel-chips{grid-template-columns:repeat(2,1fr)}.rl-criteria-row{grid-template-columns:repeat(2,1fr)}.rl-criteria-wrap{padding:14px 16px}}
+  @media(max-width:900px){.fb-stats-row{flex-direction:column}.rl-fb-bar{flex-wrap:wrap}.rl-fb{min-width:80px;flex:1}.product-cmdb-row{grid-template-columns:1fr}}
+  @media(max-width:900px){.knowledge-grid{grid-template-columns:1fr}.c2{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr}}
+  @media(max-width:768px){.c4,.c3{grid-template-columns:1fr}.intel-chips{grid-template-columns:1fr}#detail-panel{width:100%}.tab-content{padding:20px 16px}.tabs,header{padding-left:16px;padding-right:16px}}
+</style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><h2>加载数据中</h2><p id="load-status">正在读取统计数据</p></div>
+<p id="load-status2" style="display:none"></p>
+
+<header>
+  <div class="header-left">
+    <div class="header-logo"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7L12 2z"/></svg></div>
+    <div>
+      <h1>Vulnerability Hub</h1>
+      <div class="header-sub">Production · CVSS ≥ 9.0</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px"><span style="font-size:11px;font-weight:700;color:#b45309;background:#fef3c7;border:1px solid #fcd34d;padding:5px 12px;border-radius:20px">演示数据 · DEMO</span><div class="header-time" id="header-time"></div></div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('overview')">维度分析</button>
+  <button class="tab-btn" onclick="switchTab('vulns')">漏洞详情</button>
+  <button class="tab-btn" onclick="switchTab('cve')">CVE 汇总</button>
+  <button class="tab-btn" onclick="switchTab('hosts')">主机排行</button>
+</div>
+
+<!-- ══════════ 维度分析 ══════════ -->
+<div id="tab-overview" class="tab-content active">
+  <!-- 风险分级判断依据 -->
+  <div class="rl-criteria-wrap">
+    <div class="rl-criteria-row">
+      <div class="rl-crit-card" id="rl-cc-card-critical" onclick="toggleRlFilter('CRITICAL')" style="--rlc:var(--color-critical);--rlbg:var(--color-critical-bg)">
+        <div class="rl-crit-header"><span class="badge rl-CRITICAL">CRITICAL</span><span class="rl-crit-count" id="rl-cc-critical">—</span></div>
+        <div class="rl-crit-body">
+          <div class="rl-cond-chip">CISA KEV 且被勒索软件利用</div>
+          <div class="rl-cond-or">或</div>
+          <div class="rl-cond-chip">EPSS ≥ 0.9</div>
+          <div class="rl-cond-or">或</div>
+          <div class="rl-cond-chip">CISA KEV 且 VulnCheck 在野攻击</div>
+        </div>
+      </div>
+      <div class="rl-crit-card" id="rl-cc-card-high" onclick="toggleRlFilter('HIGH')" style="--rlc:var(--color-high);--rlbg:var(--color-high-bg)">
+        <div class="rl-crit-header"><span class="badge rl-HIGH">HIGH</span><span class="rl-crit-count" id="rl-cc-high">—</span></div>
+        <div class="rl-crit-body">
+          <div class="rl-cond-chip">在 CISA KEV 名单</div>
+          <div class="rl-cond-or">或</div>
+          <div class="rl-cond-chip">EPSS ≥ 0.5</div>
+          <div class="rl-cond-or">或</div>
+          <div class="rl-cond-chip">VulnCheck 武器化 / 在野利用</div>
+        </div>
+      </div>
+      <div class="rl-crit-card" id="rl-cc-card-medium" onclick="toggleRlFilter('MEDIUM')" style="--rlc:var(--color-medium);--rlbg:var(--color-medium-bg)">
+        <div class="rl-crit-header"><span class="badge rl-MEDIUM">MEDIUM</span><span class="rl-crit-count" id="rl-cc-medium">—</span></div>
+        <div class="rl-crit-body">
+          <div class="rl-cond-chip">EPSS ≥ 0.1</div>
+          <div class="rl-cond-or">或</div>
+          <div class="rl-cond-chip">CVSS≥9 · 网络可达 · 无需认证交互</div>
+        </div>
+      </div>
+      <div class="rl-crit-card" id="rl-cc-card-low" onclick="toggleRlFilter('LOW')" style="--rlc:var(--color-low);--rlbg:var(--color-low-bg)">
+        <div class="rl-crit-header"><span class="badge rl-LOW">LOW</span><span class="rl-crit-count" id="rl-cc-low">—</span></div>
+        <div class="rl-crit-body">
+          <div class="rl-cond-chip rl-cond-muted">不满足以上任何条件</div>
+          <div class="rl-cond-chip rl-cond-muted">无已知积极利用迹象</div>
+        </div>
+      </div>
+    </div>
+    <p class="rl-criteria-note">分级核心逻辑：优先看「有没有人真的在用它发动攻击」（KEV / 在野利用），其次看统计预测（EPSS），最后才看 CVSS 技术严重程度。</p>
+  </div>
+  <div class="fb-stats-row">
+    <div class="rl-fb-bar" id="rl-filter-bar">
+      <div class="stat-card" id="raw-count-card" style="--card-color:var(--muted);min-width:210px;flex-shrink:0">
+        <div class="stat-label">扫描原始条目 <span style="font-weight:400;opacity:.6;text-transform:none;letter-spacing:0">未去重</span></div>
+        <div class="stat-value" id="raw-count-val" style="color:var(--text)">—</div>
+        <div class="stat-sub" id="raw-count-sub">同 CVE 影响多个软件包按条目计；去重（CVE · 主机）后 <span id="raw-count-dedup" style="font-weight:700;color:var(--text)">—</span></div>
+      </div>
+    </div>
+    <div class="stat-grid" id="stat-cards"></div>
+  </div>
+
+  <div class="charts-row product-cmdb-row">
+    <div class="chart-card">
+      <div class="chart-title">受影响产品 Top 15</div>
+      <div class="chart-subtitle">漏洞数量最多的 15 个产品 · 柱状图颜色按严重程度着色</div>
+      <canvas id="ch-product"></canvas>
+    </div>
+    <div class="cmdb-col">
+      <div class="chart-card">
+        <div class="chart-title">站点分布</div>
+        <div class="chart-subtitle">各数据中心 / 云区域漏洞分布</div>
+        <canvas id="ch-site"></canvas>
+      </div>
+      <div class="chart-card" id="card-cat">
+        <div class="chart-title">业务类别分布</div>
+        <div class="chart-subtitle">按业务线/部门统计</div>
+        <canvas id="ch-cat"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">应用 · 负责人</div>
+  <div class="charts-row c2">
+    <div class="chart-card">
+      <div class="chart-title">高风险应用 Top 15</div>
+      <div class="chart-subtitle">按 Critical + High 漏洞数排序</div>
+      <canvas id="ch-app-name"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">运维负责人 Top 15</div>
+      <div class="chart-subtitle">待处理漏洞最多的运维团队</div>
+      <canvas id="ch-ops-admin"></canvas>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 漏洞详情 ══════════ -->
+<div id="tab-vulns" class="tab-content">
+  <div class="filter-bar filter-bar-main">
+    <select id="f-rl" onchange="renderVulnTable()"><option value="">风险等级：全部</option><option value="CRITICAL">CRITICAL</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option></select>
+    <select id="f-state" onchange="renderVulnTable()"><option value="">状态：全部</option><option value="1">未处理</option><option value="2">已验证</option><option value="3">已忽略</option><option value="4">已修复</option></select>
+    <select id="f-os" onchange="renderVulnTable()"><option value="">系统：全部</option><option value="linux">Linux</option><option value="windows">Windows</option></select>
+    <select id="f-site" onchange="renderVulnTable()"><option value="">站点：全部</option><option value="PDC">PDC</option><option value="SDC">SDC</option><option value="CSDC">CSDC</option><option value="AWS">AWS</option><option value="Alibaba Cloud">Alibaba Cloud</option><option value="Azure">Azure</option></select>
+    <select id="f-cat" onchange="renderVulnTable()"><option value="">类别：全部</option><option value="Cyber Securty">Cyber Securty</option><option value="DT-Infrastructure">DT-Infrastructure</option><option value="DT-Applications">DT-Applications</option><option value="ASP">ASP</option><option value="BigData">BigData</option></select>
+    <select id="f-atype" onchange="renderVulnTable()"><option value="">资产类型：全部</option><option value="操作系统（OS）">操作系统（OS）</option><option value="中间件">中间件</option><option value="应用程序">应用程序</option><option value="数据库">数据库</option><option value="第三方组件">第三方组件</option></select>
+    <select id="f-host" onchange="renderVulnTable()"><option value="">受影响主机：全部</option></select>
+    <input type="text" id="f-search" placeholder="搜索 CVE / 产品 / 漏洞名称 / IP" style="flex:1;min-width:140px;max-width:280px" oninput="debounceSearch()">
+    <button class="filter-reset" onclick="resetFilters()">重置</button>
+    <span class="filter-info" id="vuln-info"></span>
+    <button class="filter-export" id="vuln-export-btn" onclick="exportVulnsCsv()">导出</button>
+  </div>
+  <div class="filter-bar" style="margin-bottom:12px">
+    <span class="filter-label">快速筛选</span>
+    <button class="qf-btn" id="qf-critical" onclick="toggleQf('critical')">仅看 CRITICAL</button>
+    <button class="qf-btn" id="qf-kev"      onclick="toggleQf('kev')">仅看 KEV</button>
+    <button class="qf-btn" id="qf-rw"       onclick="toggleQf('rw')">仅看勒索软件</button>
+    <button class="qf-btn" id="qf-itw"      onclick="toggleQf('itw')">仅看 In-the-wild</button>
+  </div>
+  <div class="table-wrap">
+    <table class="vtable"><thead><tr>
+      <th onclick="sortBy('cvss')">CVSS<span class="sort-arrow">↕</span></th>
+      <th onclick="sortBy('cve')">CVE<span class="sort-arrow">↕</span></th>
+      <th onclick="sortBy('rl')">风险等级<span class="sort-arrow">↕</span></th>
+      <th onclick="sortBy('name')">漏洞名称<span class="sort-arrow">↕</span></th>
+      <th onclick="sortBy('product')">受影响产品<span class="sort-arrow">↕</span></th>
+      <th onclick="sortBy('state_raw')">状态<span class="sort-arrow">↕</span></th>
+      <th>站点</th>
+      <th onclick="sortBy('host_ip')">受影响主机<span class="sort-arrow">↕</span></th>
+      <th onclick="sortBy('publish_date')">披露日期<span class="sort-arrow">↕</span></th>
+    </tr></thead>
+    <tbody class="vtable-body" id="vuln-tbody"></tbody></table>
+  </div>
+  <div class="pagination">
+    <span id="vuln-page-info"></span>
+    <div class="page-btns" id="vuln-pages"></div>
+  </div>
+</div>
+
+<!-- ══════════ CVE 汇总 ══════════ -->
+<div id="tab-cve" class="tab-content">
+  <div id="cve-stat-cards" style="display:none"></div>
+  <div class="filter-bar">
+    <select id="f2-rl" onchange="renderCveTable()"><option value="">风险等级：全部</option><option value="CRITICAL">CRITICAL</option><option value="HIGH">HIGH</option><option value="MEDIUM">MEDIUM</option><option value="LOW">LOW</option></select>
+    <select id="f2-atype" onchange="renderCveTable()"><option value="">资产类型：全部</option><option value="操作系统（OS）">操作系统（OS）</option><option value="中间件">中间件</option><option value="应用程序">应用程序</option><option value="数据库">数据库</option><option value="第三方组件">第三方组件</option></select>
+    <input type="text" id="f2-search" placeholder="搜索 CVE / 产品 / 漏洞名" style="flex:1;min-width:140px;max-width:280px" oninput="debounceCve()">
+    <span style="margin-left:auto;font-size:13px;font-weight:600;color:var(--text)" id="cve-count-info"></span>
+  </div>
+  <div class="table-wrap">
+    <table class="vtable"><thead><tr>
+      <th onclick="sortCveBy('cvss')">CVSS<span class="sort-arrow">↕</span></th>
+      <th onclick="sortCveBy('cve')">CVE<span class="sort-arrow">↕</span></th>
+      <th onclick="sortCveBy('risk_level')">风险等级<span class="sort-arrow">↕</span></th>
+      <th onclick="sortCveBy('epss')">EPSS<span class="sort-arrow">↕</span></th>
+      <th>CISA KEV</th>
+      <th>利用成熟度</th>
+      <th onclick="sortCveBy('asset_type')">资产类型<span class="sort-arrow">↕</span></th>
+      <th onclick="sortCveBy('name')">漏洞名称<span class="sort-arrow">↕</span></th>
+      <th onclick="sortCveBy('product')">受影响产品<span class="sort-arrow">↕</span></th>
+      <th onclick="sortCveBy('host_count')">影响主机数<span class="sort-arrow">↕</span></th>
+    </tr></thead>
+    <tbody class="vtable-body" id="cve-tbody"></tbody></table>
+  </div>
+  <div class="pagination">
+    <span id="cve-page-info"></span>
+    <div class="page-btns" id="cve-pages"></div>
+  </div>
+</div>
+
+<!-- ══════════ 主机排行 ══════════ -->
+<div id="tab-hosts" class="tab-content">
+  <div class="table-wrap">
+    <table class="vtable"><thead><tr>
+      <th>排名</th>
+      <th>主机 IP</th>
+      <th>主机名</th>
+      <th>操作系统</th>
+      <th>站点</th>
+      <th>类别</th>
+      <th>应用名称</th>
+      <th>系统角色</th>
+      <th>业务负责人</th>
+      <th>运维负责人</th>
+      <th style="color:var(--danger)">Critical</th>
+      <th style="color:var(--warn)">High</th>
+      <th>未处理</th>
+      <th>操作</th>
+    </tr></thead>
+    <tbody class="vtable-body" id="host-tbody"></tbody></table>
+  </div>
+</div>
+
+<!-- 详情面板 -->
+<div id="detail-panel">
+  <div class="panel-header">
+    <div class="panel-title" id="panel-title"></div>
+    <button class="panel-close" onclick="closePanel()">✕</button>
+  </div>
+  <div class="panel-body" id="panel-body"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<script>
+// Register datalabels plugin for bar charts only
+Chart.register(ChartDataLabels);
+Chart.defaults.set('plugins.datalabels', {display: false});
+
+// ── 全局变量 ──────────────────────────────────────────────
+let DB = null;       // dashboard data
+let VULNS = null;    // columnar vulns data
+let HOSTS = null;    // hosts + cmdb map
+let CVES = null;     // cve summary
+const cveIndex = {};
+const $ = id => document.getElementById(id);
+const fmt = n => typeof n === 'number' ? n.toLocaleString() : String(n);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => /^https?:\/\//i.test(String(u ?? '')) ? u : '#';
+const debounce = (fn, d=300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(()=>fn(...a), d); }; };
+
+let rlFilters = new Set();   // 当前风险等级多选筛选 Set<'CRITICAL'|'HIGH'|'MEDIUM'|'LOW'>
+let _charts = {};            // Chart.js 实例 {canvasId: chartInstance}
+
+// 返回当前筛选的数据视图（全部 / 单等级 / 多等级合并）
+const getD = () => {
+  if (rlFilters.size === 0) return DB;
+  if (rlFilters.size === 1) {
+    const [only] = rlFilters;
+    return DB.by_rl?.[only] || DB;
+  }
+  let totalVulns = 0;
+  rlFilters.forEach(rl => { totalVulns += DB.by_rl?.[rl]?.s?.high_vulns || 0; });
+  return { ...DB, s: { ...DB.s, high_vulns: totalVulns } };
+};
+
+function toggleRlFilter(rl) {
+  if (rlFilters.has(rl)) {
+    rlFilters.delete(rl);
+  } else {
+    rlFilters.add(rl);
+  }
+  document.querySelectorAll('.rl-crit-card').forEach(c => c.classList.remove('active'));
+  rlFilters.forEach(level => {
+    const card = $('rl-cc-card-' + level.toLowerCase());
+    if (card) card.classList.add('active');
+  });
+  if (DB) rebuildDashboard();
+}
+
+function rebuildDashboard() {
+  // 销毁所有旧图表实例，防止 Canvas already in use 报错
+  Object.values(_charts).forEach(c => { try { c.destroy(); } catch(_){} });
+  _charts = {};
+  // 清除动态插入的 intel-chips 和 isp-panel
+  document.querySelectorAll('.intel-chips, .isp-panel').forEach(e => e.remove());
+  buildStatCards();
+  buildCharts();
+  if (CVES) buildCveStats();
+}
+
+// ── 列式数据访问 ──────────────────────────────────────────
+// VULNS 存储格式: { _dicts: {c:[...], n:[...], ...}, _cols:[...], d:{i:[], c:[], n:[], ...} }
+// _dicts 里的字符串列用索引代替重复值
+function vGet(row, col) {
+  const raw = VULNS.d[col][row];
+  if (VULNS._dicts[col]) return VULNS._dicts[col][raw];
+  return raw;
+}
+function vLen() { return VULNS.d.i.length; }
+function vRow(i) {
+  const r = {};
+  VULNS._cols.forEach(c => { r[c] = vGet(i, c); });
+  return r;
+}
+
+// ── 分步加载 ──────────────────────────────────────────────
+const ts = '?t=' + Date.now();
+async function loadAll() {
+  try {
+    // Step 1: Dashboard (tiny, renders immediately)
+    $('load-status').textContent = '加载统计数据...';
+    DB = MOCK.DB;
+
+    $('header-time').textContent = '更新于 ' + DB.at;
+    buildStatCards();
+    buildCharts();
+    $('loading').style.display = 'none';
+    $('load-status2').style.display = 'block';
+
+    // Step 2: Hosts + CMDB (small)
+    $('load-status2').textContent = '加载主机信息...';
+    HOSTS = MOCK.HOSTS;
+    renderHostTable();
+    populateFilters();
+
+    // Step 3: CVEs (moved earlier for CVE stats in overview tab)
+    $('load-status2').textContent = '加载 CVE 汇总...';
+    CVES = MOCK.CVES;
+    CVES.forEach(c => { cveIndex[c.cve] = c; });
+    buildCveStats();
+
+    // Step 4: Vulns columnar
+    $('load-status2').textContent = '加载漏洞列表...';
+    VULNS = MOCK.VULNS;
+    // Build id→index lookup for detail panel
+    VULNS._idIdx = {};
+    VULNS._ipIdx = {};  // ip→[indices]
+    for (let i = 0; i < VULNS.d.i.length; i++) {
+      VULNS._idIdx[VULNS.d.i[i]] = i;
+      const ip = vGet(i, 'ip');
+      if (!VULNS._ipIdx[ip]) VULNS._ipIdx[ip] = [];
+      VULNS._ipIdx[ip].push(i);
+    }
+    populateFilters();
+    renderVulnTable();
+    renderCveTable();
+
+    $('load-status2').textContent = '';
+  } catch(e) {
+    const msg = '加载失败: ' + e.message;
+    console.error('loadAll error:', e);
+    const ls2 = $('load-status2');
+    if (ls2) { ls2.textContent = msg; ls2.style.color = 'var(--color-critical)'; }
+    else alert(msg);
+  }
+}
+
+// ── 统计卡片 ──────────────────────────────────────────────
+function buildStatCards() {
+  const d = getD();
+  const s = d.s;
+  const intel = d.intel || {};
+  const rd = intel.risk_dist || {};
+  const rlLabel = rlFilters.size > 0 ? ' · ' + [...rlFilters].join('+') : '';
+  const scope = (DB.filter ? DB.filter + ' · CVSS≥9' : 'CVSS≥9') + rlLabel;
+
+  // 更新"全部"按钮总数
+  const allBtn = $('rl-fb-all');
+  if (allBtn) allBtn.innerHTML = `<span class="rl-fb-num">${fmt(DB.s.high_vulns)}</span><span class="rl-fb-tag">全部</span>`;
+
+  // 更新原始条目卡片
+  const rawVal = $('raw-count-val');
+  const rawDedup = $('raw-count-dedup');
+  if (rawVal) rawVal.textContent = fmt(DB.raw_vulns || 0);
+  if (rawDedup) rawDedup.textContent = fmt(DB.s.high_vulns);
+
+  if (DB.by_rl) {
+    const brl = DB.by_rl;
+    [['critical','CRITICAL'],['high','HIGH'],['medium','MEDIUM'],['low','LOW']].forEach(([id,rl]) => {
+      const el = $('rl-cc-' + id);
+      if (el && brl[rl]) {
+        el.textContent = fmt(brl[rl].s?.high_vulns || 0);
+      }
+    });
+  }
+
+  const critCount = DB.by_rl?.CRITICAL?.s?.high_vulns || 0;
+  const highCount = DB.by_rl?.HIGH?.s?.high_vulns || 0;
+  const cards = [
+    { label: '漏洞总数', sublabel: scope, value: fmt(s.high_vulns),
+      sub: `CRITICAL <strong style="color:var(--color-critical)">${fmt(critCount)}</strong> · HIGH <strong style="color:var(--color-high)">${fmt(highCount)}</strong>`, color:'var(--color-critical)' },
+    { label: '受影响主机', sublabel: '唯一 IP 数量', value: fmt(s.host_unique),
+      sub: `Windows ${fmt(s.win_hosts)} 台 · Linux ${fmt(s.linux_hosts)} 台`, color:'var(--accent)' },
+    { label: '独立 CVE', sublabel: '去重漏洞编号', value: fmt(s.cve_unique),
+      sub: (s.cve_cat_dist||[]).map(c=>`${c.name} <strong style="color:var(--purple)">${c.value}</strong>`).join(' · '), color:'var(--purple)' },
+  ];
+  $('stat-cards').innerHTML = cards.map(c => `
+    <div class="stat-card" style="--card-color:${c.color||'var(--accent)'}">
+      <div class="stat-label">${c.label} <span style="font-weight:400;opacity:.6;text-transform:none;letter-spacing:0">${c.sublabel||''}</span></div>
+      <div class="stat-value">${c.value}</div>
+      ${c.sub ? `<div class="stat-sub">${c.sub}</div>` : ''}
+    </div>`).join('');
+
+  // 威胁情报 4 个高亮 chips
+  const cisa = intel.cisa || {};
+  const epss = intel.epss || {};
+  const vc   = intel.vulncheck || {};
+  const chip = (num, lbl, sub, cls, desc, ctaTab) => `
+    <div class="intel-chip ${cls}">
+      <div class="intel-chip-main">
+        <span class="intel-chip-num">${fmt(num||0)}</span>
+        <span class="intel-chip-lbl">${lbl}</span>
+        ${sub?`<span class="intel-chip-sub">${sub}</span>`:''}
+      </div>
+      <span class="intel-chip-arrow">▼</span>
+      <div class="intel-chip-desc">${desc}
+      </div>
+    </div>`;
+  const oldIsp = document.querySelector('.intel-chips');
+  if (oldIsp) oldIsp.remove();
+  const chipsEl = document.createElement('div');
+  chipsEl.className = 'intel-chips';
+  chipsEl.innerHTML =
+    chip(cisa.kev_count, 'KEV 收录', '已被黑客真实利用', 'c-accent',
+      '<strong>这些漏洞已被确认在真实攻击中使用。</strong>美国 CISA 维护的「已知利用漏洞」名单，每条记录都意味着有组织已成功发动攻击。这是最高优先级修复信号，无论 CVSS 分数高低。', 'cve') +
+    chip(cisa.ransomware_count, '勒索软件关联', 'CISA 确认', 'c-danger',
+      '<strong>这些漏洞被勒索软件团伙用于入侵和加密数据。</strong>勒索攻击会导致业务完全中断，数据被加密直到支付赎金，平均损失数百万。这是 CRITICAL 等级的核心判定条件。', 'vulns') +
+    chip(epss.ge09, 'EPSS ≥ 0.9', '极高利用概率', 'c-warn',
+      '<strong>统计模型预测这些漏洞在未来 30 天内被利用的概率超过 90%。</strong>EPSS 由 FIRST.org 每日更新，综合了漏洞特征、历史利用数据和情报信号，是重要的预测性指标。', 'cve') +
+    chip(vc.in_the_wild, '在野利用', 'VulnCheck 确认', 'c-purple',
+      '<strong>已有人在真实网络中用这些漏洞发起攻击。</strong>VulnCheck 持续追踪黑客社区的武器化工具和真实攻击活动。即使尚未进入 CISA KEV，「在野利用」同样意味着极高风险。', 'vulns');
+  $('stat-cards').closest('.fb-stats-row').after(chipsEl);
+}
+
+function toggleChip(el) {
+  const isOpen = el.classList.toggle('chip-open');
+  el.querySelector('.intel-chip-arrow').textContent = isOpen ? '▲' : '▼';
+}
+
+// ── 图表 ──────────────────────────────────────────────────
+const cColors = ['#2563eb','#dc2626','#d97706','#16a34a','#7c3aed','#0891b2','#db2777','#65a30d','#ea580c','#9333ea','#6366f1','#0284c7','#c026d3','#f97316','#14b8a6'];
+const cc = (i,a=1) => { const h=cColors[i%cColors.length]; if(a===1)return h; const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16); return `rgba(${r},${g},${b},${a})`; };
+
+const chartFont = {family:"'Sora','PingFang SC','Microsoft YaHei',system-ui,sans-serif"};
+const gridColor = '#e2e8f0';
+const tickColor = '#64748b';
+
+function _mkChart(id, cfg) {
+  if (_charts[id]) { try { _charts[id].destroy(); } catch(_){} }
+  _charts[id] = new Chart($(id).getContext('2d'), cfg);
+}
+function barChart(id, labels, values) {
+  _mkChart(id, { type:'bar', data:{ labels, datasets:[{ data:values, backgroundColor:labels.map((_,i)=>cc(i,.8)), borderColor:labels.map((_,i)=>cc(i)), borderWidth:0, borderRadius:6 }] },
+    options:{ responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}}, scales:{ x:{ticks:{color:tickColor,font:{size:11,...chartFont},maxRotation:45},grid:{display:false}}, y:{ticks:{color:tickColor,font:{size:11,...chartFont}},grid:{color:gridColor}} } }
+  });
+}
+function donutChart(id, labels, values) {
+  _mkChart(id, { type:'doughnut', data:{ labels, datasets:[{ data:values, backgroundColor:labels.map((_,i)=>cc(i,.85)), borderColor:'#fff', borderWidth:2, hoverOffset:6 }] },
+    options:{ responsive:true, maintainAspectRatio:true, cutout:'60%',
+      plugins:{legend:{position:'bottom',labels:{color:tickColor,font:{size:12,...chartFont},padding:14,usePointStyle:true,pointStyleWidth:10}},
+        tooltip:{callbacks:{label(ctx){const total=ctx.dataset.data.reduce((a,b)=>a+b,0);const pct=((ctx.parsed/total)*100).toFixed(1);return ` ${ctx.label}: ${ctx.parsed.toLocaleString()} (${pct}%)`;}}}
+      }
+    }
+  });
+}
+function hbarChart(id, labels, values) {
+  const el = $(id);
+  const h = Math.min(Math.max(labels.length * 30 + 40, 180), 420);
+  el.style.height = h + 'px'; el.style.maxHeight = h + 'px';
+  _mkChart(id, { type:'bar', data:{ labels, datasets:[{ data:values, backgroundColor:labels.map((_,i)=>cc(i,.8)), borderColor:labels.map((_,i)=>cc(i)), borderWidth:0, borderRadius:4, borderSkipped:false }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label(ctx){return ` ${ctx.parsed.x.toLocaleString()} 个漏洞`;}}},
+        datalabels:{display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,...chartFont},formatter:v=>v.toLocaleString()}},
+      scales:{ x:{ticks:{color:tickColor,font:{size:11,...chartFont}},grid:{color:gridColor}}, y:{ticks:{color:tickColor,font:{size:12,...chartFont},mirror:false},grid:{display:false}} }
+    }
+  });
+}
+function productHbarChart(id, labels, values) {
+  const el = $(id);
+  const maxVal = Math.max(...values, 1);
+  const h = Math.min(Math.max(labels.length * 32 + 40, 200), 520);
+  el.style.height = h + 'px'; el.style.maxHeight = h + 'px';
+  const bgColors = values.map(v => {
+    if (v / maxVal >= 0.6) return 'rgba(220,38,38,.8)';
+    if (v / maxVal >= 0.35) return 'rgba(234,88,12,.8)';
+    return 'rgba(37,99,235,.8)';
+  });
+  _mkChart(id, { type:'bar', data:{ labels, datasets:[{ data:values, backgroundColor:bgColors, borderWidth:0, borderRadius:4, borderSkipped:false }] },
+    options:{ indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label(ctx){return ` ${ctx.parsed.x.toLocaleString()} 个漏洞`;}}},
+        datalabels:{display:true,anchor:'end',align:'end',color:tickColor,font:{size:11,...chartFont},formatter:v=>v.toLocaleString()}},
+      scales:{ x:{ticks:{color:tickColor,font:{size:11,...chartFont}},grid:{color:gridColor}}, y:{ticks:{color:tickColor,font:{size:12,...chartFont}},grid:{display:false}} }
+    }
+  });
+}
+
+function buildCharts() {
+  const d = getD();
+  const p15 = (d.prod || DB.prod || []).slice(0,15);
+  productHbarChart('ch-product', p15.map(x=>x.name), p15.map(x=>x.value));
+
+  const siteDist = d.s.site_dist||[];
+  donutChart('ch-site', siteDist.map(x=>x.name), siteDist.map(x=>x.value));
+
+  const catDist = (d.s.cat_dist||[]).slice(0,10);
+  if (catDist.length) { $('card-cat').style.display=''; donutChart('ch-cat', catDist.map(x=>x.name), catDist.map(x=>x.value)); }
+  else $('card-cat').style.display='none';
+
+
+  const appDist = d.s.app_name_dist||[];
+  if (appDist.length) hbarChart('ch-app-name', appDist.map(x=>x.name), appDist.map(x=>x.value));
+
+  const opsDist = d.s.ops_admin_dist||[];
+  if (opsDist.length) hbarChart('ch-ops-admin', opsDist.map(x=>x.name), opsDist.map(x=>x.value));
+}
+
+// ── CVE 统计 ──────────────────────────────────────────────
+function buildCveStats() {
+  const cves = rlFilters.size > 0 ? CVES.filter(c => rlFilters.has((c.intel||{}).risk_level)) : CVES;
+  const total = cves.length;
+  const pocCount = cves.filter(c => c.has_poc).length;
+  const rceCount = cves.filter(c => (c.tags||[]).some(t => t==='RCE'||t==='EXP')).length;
+  const kevCount = cves.filter(c => (c.intel||{}).cisa_kev?.in_kev).length;
+  const rwCount  = cves.filter(c => (c.intel||{}).cisa_kev?.ransomware_use).length;
+  const itwCount = cves.filter(c => (c.intel||{}).vulncheck?.exploit_maturity==='in-the-wild').length;
+  const critCount = cves.filter(c => (c.intel||{}).risk_level==='CRITICAL').length;
+  const highCount = cves.filter(c => (c.intel||{}).risk_level==='HIGH').length;
+
+  const el = $('cve-stat-cards');
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px">
+      <div class="stat-card" style="--card-color:var(--color-critical);padding:16px 20px">
+        <div class="stat-label">CRITICAL</div>
+        <div class="stat-value" style="font-size:32px">${fmt(critCount)}</div>
+        <div class="stat-sub">HIGH ${fmt(highCount)}</div>
+      </div>
+      <div class="stat-card" style="--card-color:var(--accent);padding:16px 20px">
+        <div class="stat-label">独立 CVE</div>
+        <div class="stat-value" style="font-size:32px">${fmt(total)}</div>
+        <div class="stat-sub">含 PoC <strong>${fmt(pocCount)}</strong> · RCE/EXP <strong>${fmt(rceCount)}</strong></div>
+      </div>
+      <div class="stat-card" style="--card-color:var(--warn);padding:16px 20px">
+        <div class="stat-label">CISA KEV</div>
+        <div class="stat-value" style="font-size:32px">${fmt(kevCount)}</div>
+        <div class="stat-sub">勒索软件利用 ${fmt(rwCount)}</div>
+      </div>
+      <div class="stat-card" style="--card-color:var(--purple);padding:16px 20px">
+        <div class="stat-label">In-the-wild</div>
+        <div class="stat-value" style="font-size:32px">${fmt(itwCount)}</div>
+        <div class="stat-sub">VulnCheck 实战利用</div>
+      </div>
+    </div>`;
+  el.style.display = '';
+}
+
+// ── 过滤器选项 ──────────────────────────────────────────────
+function populateFilters() {
+  if (!HOSTS) return;
+  const sites = new Set(), cats = new Set(), hosts = new Set();
+  Object.values(HOSTS.map).forEach(h => {
+    if (h.cmdb?.site) sites.add(h.cmdb.site);
+    if (h.cmdb?.category) cats.add(h.cmdb.category);
+  });
+  if (VULNS) {
+    for (let i = 0; i < vLen(); i++) {
+      const ip = vGet(i, 'ip');
+      if (ip) hosts.add(ip);
+    }
+  } else {
+    Object.keys(HOSTS.map).forEach(ip => hosts.add(ip));
+  }
+  fillSelect('f-site', sites);
+  fillSelect('f-cat', cats);
+  fillSelect('f-host', hosts);
+}
+function fillSelect(id, set) {
+  const el = $(id);
+  if (!el) return;
+  const existing = new Set([...el.options].map(o => o.value));
+  [...set].sort().forEach(v => {
+    if (existing.has(v)) return;
+    const o = document.createElement('option');
+    o.value = v; o.textContent = v;
+    el.appendChild(o);
+  });
+}
+
+// ── 漏洞表格 ──────────────────────────────────────────────
+let vSort='s', vAsc=false, vPage=1, vSize=50, vFiltered=[];
+const qfActive = {critical:false, kev:false, rw:false, itw:false};
+const RL_ORDER = {CRITICAL:0, HIGH:1, MEDIUM:2, LOW:3, '':4};
+const ASSET_TYPE_MAP = {
+  os_kernel:'操作系统（OS）', system_bin:'操作系统（OS）', system_library:'操作系统（OS）',
+  web_server:'中间件', web_framework:'中间件', interpreter:'中间件', other_network_service:'中间件',
+  web_app:'应用程序', web_browser:'应用程序', office_software:'应用程序', other:'应用程序',
+  database:'数据库',
+  java_dependency:'第三方组件', python_dependency:'第三方组件', third_party_tools:'第三方组件',
+};
+function assetType(rawCat){ return ASSET_TYPE_MAP[rawCat] || rawCat || '—'; }
+
+function toggleQf(key) {
+  qfActive[key] = !qfActive[key];
+  const btn = $('qf-'+key);
+  const cls = key==='critical'?'active-danger':key==='kev'?'active':key==='rw'?'active-danger':key==='itw'?'active-purple':'active';
+  btn.classList.toggle(cls, qfActive[key]);
+  vPage=1; renderVulnTable();
+}
+
+function filterVulns() {
+  const fs=$('f-state').value, fo=$('f-os').value;
+  const fsite=$('f-site').value, fcat=$('f-cat').value;
+  const frl=$('f-rl')?.value||'';
+  const fhost=$('f-host')?.value||'';
+  const fatype=$('f-atype')?.value||'';
+  const q=$('f-search').value.trim().toLowerCase();
+  vFiltered = [];
+  const n = vLen();
+  for (let i = 0; i < n; i++) {
+    const st = VULNS.d.st[i];
+    const ip = vGet(i,'ip');
+    const h = HOSTS?.map?.[ip];
+    if(fs && String(st)!==fs) continue;
+    if(fo && h?.os!==fo) continue;
+    if(fsite && (h?.cmdb?.site||'')!==fsite) continue;
+    if(fcat && (h?.cmdb?.category||'')!==fcat) continue;
+    if(frl && vGet(i,'rl')!==frl) continue;
+    if(fhost && ip!==fhost) continue;
+    if(fatype && assetType(vGet(i,'cat'))!==fatype) continue;
+    if(q) {
+      const cve=vGet(i,'c'), name=vGet(i,'n'), prod=vGet(i,'p');
+      if(!(cve||'').toLowerCase().includes(q) && !(prod||'').toLowerCase().includes(q) && !(name||'').toLowerCase().includes(q) && !ip.toLowerCase().includes(q)) continue;
+    }
+    // Risk level multi-select filter
+    if(rlFilters.size > 0 && !rlFilters.has(vGet(i,'rl'))) continue;
+    // Quick filters (stackable)
+    if(qfActive.critical && vGet(i,'rl')!=='CRITICAL') continue;
+    if(qfActive.kev && !VULNS.d.kev[i]) continue;
+    if(qfActive.rw  && !VULNS.d.rw[i])  continue;
+    if(qfActive.itw  && vGet(i,'em')!=='in-the-wild') continue;
+    vFiltered.push(i);
+  }
+  vFiltered.sort((a,b) => {
+    let av = vGet(a, vSort==='rl'?'rl':vSort), bv = vGet(b, vSort==='rl'?'rl':vSort);
+    if(vSort==='s'){av=+av||0;bv=+bv||0;}
+    else if(vSort==='rl'){av=RL_ORDER[av]??4;bv=RL_ORDER[bv]??4;}
+    return av<bv ? (vAsc?-1:1) : av>bv ? (vAsc?1:-1) : 0;
+  });
+}
+
+const STATE_TEXT  = {1:'未处理',2:'已验证',3:'已忽略',4:'已修复'};
+const STATE_CLASS = {1:'b-st1',2:'b-st2',3:'b-st3',4:'b-st4'};
+function cvssBadge(s){return s===10?'b10':s>=9.5?'b95':'b90';}
+function vecClass(v){return v==='NETWORK'?'b-net':v==='LOCAL'?'b-loc':v==='ADJACENT'?'b-adj':'';}
+function stateBadge(st){return `<span class="badge ${STATE_CLASS[st]||'b-st1'}">${STATE_TEXT[st]||'未知'}</span>`;}
+function envBadge(e){if(!e)return'<span style="color:var(--subtle)">—</span>';const c={Production:'var(--color-critical)',Test:'var(--color-medium)',Development:'var(--accent)'};return`<span style="color:${c[e]||'var(--muted)'};font-size:11px;font-weight:600">${e}</span>`;}
+
+function buildMergedGroups(sortedIndices) {
+  const map = new Map(), order = [];
+  for (const idx of sortedIndices) {
+    const key = vGet(idx,'c') + '\x00' + vGet(idx,'ip');
+    if (!map.has(key)) { map.set(key, []); order.push(key); }
+    map.get(key).push(idx);
+  }
+  return order.map(k => map.get(k));
+}
+
+function renderVulnTable() {
+  if (!VULNS || !HOSTS) return;
+  filterVulns();
+  const groups = buildMergedGroups(vFiltered);
+  const total = groups.length, start = (vPage-1)*vSize, page = groups.slice(start, start+vSize);
+  $('vuln-info').textContent = `筛选结果: ${fmt(total)} / ${fmt(DB.s.high_vulns)}`;
+
+  $('vuln-tbody').innerHTML = page.map(grp => {
+    const repIdx = grp[0];
+    const cve=vGet(repIdx,'c'), name=vGet(repIdx,'n'), cvss=VULNS.d.s[repIdx], vec=vGet(repIdx,'v');
+    const ip=vGet(repIdx,'ip'), pd=vGet(repIdx,'pd'), tags=VULNS.d.t[repIdx];
+    const rl=vGet(repIdx,'rl')||'', kev=VULNS.d.kev[repIdx], rw=VULNS.d.rw[repIdx];
+    const ep=VULNS.d.ep[repIdx], em=vGet(repIdx,'em')||'';
+    const h = HOSTS.map[ip] || {};
+    const cmdb = h.cmdb || {};
+    // Worst state across packages (lowest state_raw number = most urgent)
+    const st = Math.min(...grp.map(i => VULNS.d.st[i] || 5));
+    // PoC if any package has it
+    const poc = grp.some(i => VULNS.d.poc[i]);
+    // Product: deduplicate (prod, ver) pairs across packages
+    const prodMap = new Map();
+    grp.forEach(i => { const k=vGet(i,'p')+'|'+vGet(i,'vr'); if(!prodMap.has(k)) prodMap.set(k,{p:vGet(i,'p'),vr:vGet(i,'vr')}); });
+    const prodPairs = [...prodMap.values()];
+    const fp = prodPairs[0];
+    const prodCell = prodPairs.length > 1
+      ? `${esc(fp.p)} <span style="color:#6e7681;font-size:10px">${esc(fp.vr||'')}</span> <span style="background:rgba(88,166,255,.15);color:var(--accent);font-size:10px;padding:1px 5px;border-radius:3px;font-weight:600;white-space:nowrap">+${prodPairs.length-1} 包</span>`
+      : `${esc(fp.p)} <span style="color:#6e7681;font-size:10px">${esc(fp.vr||'')}</span>`;
+    const tagHtml=(tags||[]).map(t=>`<span class="tag-chip">${esc(t)}</span>`).join('');
+    const rlEmoji = '';
+    const rlCell = rl ? `<span class="badge rl-${rl}">${rl}</span>` : '—';
+    const micros = [
+      kev ? `<span class="ib-kev">KEV</span>` : '',
+      rw  ? `<span class="ib-rw">Ransomware</span>` : '',
+      (ep!=null && ep>=0.5) ? `<span class="ib-ep">EPSS ${ep.toFixed(2)}</span>` : '',
+      em==='in-the-wild' ? `<span class="ib-itw">In-the-wild</span>` : '',
+    ].filter(Boolean).join(' ');
+    return `<tr data-cve="${esc(cve)}" data-ip="${esc(ip)}" onclick="showMergedDetail(this.dataset.cve,this.dataset.ip)" style="cursor:pointer" data-rl="${rl}">
+      <td><span class="badge ${cvssBadge(cvss)}">${cvss}</span></td>
+      <td style="color:var(--accent);font-weight:600;white-space:nowrap">${esc(cve)}</td>
+      <td style="white-space:nowrap">${rlCell}${micros?`<div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:2px">${micros}</div>`:''}</td>
+      <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(name)}">${esc(name)}</td>
+      <td class="muted" style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${prodCell}</td>
+      <td>${stateBadge(st)}</td>
+      <td class="muted">${esc(cmdb.site||'—')}</td>
+      <td style="color:var(--accent);white-space:nowrap">${esc(ip)}</td>
+      <td class="muted" style="white-space:nowrap">${esc(pd)}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="9" class="vuln-empty">未找到匹配的漏洞，请调整筛选条件</td></tr>`;
+
+  $('vuln-page-info').textContent = `第 ${vPage}/${Math.ceil(total/vSize)||1} 页`;
+  buildPager('vuln-pages', Math.ceil(total/vSize)||1, vPage, p=>{vPage=p;renderVulnTable();});
+}
+
+function csvEscape(v) {
+  const s = String(v ?? '');
+  if (/[",\r\n]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
+  return s;
+}
+
+function buildExportRows() {
+  filterVulns();
+  const groups = buildMergedGroups(vFiltered);
+  const rows = [];
+  for (const grp of groups) {
+    const repIdx = grp[0];
+    const ip = vGet(repIdx, 'ip');
+    const h = HOSTS?.map?.[ip] || {};
+    const cmdb = h.cmdb || {};
+    const prodSet = new Set(
+      grp.map(i => `${vGet(i, 'p') || ''} ${vGet(i, 'vr') || ''}`.trim()).filter(Boolean)
+    );
+    rows.push({
+      cve: vGet(repIdx, 'c') || '',
+      vuln_name: vGet(repIdx, 'n') || '',
+      products: [...prodSet].join(' | '),
+      risk_level: vGet(repIdx, 'rl') || '',
+      host_ip: ip,
+      os: h.os || '',
+      site: cmdb.site || '',
+      category: cmdb.category || '',
+      asset_type: assetType(vGet(repIdx, 'cat')),
+      publish_date: vGet(repIdx, 'pd') || '',
+    });
+  }
+  return rows;
+}
+
+function exportVulnsCsv() {
+  if (!VULNS || !HOSTS) return;
+  const btn = $('vuln-export-btn');
+  const oldText = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '导出中...'; }
+  try {
+    const rows = buildExportRows();
+    const headers = [
+      ['cve', 'CVE'],
+      ['vuln_name', '漏洞名称'],
+      ['products', '受影响产品'],
+      ['risk_level', '风险等级'],
+      ['host_ip', '受影响主机'],
+      ['os', '系统'],
+      ['site', '站点'],
+      ['category', '类别'],
+      ['asset_type', '资产类型'],
+      ['publish_date', '披露日期'],
+    ];
+    const lines = [];
+    lines.push(headers.map(h => csvEscape(h[1])).join(','));
+    rows.forEach(r => {
+      lines.push(headers.map(h => csvEscape(r[h[0]])).join(','));
+    });
+    const now = new Date();
+    const pad = n => String(n).padStart(2, '0');
+    const tsName = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+    const blob = new Blob(['\uFEFF' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `vuln_export_${tsName}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = oldText || '导出'; }
+  }
+}
+
+function sortBy(col) {
+  const colMap = {'cvss':'s','cve':'c','name':'n','product':'p','host_ip':'ip','publish_date':'pd','rl':'rl','state_raw':'st'};
+  const next = colMap[col] || col;
+  if(vSort===next) vAsc=!vAsc; else {vSort=next;vAsc=next==='rl'?true:false;}
+  vPage=1; renderVulnTable();
+}
+
+// ── CVE 表格 ──────────────────────────────────────────────
+let cSort='cvss', cAsc=false, cPage=1, cSize=50, cFiltered=[];
+
+function filterCves() {
+  const frl=$('f2-rl').value, q=$('f2-search').value.trim().toLowerCase();
+  const fatype2=$('f2-atype')?.value||'';
+  cFiltered = CVES.filter(c => {
+    if(frl && (c.intel||{}).risk_level!==frl) return false;
+    if(fatype2 && (c.asset_type||'')!==fatype2) return false;
+    if(q && !(c.cve||'').toLowerCase().includes(q) && !(c.name||'').toLowerCase().includes(q) && !(c.product||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  cFiltered.sort((a,b) => {
+    let av, bv;
+    if(cSort==='risk_level'){
+      av=RL_ORDER[(a.intel||{}).risk_level]??4; bv=RL_ORDER[(b.intel||{}).risk_level]??4;
+    } else if(cSort==='epss'){
+      av=(a.intel||{}).vulncheck?.epss_score??-1; bv=(b.intel||{}).vulncheck?.epss_score??-1;
+    } else {
+      av=a[cSort]??''; bv=b[cSort]??'';
+      if(cSort==='cvss'||cSort==='host_count'){av=+av||0;bv=+bv||0;}
+    }
+    return av<bv ? (cAsc?-1:1) : av>bv ? (cAsc?1:-1) : 0;
+  });
+}
+
+function renderCveTable() {
+  if (!CVES) return;
+  filterCves();
+  const total=cFiltered.length, start=(cPage-1)*cSize, page=cFiltered.slice(start,start+cSize);
+  $('cve-count-info').textContent = `共 ${fmt(total)} 个 CVE`;
+
+  $('cve-tbody').innerHTML = page.map(c => {
+    const hostColor = c.host_count>10?'var(--color-critical)':c.host_count>3?'var(--color-high)':'var(--text)';
+    const intel = c.intel || {};
+    const rl = intel.risk_level || '';
+    const ck = intel.cisa_kev || {}, vc = intel.vulncheck || {};
+    const rlEmoji = '';
+    const rlCell = rl ? `<span class="badge rl-${rl}">${rl}</span>` : '—';
+    const epssVal = vc.epss_score!=null ? vc.epss_score : null;
+    const epssColor = epssVal>=0.9?'var(--danger)':epssVal>=0.5?'var(--warn)':epssVal>=0.1?'var(--text)':'var(--muted)';
+    const epssCell = epssVal!=null ? `<span style="color:${epssColor};font-weight:600">${epssVal.toFixed(2)}</span>` : '<span class="muted">—</span>';
+    const kevCell = ck.in_kev ? `<span class="ib-kev">KEV</span>${ck.ransomware_use?'&nbsp;<span class="ib-rw">RW</span>':''}` : '<span class="muted">—</span>';
+    const em = vc.exploit_maturity || '';
+    const emCell = em ? `<span class="ib-itw">${esc(em)}</span>` : '<span class="muted">—</span>';
+    return `<tr data-cve="${esc(c.cve)}" onclick="showCveDetail(this.dataset.cve)" style="cursor:pointer" data-rl="${rl}">
+      <td><span class="badge ${cvssBadge(c.cvss)}">${c.cvss}</span></td>
+      <td style="color:var(--accent);font-weight:700;font-size:13px;white-space:nowrap">${esc(c.cve)}</td>
+      <td style="white-space:nowrap">${rlCell}</td>
+      <td style="white-space:nowrap">${epssCell}</td>
+      <td style="white-space:nowrap">${kevCell}</td>
+      <td style="white-space:nowrap">${emCell}</td>
+      <td style="white-space:nowrap"><span class="badge b-atype">${esc(c.asset_type||'—')}</span></td>
+      <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(c.name)}">${esc(c.name)}</td>
+      <td class="muted">${esc(c.product)}</td>
+      <td><span style="color:${hostColor};font-weight:600">${c.host_count}</span> <span class="muted">台</span></td>
+    </tr>`;
+  }).join('');
+
+  $('cve-page-info').textContent = `第 ${cPage}/${Math.ceil(total/cSize)||1} 页`;
+  buildPager('cve-pages', Math.ceil(total/cSize)||1, cPage, p=>{cPage=p;renderCveTable();});
+}
+
+function sortCveBy(col) {
+  if(cSort===col) cAsc=!cAsc; else {cSort=col;cAsc=false;}
+  cPage=1; renderCveTable();
+}
+
+// ── 主机排行 ──────────────────────────────────────────────
+function renderHostTable() {
+  if (!HOSTS) return;
+  const hosts = HOSTS.top;
+  $('host-tbody').innerHTML = hosts.map((h,i) => {
+    const hInfo = HOSTS.map[h.ip] || {};
+    const cmdb = hInfo.cmdb || {};
+    const rankCls = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-n';
+    const critCount = h.critical_count||0;
+    const highCount = h.high_count||0;
+    const unprocCount = h.unprocessed||0;
+    return `<tr>
+    <td><span class="rank-medal ${rankCls}">${i+1}</span></td>
+    <td style="color:var(--accent);font-weight:600">${esc(h.ip)}</td>
+    <td class="muted">${esc(h.hostname||'—')}</td>
+    <td><span class="badge ${h.os==='linux'?'b-linux':'b-win'}">${esc(h.os||'—')}</span></td>
+    <td class="muted">${esc(cmdb.site||'—')}</td>
+    <td class="muted">${esc(cmdb.category||'—')}</td>
+    <td class="muted" style="max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(cmdb.app_name||'')}">${esc(cmdb.app_name||'—')}</td>
+    <td class="muted">${esc(cmdb.system_role||'—')}</td>
+    <td class="muted" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(cmdb.biz_owner||'')}">${esc(cmdb.biz_owner||'—')}</td>
+    <td class="muted" style="max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${esc(cmdb.ops_admin||'')}">${esc(cmdb.ops_admin||'—')}</td>
+    <td><span style="color:${critCount>0?'var(--danger)':'var(--muted)'};font-weight:${critCount>0?700:400}">${critCount||'—'}</span></td>
+    <td><span style="color:${highCount>0?'var(--warn)':'var(--muted)'};font-weight:${highCount>0?600:400}">${highCount||'—'}</span></td>
+    <td><span style="color:${unprocCount>0?'var(--danger)':'var(--muted)'};font-weight:${unprocCount>0?600:400}">${unprocCount}</span></td>
+    <td><button class="btn-detail" data-ip="${esc(h.ip)}" onclick="showHostDetail(this.dataset.ip)">详情</button></td>
+  </tr>`}).join('');
+}
+
+// ── 详情面板 ──────────────────────────────────────────────
+function showMergedDetail(cve, ip) {
+  if (!VULNS || !HOSTS) return;
+  const n = vLen(), grpIndices = [];
+  for (let i = 0; i < n; i++) {
+    if (vGet(i,'c')===cve && vGet(i,'ip')===ip) grpIndices.push(i);
+  }
+  if (!grpIndices.length) return;
+  const repIdx = grpIndices[0];
+  const name=vGet(repIdx,'n'), cvss=VULNS.d.s[repIdx], vec=vGet(repIdx,'v');
+  const pd=vGet(repIdx,'pd'), tags=VULNS.d.t[repIdx], cat=vGet(repIdx,'cat');
+  const poc = grpIndices.some(i => VULNS.d.poc[i]);
+  const h = HOSTS.map[ip] || {};
+  const cmdb = h.cmdb || {};
+  $('panel-title').textContent = cve + ' — ' + name;
+  const cveInfo = cveIndex[cve] || {};
+  const summaryHtml = buildSummarySection(cveInfo.summary||null);
+  const riskHtml = buildRiskCard(cveInfo.intel||null, !cveInfo.summary);
+  const intelHtml = buildIntelSection(cveInfo.intel||null, cve);
+  const pkgRows = grpIndices.map(idx => {
+    const prod=vGet(idx,'p'), ver=vGet(idx,'vr'), st=VULNS.d.st[idx];
+    return `<tr style="border-bottom:1px solid var(--border-light)">
+      <td style="padding:7px 10px;color:var(--text)">${esc(prod)}</td>
+      <td style="padding:7px 10px;color:var(--muted);font-size:12px">${esc(ver||'—')}</td>
+      <td style="padding:7px 10px">${stateBadge(st)}</td>
+    </tr>`;
+  }).join('');
+  const pkgSection = `<div class="panel-section">
+    <div class="panel-section-title">本机受影响包（共 ${grpIndices.length} 个）</div>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr style="border-bottom:1px solid var(--border)">
+        <th style="text-align:left;padding:5px 10px;font-size:11px;color:var(--muted);font-weight:500">产品</th>
+        <th style="text-align:left;padding:5px 10px;font-size:11px;color:var(--muted);font-weight:500">版本</th>
+        <th style="text-align:left;padding:5px 10px;font-size:11px;color:var(--muted);font-weight:500">状态</th>
+      </tr></thead>
+      <tbody>${pkgRows}</tbody>
+    </table>
+  </div>`;
+  const cmdbSection = cmdb.name ? `
+    <div class="panel-section"><div class="panel-section-title">CMDB 信息</div>
+    <div class="panel-grid">
+      <div class="panel-field"><div class="panel-field-label">CMDB 名称</div><div class="panel-field-value">${esc(cmdb.name||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">类型</div><div class="panel-field-value">${esc(cmdb.type||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">站点</div><div class="panel-field-value">${esc(cmdb.site||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">集群</div><div class="panel-field-value">${esc(cmdb.cluster||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">应用名称</div><div class="panel-field-value">${esc(cmdb.app_name||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">系统角色</div><div class="panel-field-value">${esc(cmdb.system_role||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">业务负责人</div><div class="panel-field-value">${esc(cmdb.biz_owner||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">运维负责人</div><div class="panel-field-value">${esc(cmdb.ops_admin||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">RTO/RPO</div><div class="panel-field-value">${esc(cmdb.rto_rpo||'—')}</div></div>
+    </div></div>` : '';
+  $('panel-body').innerHTML =
+    summaryHtml +
+    (riskHtml ? `<div class="panel-section">${riskHtml}</div>` : '') +
+    `<div class="panel-section"><div class="panel-section-title">基本信息</div>
+    <div class="panel-grid">
+      <div class="panel-field"><div class="panel-field-label">CVE</div><div class="panel-field-value" style="color:var(--accent);font-weight:700">${esc(cve)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">CVSS</div><div class="panel-field-value"><span class="badge ${cvssBadge(cvss)}" style="font-size:14px">${cvss}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">攻击向量</div><div class="panel-field-value"><span class="badge ${vecClass(vec)}">${esc(vec)}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">PoC</div><div class="panel-field-value">${poc?'<span class="badge b-poc">含 PoC</span>':'无'}</div></div>
+      <div class="panel-field full"><div class="panel-field-label">漏洞名称</div><div class="panel-field-value">${esc(name)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">披露日期</div><div class="panel-field-value">${esc(pd||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">分类</div><div class="panel-field-value">${esc(cat||'—')}</div></div>
+      <div class="panel-field full"><div class="panel-field-label">标签</div><div class="panel-field-value">${(tags||[]).map(t=>`<span class="tag-chip">${esc(t)}</span>`).join('')||'—'}</div></div>
+    </div></div>` +
+    pkgSection +
+    intelHtml +
+    `<div class="panel-section"><div class="panel-section-title">受影响主机</div>
+    <div class="panel-item">
+      <div><div style="color:var(--accent);font-weight:600">${esc(ip)}</div><div style="color:var(--muted);font-size:11px">${esc(h.hn||'')} · <span class="badge ${h.os==='linux'?'b-linux':'b-win'}" style="font-size:9px">${esc(h.os||'')}</span> · ${esc(h.grp||'')}</div></div>
+    </div>
+    ${h.idc?`<div style="margin-top:6px;font-size:11px;color:var(--muted)">机房: ${esc(h.idc)}</div>`:''}</div>` +
+    cmdbSection;
+  $('detail-panel').style.display='block';
+}
+
+function showVulnDetail(id) {
+  if (!VULNS || !HOSTS) return;
+  // find row index by id
+  const idx = VULNS._idIdx?.[id];
+  if (idx === undefined) return;
+  const cve=vGet(idx,'c'), name=vGet(idx,'n'), cvss=VULNS.d.s[idx], vec=vGet(idx,'v');
+  const prod=vGet(idx,'p'), ver=vGet(idx,'vr'), poc=VULNS.d.poc[idx], st=VULNS.d.st[idx];
+  const ip=vGet(idx,'ip'), pd=vGet(idx,'pd'), tags=VULNS.d.t[idx], cat=vGet(idx,'cat');
+  const h = HOSTS.map[ip] || {};
+  const cmdb = h.cmdb || {};
+  $('panel-title').textContent = cve + ' — ' + name;
+  const cmdbSection = cmdb.name ? `
+    <div class="panel-section"><div class="panel-section-title">CMDB 信息</div>
+    <div class="panel-grid">
+      <div class="panel-field"><div class="panel-field-label">CMDB 名称</div><div class="panel-field-value">${esc(cmdb.name||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">类型</div><div class="panel-field-value">${esc(cmdb.type||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">站点</div><div class="panel-field-value">${esc(cmdb.site||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">集群</div><div class="panel-field-value">${esc(cmdb.cluster||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">环境</div><div class="panel-field-value">${envBadge(cmdb.environment)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">类别</div><div class="panel-field-value">${esc(cmdb.category||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">平台</div><div class="panel-field-value">${esc(cmdb.platform||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">应用名称</div><div class="panel-field-value">${esc(cmdb.app_name||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">系统角色</div><div class="panel-field-value">${esc(cmdb.system_role||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">应用负责人</div><div class="panel-field-value">${esc(cmdb.app_owner||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">业务负责人</div><div class="panel-field-value">${esc(cmdb.biz_owner||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">运维负责人</div><div class="panel-field-value">${esc(cmdb.ops_admin||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">RTO/RPO</div><div class="panel-field-value">${esc(cmdb.rto_rpo||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">租户</div><div class="panel-field-value">${esc(cmdb.tenant||'—')}</div></div>
+    </div></div>` : '';
+  const cveInfo = cveIndex[cve] || {};
+  const summary = cveInfo.summary || null;
+  const intel = cveInfo.intel || null;
+  const summaryHtml = buildSummarySection(summary);
+  const riskHtml = buildRiskCard(intel, !summary);
+  const intelHtml = buildIntelSection(intel, cve);
+  $('panel-body').innerHTML =
+    summaryHtml +
+    (riskHtml ? `<div class="panel-section">${riskHtml}</div>` : '') +
+    `<div class="panel-section"><div class="panel-section-title">基本信息</div>
+    <div class="panel-grid">
+      <div class="panel-field"><div class="panel-field-label">CVE</div><div class="panel-field-value" style="color:var(--accent);font-weight:700">${esc(cve)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">CVSS</div><div class="panel-field-value"><span class="badge ${cvssBadge(cvss)}" style="font-size:14px">${cvss}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">攻击向量</div><div class="panel-field-value"><span class="badge ${vecClass(vec)}">${esc(vec)}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">状态</div><div class="panel-field-value">${stateBadge(st)}</div></div>
+      <div class="panel-field full"><div class="panel-field-label">漏洞名称</div><div class="panel-field-value">${esc(name)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">受影响产品</div><div class="panel-field-value">${esc(prod)} ${esc(ver||'')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">PoC</div><div class="panel-field-value">${poc?'<span class="badge b-poc">含 PoC</span>':'无'}</div></div>
+      <div class="panel-field"><div class="panel-field-label">披露日期</div><div class="panel-field-value">${esc(pd||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">分类</div><div class="panel-field-value">${esc(cat||'—')}</div></div>
+      <div class="panel-field full"><div class="panel-field-label">标签</div><div class="panel-field-value">${(tags||[]).map(t=>`<span class="tag-chip">${esc(t)}</span>`).join('')||'—'}</div></div>
+    </div></div>` +
+    intelHtml +
+    `<div class="panel-section"><div class="panel-section-title">受影响主机</div>
+    <div class="panel-item">
+      <div><div style="color:var(--accent);font-weight:600">${esc(ip)}</div><div style="color:var(--muted);font-size:11px">${esc(h.hn||'')} · <span class="badge ${h.os==='linux'?'b-linux':'b-win'}" style="font-size:9px">${esc(h.os||'')}</span> · ${esc(h.grp||'')}</div></div>
+    </div>
+    ${h.idc?`<div style="margin-top:6px;font-size:11px;color:var(--muted)">机房: ${esc(h.idc)}</div>`:''}</div>` +
+    cmdbSection;
+  $('detail-panel').style.display='block';
+}
+
+function tip(label, tipText) {
+  return `<span class="tip">${label}<span class="tip-icon" tabindex="0">?</span><span class="tip-text">${tipText}</span></span>`;
+}
+
+function epssBar(score) {
+  if(score==null) return '';
+  const pct = Math.round(score*100);
+  const color = score>=0.9?'var(--color-critical)':score>=0.5?'var(--color-high)':score>=0.1?'var(--color-medium)':'var(--color-low)';
+  return `<div class="epss-bar-wrap"><div class="epss-bar" style="width:${pct}%;background:${color}"></div></div>`;
+}
+
+function parseVector(vs) {
+  if(!vs) return '';
+  const MAP = {
+    'AV:N':'网络攻击','AV:L':'本地攻击','AV:A':'相邻网络攻击','AV:P':'物理接触',
+    'AC:L':'低复杂度','AC:H':'高复杂度',
+    'PR:N':'无需认证','PR:L':'低权限','PR:H':'高权限',
+    'UI:N':'无需用户交互','UI:R':'需要用户交互',
+    'S:U':'不跨范围','S:C':'影响跨范围',
+    'C:H':'机密性高影响','C:L':'机密性低影响','C:N':'无机密性影响',
+    'I:H':'完整性高影响','I:L':'完整性低影响','I:N':'无完整性影响',
+    'A:H':'可用性高影响','A:L':'可用性低影响','A:N':'无可用性影响',
+  };
+  return vs.split('/').map(p => MAP[p]||p).filter(p=>!p.startsWith('CVSS:')).join(' · ');
+}
+
+function daysSince(isoStr) {
+  if(!isoStr) return null;
+  try {
+    const d = new Date(isoStr), now = new Date();
+    return Math.floor((now-d)/86400000);
+  } catch(e){ return null; }
+}
+
+function toggleCollapse(id) {
+  const el = $(id);
+  el.classList.toggle('open');
+  const btn = el.previousElementSibling;
+  btn.querySelector('.arr').textContent = el.classList.contains('open') ? '▲' : '▼';
+}
+
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(()=>{
+    const orig=btn.textContent; btn.textContent='已复制!'; btn.style.color='var(--safe)';
+    setTimeout(()=>{btn.textContent=orig;btn.style.color='';},1500);
+  });
+}
+
+function showCveDetail(cve) {
+  const c = cveIndex[cve];
+  if(!c) return;
+  $('panel-title').textContent = c.cve + ' — ' + c.name;
+  const summary = c.summary || null;
+  const intel = c.intel || null;
+  const summaryHtml = buildSummarySection(summary);
+  const riskHtml = buildRiskCard(intel, !summary);
+  const intelHtml = buildIntelSection(intel, cve);
+  const ipsHtml = (c.host_ips||[]).map(ip => `<span class="panel-ip">${esc(ip)}</span>`).join('');
+  $('panel-body').innerHTML =
+    summaryHtml +
+    (riskHtml ? `<div class="panel-section">${riskHtml}</div>` : '') +
+    `<div class="panel-section"><div class="panel-section-title">CVE 概要</div>
+    <div class="panel-grid">
+      <div class="panel-field full"><div class="panel-field-label">漏洞名称</div><div class="panel-field-value">${esc(c.name)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">CVSS</div><div class="panel-field-value"><span class="badge ${cvssBadge(c.cvss)}" style="font-size:14px">${c.cvss}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">攻击向量</div><div class="panel-field-value"><span class="badge ${vecClass(c.vector)}">${esc(c.vector||'—')}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">受影响产品</div><div class="panel-field-value">${esc(c.product)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">PoC</div><div class="panel-field-value">${c.has_poc?'<span class="badge b-poc">含 PoC</span>':'无'}</div></div>
+      <div class="panel-field full"><div class="panel-field-label">标签</div><div class="panel-field-value">${(c.tags||[]).map(t=>`<span class="tag-chip">${esc(t)}</span>`).join('')||'—'}</div></div>
+    </div></div>` +
+    intelHtml +
+    `<div class="panel-section"><div class="panel-section-title">影响主机（共 ${fmt(c.host_count)} 台）</div>
+    <div style="max-height:200px;overflow-y:auto">${ipsHtml}</div></div>`;
+  $('detail-panel').style.display='block';
+}
+
+function buildSummarySection(summary) {
+  if (!summary) return '';
+  const items = [
+    {emoji:'🤔', q:'这是什么漏洞？', key:'what'},
+    {emoji:'💥', q:'会造成什么后果？', key:'impact'},
+    {emoji:'🎯', q:'谁会受影响？', key:'who'},
+    {emoji:'🔧', q:'怎么修复？', key:'fix'},
+  ];
+  const cards = items.filter(it => summary[it.key]).map(it =>
+    `<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px">` +
+    `<div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">${it.q}</div>` +
+    `<div style="font-size:13px;color:var(--text);line-height:1.65">${esc(summary[it.key])}</div></div>`
+  ).join('');
+  if (!cards) return '';
+  return `<div class="panel-section"><div class="panel-section-title">通俗说明</div>${cards}</div>`;
+}
+
+function buildRiskCard(intel, noSummary) {
+  if (!intel) return '';
+  const ck = intel.cisa_kev || {};
+  const vc = intel.vulncheck || {};
+  const rl = intel.risk_level || 'LOW';
+  const reason = intel.risk_reason || '';
+  const rlEmoji = '';
+  const signals = [
+    ck.in_kev ? `<span class="ib-kev">KEV</span>` : '',
+    ck.ransomware_use ? `<span class="ib-rw">Ransomware</span>` : '',
+    (vc.epss_score!=null&&vc.epss_score>=0.5) ? `<span class="ib-ep">EPSS ${vc.epss_score.toFixed(2)}</span>` : '',
+    (vc.exploit_maturity||'')==='in-the-wild' ? `<span class="ib-itw">In-the-wild</span>` : '',
+  ].filter(Boolean).join(' ');
+  const borderColor = rl==='CRITICAL'?'rgba(255,50,50,.4)':rl==='HIGH'?'rgba(255,140,0,.4)':rl==='MEDIUM'?'rgba(227,179,65,.4)':'var(--border)';
+  return `<div class="intel-card" style="border-color:${borderColor}">
+    <div class="intel-card-title">风险评级</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+      <span class="badge rl-${rl}" style="font-size:15px;padding:5px 14px">${rl}</span>
+    </div>
+    ${reason?`<div style="font-size:12px;color:var(--text);line-height:1.6;margin-bottom:8px">${esc(reason)}</div>`:''}
+    ${signals?`<div class="intel-signals">${signals}</div>`:''}
+    ${noSummary?`<div style="margin-top:8px;font-size:11px;color:var(--subtle)">通俗说明生成中…</div>`:''}
+  </div>`;
+}
+
+function buildIntelSection(intel, cveId) {
+  if(!intel) return '';
+  const ck  = intel.cisa_kev   || {};
+  const vc  = intel.vulncheck  || {};
+  const nvd = intel.nvd        || {};
+
+  // ── 子卡片 2：CISA KEV（仅 in_kev 时显示）───────────────────
+  let card2 = '';
+  if(ck.in_kev) {
+    const due = ck.due_date||'';
+    let dueDays='', dueColor='var(--text)';
+    if(due){
+      const d=daysSince(due);
+      if(d!=null){ dueColor=d>0?'var(--danger)':'var(--safe)'; dueDays=d>0?`（已逾期 ${d} 天）`:`（还有 ${-d} 天）`; }
+    }
+    card2 = `<div class="intel-card">
+      <div class="intel-card-title">CISA KEV 信息</div>
+      <div class="intel-field"><div class="intel-field-label">加入日期</div><div class="intel-field-value">${ck.date_added||'—'}</div></div>
+      <div class="intel-field"><div class="intel-field-label">修复截止日期</div><div class="intel-field-value" style="color:${dueColor}">${due||'—'}${dueDays}</div></div>
+      <div class="intel-field"><div class="intel-field-label">勒索软件利用</div><div class="intel-field-value">${ck.ransomware_use?'<span class="ib-rw">是</span>':'否'}</div></div>
+      ${ck.required_action?`<div style="margin-top:8px"><div style="font-size:10px;color:var(--subtle);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px">要求的修复动作</div><div style="font-size:11px;color:var(--text);line-height:1.6;background:var(--bg);border-radius:6px;padding:8px 10px;border:1px solid var(--border-light)">${esc(ck.required_action)}</div></div>`:''}
+      <div class="intel-source">数据来源：CISA Known Exploited Vulnerabilities</div>
+    </div>`;
+  }
+
+  // ── 子卡片 3：VulnCheck 利用情报 ────────────────────────────
+  const ep = vc.epss_score, ep_pct = vc.epss_percentile;
+  const em = vc.exploit_maturity||'';
+  const emCls = em==='in-the-wild'?'ib-itw':em==='weaponized'?'ib-rw':em==='poc'?'ib-ep':'';
+  const ep_pct_str = ep_pct!=null ? `（优于 ${(ep_pct*100).toFixed(1)}% 的 CVE）` : '';
+  const vcStale = vc.fetched_at ? daysSince(vc.fetched_at) : null;
+  const staleNote = vcStale!=null&&vcStale>30 ? `<span class="stale">数据更新于 ${vcStale} 天前</span>` : '';
+  const vcOnlyKev = vc.in_vc_kev && !ck.in_kev;
+  const card3 = `<div class="intel-card">
+    <div class="intel-card-title">VulnCheck 利用情报 ${staleNote}</div>
+    <div class="intel-field"><div class="intel-field-label">EPSS 评分</div>
+      <div class="intel-field-value">${ep!=null?`<strong>${ep.toFixed(4)}</strong> ${ep_pct_str}${epssBar(ep)}`:'暂无数据'}</div></div>
+    ${em?`<div class="intel-field"><div class="intel-field-label">利用成熟度</div><div class="intel-field-value">${emCls?`<span class="${emCls}">${esc(em)}</span>`:esc(em)}</div></div>`:''}
+    ${vcOnlyKev?`<div style="margin-top:8px;padding:8px 10px;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:6px;font-size:11px;color:var(--accent);font-weight:600">VulnCheck 比 CISA 多发现的 KEV — CISA 尚未收录</div>`:''}
+    ${!ep&&!em&&!vc.in_vc_kev?`<div style="color:var(--muted);font-size:12px">暂无利用情报数据</div>`:''}
+    <div class="intel-source">数据来源：VulnCheck · FIRST.org EPSS</div>
+  </div>`;
+
+  // ── 子卡片 4：NVD 详细信息（折叠）─────────────────────────
+  const nvdStale = nvd.fetched_at ? daysSince(nvd.fetched_at) : null;
+  const nvdStaleNote = nvdStale!=null&&nvdStale>30 ? `<span class="stale">数据更新于 ${nvdStale} 天前</span>` : '';
+  const cweTags = (nvd.cwe||[]).map(w=>`<span class="tag-chip" style="color:var(--warn);border-color:rgba(227,179,65,.3)">${esc(w)}</span>`).join('');
+  const refs = nvd.references||[];
+  const refsHtml = refs.slice(0,5).map(u=>`<div style="margin-bottom:4px"><a href="${esc(safeUrl(u))}" target="_blank" rel="noopener" style="color:var(--accent);font-size:11px;word-break:break-all;text-decoration:none">${esc(u)}</a></div>`).join('');
+  const _cveKey = (cveId||'').replace(/-/g,'_');
+  const moreRefs = refs.length>5 ? `<div style="margin-top:4px"><button class="collapsible-toggle" onclick="toggleCollapse('nvd-refs-more-${_cveKey}')"><span class="arr">▼</span> 展开全部 ${refs.length} 条 References</button><div id="nvd-refs-more-${_cveKey}" class="collapsible-body">${refs.slice(5).map(u=>`<div style="margin-top:4px"><a href="${esc(safeUrl(u))}" target="_blank" rel="noopener" style="color:var(--accent);font-size:11px;word-break:break-all;text-decoration:none">${esc(u)}</a></div>`).join('')}</div></div>` : '';
+  const descText = nvd.description||'';
+  const card4 = `<div class="intel-card">
+    <div class="intel-card-title">NVD 详细信息 ${nvdStaleNote}
+      <button class="collapsible-toggle" onclick="toggleCollapse('nvd-body-${_cveKey}')" style="margin-left:auto;font-size:11px"><span class="arr">▼</span> 展开</button>
+    </div>
+    <div id="nvd-body-${_cveKey}" class="collapsible-body">
+      ${nvd.cvss_vector?`<div class="intel-field"><div class="intel-field-label">CVSS v3.1 向量</div><div class="intel-field-value"><code style="font-size:10px;color:var(--muted)">${esc(nvd.cvss_vector)}</code><br><span style="font-size:11px;color:var(--text)">${esc(parseVector(nvd.cvss_vector))}</span></div></div>`:''}
+      ${cweTags?`<div class="intel-field"><div class="intel-field-label">CWE 分类</div><div class="intel-field-value">${cweTags}</div></div>`:''}
+      ${descText?`<div style="margin:10px 0 6px"><div style="font-size:10px;color:var(--subtle);margin-bottom:4px;text-transform:uppercase;letter-spacing:.3px">NVD 官方描述 <button class="copy-btn" data-text="${esc(descText)}" onclick="copyText(this.dataset.text,this)">复制</button></div><div style="font-size:11px;color:var(--muted);background:var(--surface-2);border-radius:6px;padding:8px 10px;border:1px solid var(--border);line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:120px;overflow-y:auto">${esc(descText)}</div></div>`:''}
+      ${refsHtml?`<div style="margin-top:10px"><div style="font-size:10px;color:var(--subtle);margin-bottom:6px;text-transform:uppercase;letter-spacing:.3px">References</div>${refsHtml}${moreRefs}</div>`:''}
+      <div class="intel-source">数据来源：NVD (services.nvd.nist.gov)</div>
+    </div>
+  </div>`;
+
+  if (!card2 && !ep && !em && !vc.in_vc_kev && !nvd.description && !(nvd.cwe||[]).length && !(nvd.references||[]).length) return '';
+  const sectionTitle = `<div class="panel-section-title" style="margin-bottom:12px">威胁情报详情</div>`;
+  return `<div class="panel-section">${sectionTitle}${card2}${card3}${card4}</div>`;
+}
+
+function showHostDetail(ip) {
+  if (!HOSTS || !VULNS) return;
+  const h = HOSTS.top.find(x => x.ip === ip);
+  if(!h) return;
+  const vulnIdxs = VULNS._ipIdx?.[ip] || [];
+  // unique CVEs for this host
+  const cvesAll = [...new Set(vulnIdxs.map(i => vGet(i,'c')))];
+  // per-CVE representative index (first occurrence)
+  const cveRepIdx = {};
+  cvesAll.forEach(cve => { cveRepIdx[cve] = vulnIdxs.find(i => vGet(i,'c')===cve); });
+  // RL counts (by unique CVE)
+  const rlCounts = {CRITICAL:0, HIGH:0, MEDIUM:0, LOW:0};
+  cvesAll.forEach(cve => { const rl = vGet(cveRepIdx[cve],'rl')||'LOW'; if(rl in rlCounts) rlCounts[rl]++; });
+  const rlTotal = rlCounts.CRITICAL + rlCounts.HIGH + rlCounts.MEDIUM + rlCounts.LOW;
+  // Only CRITICAL + HIGH CVEs for list, sorted CRITICAL first
+  const RL_O = {CRITICAL:0,HIGH:1,MEDIUM:2,LOW:3};
+  const cvesHighRisk = cvesAll
+    .filter(cve => { const rl=vGet(cveRepIdx[cve],'rl'); return rl==='CRITICAL'||rl==='HIGH'; })
+    .sort((a,b) => (RL_O[vGet(cveRepIdx[a],'rl')]||9)-(RL_O[vGet(cveRepIdx[b],'rl')]||9));
+  const hInfo = HOSTS.map[ip] || {};
+  const cmdb = hInfo.cmdb || {};
+  $('panel-title').textContent = ip + ' — ' + h.hostname;
+  $('panel-body').innerHTML = `
+    <div class="panel-section"><div class="panel-section-title">主机信息</div>
+    <div class="panel-grid">
+      <div class="panel-field"><div class="panel-field-label">IP</div><div class="panel-field-value" style="color:var(--accent);font-weight:700">${esc(ip)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">主机名</div><div class="panel-field-value">${esc(h.hostname)}</div></div>
+      <div class="panel-field"><div class="panel-field-label">操作系统</div><div class="panel-field-value"><span class="badge ${h.os==='linux'?'b-linux':'b-win'}">${esc(h.os)}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">业务分组</div><div class="panel-field-value">${esc(h.group)}</div></div>
+      ${cmdb.name?`<div class="panel-field"><div class="panel-field-label">站点</div><div class="panel-field-value">${esc(cmdb.site||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">应用名称</div><div class="panel-field-value">${esc(cmdb.app_name||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">系统角色</div><div class="panel-field-value">${esc(cmdb.system_role||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">业务负责人</div><div class="panel-field-value">${esc(cmdb.biz_owner||'—')}</div></div>
+      <div class="panel-field"><div class="panel-field-label">运维负责人</div><div class="panel-field-value">${esc(cmdb.ops_admin||'—')}</div></div>`:''}
+    </div></div>
+    <div class="panel-section"><div class="panel-section-title">漏洞概要</div>
+    <div class="panel-grid">
+      <div class="panel-field"><div class="panel-field-label">Critical</div><div class="panel-field-value" style="color:var(--color-critical);font-weight:800;font-size:24px">${rlCounts.CRITICAL} <span style="color:var(--muted);font-size:12px;font-weight:400">/ ${rlTotal}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">High</div><div class="panel-field-value" style="color:var(--color-high);font-weight:800;font-size:24px">${rlCounts.HIGH} <span style="color:var(--muted);font-size:12px;font-weight:400">/ ${rlTotal}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">Medium</div><div class="panel-field-value" style="color:var(--color-medium);font-weight:800;font-size:24px">${rlCounts.MEDIUM} <span style="color:var(--muted);font-size:12px;font-weight:400">/ ${rlTotal}</span></div></div>
+      <div class="panel-field"><div class="panel-field-label">Low</div><div class="panel-field-value" style="color:var(--color-low);font-weight:800;font-size:24px">${rlCounts.LOW} <span style="color:var(--muted);font-size:12px;font-weight:400">/ ${rlTotal}</span></div></div>
+    </div></div>
+    <div class="panel-section"><div class="panel-section-title">受影响 CVE · Critical &amp; High（${cvesHighRisk.length} 个）</div>
+    <div style="max-height:440px;overflow-y:auto">
+    ${cvesHighRisk.map(cve => {
+      const vi = cveRepIdx[cve];
+      const nm = vGet(vi,'n'), rl = vGet(vi,'rl');
+      const rlEmoji = '';
+      const ci = cveIndex[cve]||{}, intel=ci.intel||{}, ck=intel.cisa_kev||{}, vc=intel.vulncheck||{};
+      const epssVal = vc.epss_score!=null ? vc.epss_score : null;
+      const epssColor = epssVal>=0.9?'var(--danger)':epssVal>=0.5?'var(--warn)':'var(--text)';
+      const badges = [
+        epssVal!=null?`<span style="background:var(--surface-2);color:${epssColor};font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px">EPSS ${epssVal.toFixed(2)}</span>`:'',
+        ck.in_kev?`<span class="ib-kev">KEV</span>`:'',
+        ck.ransomware_use?`<span class="ib-rw">Ransomware</span>`:'',
+        (vc.exploit_maturity||'')?`<span class="ib-itw">${esc(vc.exploit_maturity)}</span>`:'',
+      ].filter(Boolean).join(' ');
+      return `<div class="panel-item">
+        <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap">
+          <span class="badge rl-${esc(rl)}" style="flex-shrink:0">${esc(rl)}</span>
+          <span style="color:var(--accent);font-weight:600;font-size:11px;white-space:nowrap">${esc(cve)}</span>
+          <span style="color:var(--muted);font-size:11px">${esc(nm.substring(0,45))}</span>
+        </div>
+        ${badges?`<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px">${badges}</div>`:''}
+      </div>`;
+    }).join('')||'<div style="color:var(--muted);font-size:13px;padding:12px 0">无 Critical 或 High 级别漏洞</div>'}
+    </div></div>`;
+  $('detail-panel').style.display='block';
+}
+
+function closePanel() { $('detail-panel').style.display='none'; }
+document.addEventListener('keydown', e => { if(e.key==='Escape') closePanel(); });
+
+// ── 分页 ──────────────────────────────────────────────────
+function buildPager(elId, total, cur, cb) {
+  if(total<=1){$(elId).innerHTML='';return;}
+  const pages=[];
+  if(total<=7){for(let i=1;i<=total;i++)pages.push(i);}
+  else{pages.push(1);if(cur>3)pages.push('...');for(let i=Math.max(2,cur-1);i<=Math.min(total-1,cur+1);i++)pages.push(i);if(cur<total-2)pages.push('...');pages.push(total);}
+  $(elId).innerHTML='';
+  pages.forEach(p=>{
+    if(p==='...'){const s=document.createElement('span');s.textContent='…';s.style.cssText='color:#94a3b8;padding:4px 6px';$(elId).appendChild(s);return;}
+    const btn=document.createElement('button');btn.className='page-btn'+(p===cur?' active':'');btn.textContent=p;btn.onclick=()=>cb(p);$(elId).appendChild(btn);
+  });
+}
+
+// ── Tab / Filter ──────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
+  $('tab-'+name).classList.add('active');
+}
+function resetFilters(){['f-state','f-os','f-site','f-cat','f-atype','f-rl','f-host'].forEach(id=>$(id).value='');$('f-search').value='';Object.keys(qfActive).forEach(k=>{qfActive[k]=false;});document.querySelectorAll('.qf-btn').forEach(b=>b.classList.remove('active','active-danger','active-purple'));vPage=1;renderVulnTable();}
+const debounceSearch = debounce(()=>{vPage=1;renderVulnTable();});
+const debounceCve = debounce(()=>{cPage=1;renderCveTable();});
+
+// ── 启动 ──────────────────────────────────────────────────
+
+// ══════════════════════════════════════════════════════════════════════════
+//  演示数据生成器 —— 全部为虚构数据，仅用于功能演示，与真实资产/漏洞无关
+//  CVE ⇄ 主机 ⇄ 漏洞条目 内部完全一致，因此图表/筛选/详情/排行均可正常工作
+// ══════════════════════════════════════════════════════════════════════════
+function generateMockData(){
+  let _s = 20260622;
+  const rnd = ()=>{ _s = (_s*1664525 + 1013904223) >>> 0; return _s/4294967296; };
+  const ri = (a,b)=> a + Math.floor(rnd()*(b-a+1));
+  const pick = a => a[Math.floor(rnd()*a.length)];
+  const shuffle = a => { const c=[...a]; for(let i=c.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));const t=c[i];c[i]=c[j];c[j]=t;} return c; };
+  const pad = (n,l)=>String(n).padStart(l,'0');
+
+  // ── 字典 ──
+  const SITES = ['PDC','SDC','CSDC','AWS','Alibaba Cloud','Azure'];
+  const SCODE = {'PDC':'pdc','SDC':'sdc','CSDC':'csdc','AWS':'aws','Alibaba Cloud':'ali','Azure':'az'};
+  const CATS  = ['Cyber Securty','DT-Infrastructure','DT-Applications','ASP','BigData'];
+  const APPS  = ['订单中心','支付网关','统一认证','物流调度','库存管理','数据中台','风控引擎','客户门户','报表平台','消息中心','API 网关','配置中心','监控告警','日志归集','文件服务'];
+  const ROLES = ['Web 服务器','应用服务器','数据库','缓存节点','负载均衡','消息队列','批处理','跳板机','文件服务器','容器节点'];
+  const OPS   = ['运维一组-赵','运维二组-钱','运维三组-孙','云平台-李','中间件-周','数据库-吴','网络-郑','安全-王'];
+  const BIZ   = ['业务-冯','业务-陈','业务-褚','业务-卫','业务-蒋','业务-沈'];
+  const TENANTS = ['核心交易','数据智能','基础平台','安全合规'];
+  const CLUSTERS = ['cluster-a','cluster-b','prod-k8s-01','prod-k8s-02','vmw-cls-01'];
+  const RTORPO = ['RTO 1h / RPO 5m','RTO 4h / RPO 1h','RTO 8h / RPO 4h','RTO 24h / RPO 12h'];
+
+  // ── CVE 模板（虚构编号）: name, product, atype, cvss, vector, rl, kev, rw, epss, em, cwe[], tags[] ──
+  const T = [
+    ['Apache Log4j2 JNDI 远程代码执行漏洞','Apache Log4j2','中间件',10.0,'NETWORK','CRITICAL',1,1,0.97,'in-the-wild',['CWE-502'],['RCE','EXP']],
+    ['OpenSSL 证书校验缓冲区溢出漏洞','OpenSSL','第三方组件',9.8,'NETWORK','CRITICAL',1,0,0.92,'in-the-wild',['CWE-787'],['RCE']],
+    ['Fortinet FortiOS SSL VPN 越界写入漏洞','Fortinet FortiOS','应用程序',9.8,'NETWORK','CRITICAL',1,1,0.95,'in-the-wild',['CWE-787'],['RCE','EXP']],
+    ['Apache Struts2 文件上传远程代码执行漏洞','Apache Struts2','中间件',9.8,'NETWORK','CRITICAL',1,1,0.93,'in-the-wild',['CWE-552'],['RCE','EXP']],
+    ['VMware vCenter Server 远程代码执行漏洞','VMware vCenter','应用程序',9.8,'NETWORK','CRITICAL',1,0,0.90,'weaponized',['CWE-502'],['RCE']],
+    ['Apache ActiveMQ 反序列化远程代码执行漏洞','Apache ActiveMQ','中间件',9.8,'NETWORK','HIGH',1,1,0.78,'in-the-wild',['CWE-502'],['RCE','EXP']],
+    ['Jenkins CLI 任意文件读取漏洞','Jenkins','应用程序',9.8,'NETWORK','HIGH',1,0,0.66,'weaponized',['CWE-22'],['EXP']],
+    ['Atlassian Confluence 模板注入远程代码执行漏洞','Atlassian Confluence','应用程序',9.8,'NETWORK','HIGH',1,0,0.74,'in-the-wild',['CWE-1336'],['RCE']],
+    ['Spring Framework 数据绑定远程代码执行漏洞','Spring Framework','第三方组件',9.1,'NETWORK','HIGH',0,0,0.58,'poc',['CWE-94'],['RCE']],
+    ['Microsoft Exchange Server 权限提升漏洞','Microsoft Exchange','应用程序',9.0,'NETWORK','HIGH',1,0,0.60,'weaponized',['CWE-269'],['EXP']],
+    ['Oracle WebLogic Server 反序列化漏洞','Oracle WebLogic','中间件',9.8,'NETWORK','HIGH',1,1,0.70,'in-the-wild',['CWE-502'],['RCE','EXP']],
+    ['Fastjson 自动类型转换远程代码执行漏洞','Fastjson','第三方组件',9.8,'NETWORK','HIGH',0,0,0.52,'poc',['CWE-502'],['RCE']],
+    ['Microsoft Windows TCP/IP 远程代码执行漏洞','Microsoft Windows','操作系统（OS）',9.8,'NETWORK','HIGH',0,0,0.45,'poc',['CWE-191'],['RCE']],
+    ['Elasticsearch Groovy 脚本远程代码执行漏洞','Elasticsearch','数据库',9.3,'NETWORK','MEDIUM',0,0,0.22,'poc',['CWE-94'],['RCE']],
+    ['Redis Lua 沙箱逃逸远程代码执行漏洞','Redis','数据库',9.1,'NETWORK','MEDIUM',0,0,0.18,'poc',['CWE-94'],['RCE']],
+    ['MySQL Server 权限提升漏洞','MySQL','数据库',9.0,'NETWORK','MEDIUM',0,0,0.12,'',['CWE-269'],['EXP']],
+    ['Nginx HTTP/2 内存破坏漏洞','Nginx','中间件',9.1,'NETWORK','MEDIUM',0,0,0.15,'poc',['CWE-122'],['DoS']],
+    ['Apache Tomcat 会话固定信息泄露漏洞','Apache Tomcat','中间件',9.1,'NETWORK','MEDIUM',0,0,0.11,'',['CWE-384'],['Info']],
+    ['Docker Engine 容器逃逸漏洞','Docker','中间件',9.0,'LOCAL','MEDIUM',0,0,0.10,'poc',['CWE-269'],['EXP']],
+    ['PostgreSQL 扩展加载本地提权漏洞','PostgreSQL','数据库',9.0,'LOCAL','LOW',0,0,0.04,'',['CWE-250'],['EXP']],
+    ['Kubernetes kubelet 信息泄露漏洞','Kubernetes','中间件',9.0,'NETWORK','LOW',0,0,0.03,'',['CWE-200'],['Info']],
+    ['Linux Kernel netfilter 本地提权漏洞','Linux Kernel','操作系统（OS）',9.0,'LOCAL','LOW',0,0,0.05,'poc',['CWE-416'],['EXP']],
+  ];
+
+  const vecStr = v => 'CVSS:3.1/' + (v==='NETWORK'?'AV:N':v==='ADJACENT'?'AV:A':'AV:L') + '/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H';
+  function mkReason(kev,rw,epss,em){
+    const r=[];
+    if(kev) r.push('已被 CISA KEV 收录');
+    if(rw) r.push('被勒索软件团伙利用');
+    if(em==='in-the-wild') r.push('存在在野利用');
+    if(epss>=0.9) r.push('EPSS≥0.9 极高利用概率');
+    else if(epss>=0.5) r.push('EPSS≥0.5 较高利用概率');
+    return r.length ? r.join('，') + '。' : '暂无活跃利用迹象，主要依据 CVSS 技术严重度评估。';
+  }
+  function mkSummary(name,product,vector,rl){
+    return {
+      what: product + ' 中存在「' + name + '」，攻击者可' + (vector==='NETWORK'?'通过网络远程':'在获得本地访问后') + '利用该缺陷实施攻击。',
+      impact: (rl==='CRITICAL'||rl==='HIGH')
+        ? '成功利用可导致服务器被完全控制、敏感数据泄露或核心业务中断，影响面大。'
+        : '成功利用可能造成信息泄露或权限提升，风险相对可控但仍需关注。',
+      who: '所有部署了受影响版本 ' + product + ' 的服务器与应用均可能受到影响。',
+      fix: '建议尽快升级至官方修复版本；修复前可在边界设备增加访问控制并部署针对性检测规则。'
+    };
+  }
+
+  // ── 构建 CVE 列表 ──
+  const CVES = T.map((t,i)=>{
+    const name=t[0],product=t[1],atype=t[2],cvss=t[3],vector=t[4],rl=t[5],kev=t[6],rw=t[7],epss=t[8],em=t[9],cwe=t[10],tags=t[11];
+    const cve = 'CVE-2025-' + (41000 + i);
+    const ky = pick([2024,2025]);
+    const kevDate = ky + '-' + pad(ri(1,12),2) + '-' + pad(ri(1,28),2);
+    const dueDate = ky + '-' + pad(((ri(1,12))%12)+1,2) + '-' + pad(ri(1,28),2);
+    const pubY = pick([2024,2025,2026]);
+    const publish_date = pubY + '-' + pad(ri(1,12),2) + '-' + pad(ri(1,28),2);
+    const epss_pct = Math.min(0.999, 0.5 + epss*0.499);
+    const has_poc = (em!=='') || tags.indexOf('EXP')>=0;
+    const intel = {
+      risk_level: rl,
+      risk_reason: mkReason(kev,rw,epss,em),
+      cisa_kev: kev
+        ? {in_kev:true, ransomware_use:!!rw, date_added:kevDate, due_date:dueDate,
+           required_action:'按照供应商指引应用更新；在修复完成前停用或隔离受影响产品。'}
+        : {in_kev:false, ransomware_use:false},
+      vulncheck: {epss_score:epss, epss_percentile:epss_pct, exploit_maturity:em,
+                  in_vc_kev: !!(kev || em==='in-the-wild'), fetched_at:'2026-06-20'},
+      nvd: {cvss_vector:vecStr(vector), cwe:cwe,
+            description: product + ' 存在安全漏洞。' + name + (vector==='NETWORK'?' 攻击者可通过网络远程触发，无需身份认证。':' 攻击者需具备本地访问权限方可利用。'),
+            references:['https://nvd.nist.gov/vuln/detail/'+cve, 'https://www.cve.org/CVERecord?id='+cve, 'https://vendor-advisory.example.com/'+cve],
+            fetched_at:'2026-06-18'}
+    };
+    return {cve, name, cvss, vector, product, asset_type:atype, has_poc, tags,
+            host_count:0, host_ips:[], intel, summary: mkSummary(name,product,vector,rl)};
+  });
+
+  // ── 构建主机 ──
+  const NHOSTS = 64;
+  const hosts = [];
+  const ipSet = new Set();
+  for(let k=0;k<NHOSTS;k++){
+    let ip;
+    do { ip = '10.' + ri(8,12) + '.' + ri(1,40) + '.' + ri(2,250); } while(ipSet.has(ip));
+    ipSet.add(ip);
+    const os = rnd()<0.62 ? 'linux' : 'windows';
+    const site = pick(SITES);
+    const category = pick(CATS);
+    const app = pick(APPS);
+    const role = pick(ROLES);
+    const ops = pick(OPS);
+    const biz = pick(BIZ);
+    const platform = os==='linux'
+      ? pick(['CentOS 7.9','Ubuntu 22.04','Anolis 8.6','RHEL 8.8'])
+      : pick(['Windows Server 2019','Windows Server 2022']);
+    const hostname = SCODE[site] + '-' + (os==='linux'?'lnx':'win') + '-' + pad(k+1,3);
+    const cmdb = {
+      name: hostname.toUpperCase(), type: rnd()<0.55?'虚拟机':'物理机',
+      site, cluster: pick(CLUSTERS), platform, status:'active',
+      tenant: pick(TENANTS), vcpus: pick([2,4,8,16,32]), memory: pick([4,8,16,32,64])+' GB',
+      environment:'Production', category, app_owner: biz, app_name: app,
+      biz_owner: biz, ops_admin: ops, system_role: role, rto_rpo: pick(RTORPO)
+    };
+    hosts.push({ip, hostname, os, cmdb});
+  }
+  const hmap = {}; hosts.forEach(h=>hmap[h.ip]=h);
+
+  // ── 将 CVE 分配到主机，生成 group(去重 CVE·主机) 与 row(原始条目) ──
+  const groups = [], rows = [];
+  let vid = 1;
+  const mkVer = () => ri(1,9) + '.' + ri(0,24) + '.' + ri(0,9);
+  const pickState = () => { const r=rnd(); return r<0.55?1 : r<0.75?2 : r<0.93?4 : 3; };
+  CVES.forEach(c=>{
+    const rl = c.intel.risk_level;
+    const hc = rl==='CRITICAL'?ri(8,18) : rl==='HIGH'?ri(5,14) : rl==='MEDIUM'?ri(3,9) : ri(1,5);
+    const chosen = shuffle(hosts).slice(0, Math.min(hc, NHOSTS));
+    c.host_ips = chosen.map(h=>h.ip);
+    c.host_count = chosen.length;
+    chosen.forEach(h=>{
+      const npkg = rnd()<0.78 ? 1 : (rnd()<0.7 ? 2 : 3);
+      const products = [];
+      for(let q=0;q<npkg;q++) products.push({p:c.product, vr:mkVer()});
+      const state = pickState();
+      groups.push({cve:c.cve, ip:h.ip, host:h, rl, state});
+      products.forEach(pr=>{
+        rows.push({i:vid++, c:c.cve, n:c.name, s:c.cvss, v:c.vector, p:pr.p, vr:pr.vr,
+                   poc:c.has_poc, st:state, t:c.tags, ip:h.ip, pd:c.publish_date,
+                   cat:c.asset_type, rl, kev:c.intel.cisa_kev.in_kev, rw:c.intel.cisa_kev.ransomware_use,
+                   ep:c.intel.vulncheck.epss_score, em:c.intel.vulncheck.exploit_maturity});
+      });
+    });
+  });
+
+  // ── 派生统计视图 ──
+  function distCount(items, keyFn){
+    const m={};
+    items.forEach(x=>{ const k=keyFn(x); if(k==null||k==='') return; m[k]=(m[k]||0)+1; });
+    return Object.keys(m).map(name=>({name, value:m[name]})).sort((a,b)=>b.value-a.value);
+  }
+  function buildView(gl, rws, cves){
+    const ips = new Set(rws.map(r=>r.ip));
+    let w=0; ips.forEach(ip=>{ if(hmap[ip].os==='windows') w++; });
+    return {
+      prod: distCount(rws, r=>r.p).slice(0,15),
+      s: {
+        high_vulns: gl.length,
+        host_unique: ips.size,
+        win_hosts: w, linux_hosts: ips.size - w,
+        cve_unique: cves.length,
+        cve_cat_dist: distCount(cves, c=>c.asset_type).slice(0,6),
+        site_dist: distCount(gl, g=>g.host.cmdb.site),
+        cat_dist: distCount(gl, g=>g.host.cmdb.category).slice(0,10),
+        app_name_dist: distCount(gl.filter(g=>g.rl==='CRITICAL'||g.rl==='HIGH'), g=>g.host.cmdb.app_name).slice(0,15),
+        ops_admin_dist: distCount(gl, g=>g.host.cmdb.ops_admin).slice(0,15)
+      },
+      intel: {
+        cisa: {kev_count: cves.filter(c=>c.intel.cisa_kev.in_kev).length,
+               ransomware_count: cves.filter(c=>c.intel.cisa_kev.ransomware_use).length},
+        epss: {ge09: cves.filter(c=>c.intel.vulncheck.epss_score>=0.9).length},
+        vulncheck: {in_the_wild: cves.filter(c=>c.intel.vulncheck.exploit_maturity==='in-the-wild').length},
+        risk_dist: {}
+      }
+    };
+  }
+  const DB = buildView(groups, rows, CVES);
+  DB.at = '2026-06-22 09:15';
+  DB.filter = 'Production';
+  DB.raw_vulns = rows.length;
+  DB.by_rl = {};
+  ['CRITICAL','HIGH','MEDIUM','LOW'].forEach(L=>{
+    DB.by_rl[L] = buildView(groups.filter(g=>g.rl===L), rows.filter(r=>r.rl===L),
+                            CVES.filter(c=>c.intel.risk_level===L));
+  });
+
+  // ── HOSTS ──
+  const HOSTS = {map:{}, top:[]};
+  hosts.forEach(h=>{ HOSTS.map[h.ip] = {os:h.os, hn:h.hostname, grp:h.cmdb.category, idc:h.cmdb.site, cmdb:h.cmdb}; });
+  const perHost = {};
+  groups.forEach(g=>{
+    let e = perHost[g.ip];
+    if(!e){ e = perHost[g.ip] = {ip:g.ip, hostname:hmap[g.ip].hostname, os:hmap[g.ip].os, group:hmap[g.ip].cmdb.category, cset:{}, unprocessed:0}; }
+    e.cset[g.cve] = g.rl;
+    if(g.state===1) e.unprocessed++;
+  });
+  Object.keys(perHost).forEach(ip=>{
+    const e = perHost[ip];
+    const rls = Object.keys(e.cset).map(k=>e.cset[k]);
+    e.critical_count = rls.filter(x=>x==='CRITICAL').length;
+    e.high_count = rls.filter(x=>x==='HIGH').length;
+    delete e.cset;
+  });
+  HOSTS.top = Object.keys(perHost).map(ip=>perHost[ip])
+    .sort((a,b)=> (b.critical_count*1000 + b.high_count*10 + b.unprocessed) - (a.critical_count*1000 + a.high_count*10 + a.unprocessed))
+    .slice(0,30);
+
+  // ── VULNS 列式编码（与真实 api/vulns.json 一致）──
+  const cols = ['i','c','n','s','v','p','vr','poc','st','t','ip','pd','cat','rl','kev','rw','ep','em'];
+  const dictCols = {c:1,n:1,v:1,p:1,vr:1,ip:1,pd:1,cat:1,rl:1,em:1};
+  const _dicts = {}, dmap = {};
+  Object.keys(dictCols).forEach(col=>{ _dicts[col]=[]; dmap[col]=new Map(); });
+  const d = {}; cols.forEach(c=>d[c]=[]);
+  rows.forEach(r=>{
+    cols.forEach(col=>{
+      let v = r[col];
+      if(dictCols[col]){
+        if(v==null) v='';
+        let idx = dmap[col].get(v);
+        if(idx===undefined){ idx=_dicts[col].length; _dicts[col].push(v); dmap[col].set(v,idx); }
+        d[col].push(idx);
+      } else {
+        d[col].push(v);
+      }
+    });
+  });
+  const VULNS = {_cols:cols, _dicts:_dicts, d:d};
+
+  return {DB, HOSTS, CVES, VULNS};
+}
+const MOCK = generateMockData();
+
+loadAll();
+</script>
+</body>
+</html>
