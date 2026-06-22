@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PhishGuard · EmailGuard Lite — Outlook 桌面端演示</title>
+<style>
+:root{
+  --bg:#FAF9F8;--surface:#FFFFFF;--subtle:#F5F5F5;--subtler:#FAFAFA;--selected:#EBF3FC;--hover:#F3F2F1;
+  --stroke-div:#EDEBE9;--stroke:#E1DFDD;--stroke-strong:#C7C6C4;
+  --fg:#242424;--fg2:#616161;--fg3:#8A8A8A;--fg4:#A6ADB5;
+  --accent:#0F6CBD;--accent-h:#115EA3;--tint:#EBF3FC;--tint2:#CFE4FA;
+  --danger:#C50F1F;--danger-bg:#FDE7E9;--danger-s:#8B0000;
+  --warning:#F7630C;--warning-bg:#FFF4CE;--warning-s:#BC4B00;--amber:#B89500;
+  --success:#107C10;--success-bg:#DFF6DD;
+  --ribbon:#F3F2F1;--titlebar:#FAF9F8;
+  --font:"Segoe UI Variable","Segoe UI",-apple-system,BlinkMacSystemFont,system-ui,"PingFang SC","Microsoft YaHei",sans-serif;
+  --mono:"Cascadia Code",Consolas,"SF Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:var(--font);color:var(--fg);background:#d8d6d2;font-size:14px;overflow:hidden}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;border:2px solid var(--tint2);border-top-color:var(--accent);border-radius:50%;animation:spin .9s linear infinite}
+button{font-family:var(--font);cursor:pointer}
+
+/* ════ WINDOW (classic Outlook desktop) ════ */
+.win{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--surface);overflow:hidden}
+
+/* title bar */
+.titlebar{height:32px;background:var(--titlebar);display:flex;align-items:center;gap:10px;padding:0 8px;flex-shrink:0;border-bottom:1px solid var(--stroke-div);font-size:12px}
+.tb-qab{display:flex;align-items:center;gap:2px}
+.tb-qab .q{width:24px;height:22px;display:grid;place-items:center;border-radius:3px;color:var(--fg2);font-size:13px}
+.tb-qab .q:hover{background:var(--hover)}
+.tb-oicon{width:24px;height:22px;display:grid;place-items:center}
+.tb-title{flex:1;text-align:center;color:var(--fg2);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 12px}
+.tb-right{display:flex;align-items:center;gap:10px}
+.tb-newoutlook{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--fg2)}
+.tb-toggle{width:30px;height:15px;border-radius:8px;background:var(--stroke-strong);position:relative}
+.tb-toggle::after{content:'';position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff}
+.tb-copilot{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--fg2);padding:2px 8px;border:1px solid var(--stroke);border-radius:4px}
+.tb-acct{width:22px;height:22px;border-radius:50%;background:#5B2D8E;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:700}
+.tb-wbtns{display:flex;gap:2px;margin-left:4px}
+.tb-wbtns .wb{width:36px;height:30px;display:grid;place-items:center;color:var(--fg2);font-size:12px;margin-top:-4px}
+.tb-wbtns .wb:hover{background:var(--hover)}
+.tb-wbtns .wb.close:hover{background:#C50F1F;color:#fff}
+
+/* ribbon tabs */
+.rib-tabs{height:34px;background:var(--surface);display:flex;align-items:center;gap:2px;padding:0 12px;flex-shrink:0;border-bottom:1px solid var(--stroke-div);font-size:13px}
+.rib-tabs .rt{padding:5px 11px;color:var(--fg2);border-radius:4px 4px 0 0;white-space:nowrap}
+.rib-tabs .rt.file{background:var(--accent);color:#fff;padding:5px 14px}
+.rib-tabs .rt.on{color:var(--accent-h);font-weight:600;border-bottom:2px solid var(--accent);border-radius:0}
+.rib-tabs .rt:not(.file):not(.on):hover{background:var(--hover)}
+.rib-tabs .tellme{margin-left:14px;color:var(--fg3);display:flex;align-items:center;gap:6px}
+
+/* ribbon body */
+.ribbon{background:var(--ribbon);flex-shrink:0;display:flex;align-items:stretch;padding:3px 6px;gap:0;overflow-x:auto;border-bottom:1px solid var(--stroke)}
+.rib-group{display:flex;flex-direction:column;align-items:center;padding:0 7px;border-right:1px solid var(--stroke);min-width:fit-content}
+.rib-row{display:flex;align-items:center;gap:2px;flex:1}
+.rib-label{font-size:10.5px;color:var(--fg3);padding:2px 0 3px;white-space:nowrap}
+.rcmd{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:46px;height:62px;padding:4px 7px;border-radius:4px;border:1px solid transparent;color:var(--fg);background:none}
+.rcmd:hover{background:var(--hover);border-color:var(--stroke)}
+.rcmd .ic{font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;height:23px}
+.ribbon svg,.cmp-ribbon svg,.rib-smalls .si svg,.rcmd-row .i svg,.qsbox .qi .i svg,.findbox svg,.tb-oicon svg,.tb-search svg{display:block}
+.rcmd .tx{font-size:10.5px;text-align:center;line-height:1.15;max-width:60px}
+.rcmd.addin{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.rcmd.addin.pulse{animation:abp 1.6s ease-in-out infinite}
+@keyframes abp{0%,100%{box-shadow:0 0 0 1px var(--accent) inset}50%{box-shadow:0 0 0 2px var(--accent) inset,0 0 8px rgba(15,108,189,.4)}}
+.rcmd-sm{display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:3px;font-size:12px;color:var(--fg)}
+.rcmd-sm:hover{background:var(--hover)}
+.tb-search{flex:1;max-width:560px;margin:0 auto;height:24px;background:var(--subtle);border:1px solid var(--stroke);border-radius:4px;display:flex;align-items:center;gap:8px;padding:0 12px;color:var(--fg3);font-size:12.5px}
+.rib-col{display:flex;flex-direction:column;justify-content:center;gap:1px}
+.rcmd-row{display:flex;align-items:center;gap:6px;padding:2px 7px;border-radius:3px;font-size:12px;color:var(--fg);white-space:nowrap;border:1px solid transparent}
+.rcmd-row:hover{background:var(--hover);border-color:var(--stroke)}
+.rcmd-row .i{font-size:14px;width:16px;text-align:center;flex-shrink:0}
+.rcmd-row .cv{color:var(--fg3);font-size:9px}
+.rib-smalls{display:flex;flex-direction:column;gap:2px;padding-right:2px}
+.rib-smalls .si{width:22px;height:17px;display:grid;place-items:center;font-size:11px;color:var(--fg2);border-radius:3px}
+.rib-smalls .si:hover{background:var(--hover)}
+.qsbox{border:1px solid var(--stroke);border-radius:4px;background:#fff;width:128px;height:56px;display:flex;flex-direction:column;justify-content:center;font-size:11px;overflow:hidden}
+.qsbox .qi{display:flex;align-items:center;gap:6px;padding:2px 8px;color:var(--fg)}
+.qsbox .qi .i{font-size:12px}
+.findbox{display:flex;align-items:center;gap:6px;border:1px solid var(--stroke);border-radius:3px;background:#fff;height:22px;padding:0 8px;font-size:11.5px;color:var(--fg3);width:124px}
+/* attach list */
+.att-head{display:flex;align-items:center;margin:14px 0 8px;font-size:12px;color:var(--fg2)}
+.att-head .links{margin-left:auto;display:flex;gap:14px}
+.att-head .links a{color:var(--accent);cursor:pointer}
+.att-row{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--stroke-div);border-radius:6px;margin-bottom:7px;background:#fff;cursor:pointer}
+.att-row.child{margin-left:22px;background:var(--subtler)}
+.att-row.sel{border-color:var(--accent);background:var(--tint)}
+.att-row input{width:15px;height:15px;accent-color:var(--accent);flex-shrink:0}
+.att-row .nm{flex:1;font-size:12.5px;font-weight:500;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.att-row .meta{font-size:11px;color:var(--fg3);white-space:nowrap;flex-shrink:0}
+.zip-badge{font-size:10px;color:var(--accent);background:var(--tint);border:1px solid var(--tint2);border-radius:4px;padding:1px 6px;flex-shrink:0}
+.att-res{font-size:11px;color:var(--fg2);margin:-2px 0 8px 45px;line-height:1.55;background:var(--subtler);border:1px solid var(--stroke-div);border-radius:6px;padding:7px 10px;display:none}
+.att-res.show{display:block}
+.att-res .rt{font-family:var(--mono);font-size:9.5px;color:var(--accent);background:var(--tint);padding:1px 5px;border-radius:4px}
+.att-res.rich{color:var(--fg)}
+.att-res .arhead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px}
+.att-res .arname{font-size:13px;font-weight:600;color:var(--fg);word-break:break-all}
+.vbadge{font-size:10px;font-weight:700;letter-spacing:.04em;padding:2px 8px;border-radius:4px;color:#fff;flex-shrink:0}
+.vbadge.low{background:var(--success)}
+.vbadge.medium{background:#B8860B}
+.vbadge.high{background:var(--danger)}
+.att-res .arvt{font-size:11px;color:var(--fg3);margin-bottom:8px}
+.att-res .arzh{font-size:12.5px;line-height:1.65;color:var(--fg)}
+.att-res .aren{font-size:11.5px;line-height:1.55;color:var(--fg3);margin-top:8px}
+#attBtn.dis{background:var(--tint);color:var(--accent-h);opacity:.7}
+
+/* body split: reading pane | task pane */
+.win-body{flex:1;display:flex;min-height:0}
+.reading{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--surface);overflow:hidden}
+.read-scroll{flex:1;overflow:auto;padding:18px 30px 30px}
+.read-subj{font-size:21px;font-weight:600;line-height:1.3;margin-bottom:14px}
+.read-from{display:flex;align-items:flex-start;gap:12px}
+.rav{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:#fff;font-size:15px;font-weight:700}
+.rwho{flex:1;min-width:0}
+.rn{font-size:14px;font-weight:600}
+.raddr{font-size:12.5px;color:var(--fg3)}
+.rmeta{font-size:12px;color:var(--fg3);text-align:right;white-space:nowrap}
+.rto{font-size:12.5px;color:var(--fg2);margin-top:3px}
+.extban{display:flex;align-items:center;gap:10px;background:#FFF9E5;border:1px solid #F2CD55;border-left:3px solid var(--amber);padding:8px 12px;border-radius:4px;font-size:12px;color:var(--warning-s);margin:16px 0}
+.read-body{margin-top:18px;font-size:14px;line-height:1.7;color:var(--fg)}
+.read-body p{margin:0 0 12px}
+.read-body .pbtn{display:inline-block;padding:10px 24px;background:#0078D4;color:#fff;text-decoration:none;border-radius:3px;font-weight:600}
+.read-body .lk{color:var(--accent);word-break:break-all}
+.read-att{margin-top:20px;padding-top:14px;border-top:1px solid var(--stroke-div)}
+.attchip{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--stroke);border-radius:6px;padding:8px 12px;background:var(--subtler);font-size:12.5px}
+.attchip .ai{font-size:20px}
+
+/* scenario switcher footer */
+.switcher{flex-shrink:0;height:42px;border-top:1px solid var(--stroke);background:var(--surface);display:flex;align-items:center;gap:8px;padding:0 16px;font-size:12px}
+.switcher .sl{color:var(--fg2)}
+.sbtn{font-size:12px;padding:5px 12px;border-radius:4px;border:1px solid var(--stroke);background:#fff;color:var(--fg)}
+.sbtn.on-bad{background:var(--danger-bg);color:var(--danger);border-color:var(--danger)}
+.sbtn.on-warn{background:var(--warning-bg);color:var(--warning-s);border-color:#F2CD55}
+.sbtn.on-ok{background:var(--success-bg);color:var(--success);border-color:#9FD89F}
+.switcher .hint{margin-left:auto;color:var(--fg3);font-size:11px}
+
+/* ════ TASK PANE ════ */
+.taskpane{width:0;flex-shrink:0;background:#fff;border-left:1px solid var(--stroke);display:flex;flex-direction:column;transition:width .26s cubic-bezier(.2,0,0,1);overflow:hidden}
+.taskpane.open{width:372px}
+.tp-head{height:46px;flex-shrink:0;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;border-bottom:1px solid var(--stroke-div)}
+.tp-title{flex:1;font-size:16px;font-weight:600;color:var(--fg)}
+.tp-ic{width:26px;height:26px;border:none;background:none;border-radius:4px;color:var(--fg2);font-size:13px;display:grid;place-items:center}
+.tp-ic:hover{background:var(--hover)}
+.pg-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding:8px 12px 0;border-bottom:1px solid var(--stroke-div);flex-shrink:0}
+.pg-tab{height:32px;border:1px solid transparent;border-bottom:none;border-radius:6px 6px 0 0;background:none;color:var(--fg2);font:600 12px/1 var(--font);white-space:nowrap}
+.pg-tab.on{background:var(--tint);color:var(--accent-h);border-color:var(--tint2)}
+.tp-body{flex:1;overflow:auto;padding:0 18px 20px}
+.pg-panel{display:none}.pg-panel.on{display:block}
+
+.pill{display:inline-flex;align-items:center;gap:6px;height:23px;padding:0 11px;border-radius:99px;font-size:11.5px;font-weight:600;margin-top:24px}
+.pill.accent{background:var(--tint);color:var(--accent-h)}
+.pill.danger{background:var(--danger-bg);color:var(--danger)}
+.pill.warning{background:var(--warning-bg);color:var(--warning-s)}
+.pill.success{background:var(--success-bg);color:var(--success)}
+.h2{font-size:18px;font-weight:600;margin:12px 0 0;line-height:1.35}
+.sub{font-size:12px;color:var(--fg3);margin-top:4px;line-height:1.5}
+.privacy{margin-top:16px;border:1px solid #F2CD55;background:#FFFBEF;border-radius:6px;padding:11px 13px;font-size:11.5px;line-height:1.6}
+.privacy .pt{font-weight:600;color:var(--warning-s);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.privacy .pe{color:var(--fg3);margin-top:4px}
+.preview{margin-top:16px;border:1px solid var(--stroke-div);background:var(--subtler);border-radius:6px;padding:11px 12px;display:flex;gap:10px}
+.preview .pav{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700}
+.preview .pn{font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview .pa{font-size:11px;color:var(--fg3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview .ps{font-size:12.5px;font-weight:500;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.preview .pd{font-size:11px;color:var(--fg3);margin-top:2px}
+.lead{margin-top:18px;font-size:13px;line-height:1.55}
+.bullets{margin:8px 0 0;padding:0;list-style:none;display:flex;flex-direction:column;gap:10px}
+.bullet{display:flex;gap:10px;font-size:12.5px;line-height:1.45}
+.bullet .bm{flex:0 0 auto;width:18px;height:18px;border-radius:9px;background:var(--tint);color:var(--accent);display:grid;place-items:center;font-size:11px;font-weight:700;margin-top:1px}
+.bullet.warn .bm{background:var(--warning-bg);color:var(--warning)}
+.bullet .be{color:var(--fg3);font-size:11px;margin-top:1px}
+.consent{display:flex;align-items:flex-start;gap:10px;margin-top:18px}
+.consent input{margin-top:2px;width:15px;height:15px;accent-color:var(--accent);flex-shrink:0}
+.consent .ce{font-size:11px;color:var(--fg3)}
+.btnrow{display:flex;gap:8px;margin-top:20px}
+.btn-pri{flex:1;height:34px;border:none;border-radius:4px;background:var(--accent);color:#fff;font-size:13px;font-weight:600}
+.btn-pri:disabled{opacity:.5}
+.btn-sec{flex:1;height:34px;border:1px solid var(--stroke);border-radius:4px;background:#fff;color:var(--fg);font-size:13px;font-weight:500}
+
+.stages{margin-top:22px;display:flex;flex-direction:column;gap:13px}
+.stage{display:flex;align-items:center;gap:12px}
+.stage .sd{width:22px;height:22px;border-radius:11px;display:grid;place-items:center;background:var(--subtle);flex-shrink:0}
+.stage.active .sd{background:var(--tint)}.stage.done .sd{background:var(--success-bg)}
+.stage .ck{color:var(--success);font-weight:700;font-size:13px}.stage .dt{width:5px;height:5px;border-radius:3px;background:var(--fg3)}
+.stage .sz{font-size:13px;color:var(--fg3)}.stage.active .sz,.stage.done .sz{color:var(--fg);font-weight:500}
+.stage .se{font-size:11px;color:var(--fg3)}
+
+.headline{margin-top:14px;font-size:13px;line-height:1.55}
+.headline-e{margin-top:4px;font-size:11.5px;color:var(--fg3);line-height:1.5}
+.delwarn{margin-top:16px;padding:11px 13px;border-radius:6px;background:var(--danger-bg);border:1px solid var(--danger);color:var(--danger);font-size:12.5px;line-height:1.5}
+.delwarn .de{font-size:11px;opacity:.85;margin-top:3px}
+.actbadge{margin-top:16px;padding:10px 12px;border-radius:6px;display:flex;align-items:center;gap:10px;font-size:12.5px;font-weight:600}
+.actbadge .ae{font-size:10px;font-weight:500;opacity:.8;margin-left:auto}
+.actbadge.success{background:var(--success-bg);color:var(--success)}
+.fwdbtn{width:100%;height:42px;border:none;border-radius:6px;color:#fff;font-size:13px;font-weight:600;margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px}
+.fwdbtn.phish{background:var(--danger)}.fwdbtn.uncertain{background:var(--warning)}
+.fwdbtn:disabled{opacity:.7}
+.seclabel{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--fg2);margin:18px 0 8px}
+.why{display:flex;flex-direction:column;gap:8px}
+.whyrow{display:flex;gap:8px;font-size:12px;line-height:1.5}
+.whyrow .wd{width:5px;height:5px;border-radius:3px;margin-top:6px;flex-shrink:0;opacity:.7}
+.whyrow .we{color:var(--fg3);font-size:10.5px}
+.nextbox{margin-top:18px;padding:10px 12px;border-radius:6px;background:var(--subtler);border:1px solid var(--stroke-div);font-size:12px;line-height:1.55}
+.nextbox .nt{font-weight:600;margin-bottom:4px}.nextbox .ne{color:var(--fg3);font-size:11px;margin-top:4px}
+.ref{font-size:10.5px;color:var(--fg3);margin-top:12px;text-align:center}
+
+/* assist + attach (faithful, light) */
+.ablock{margin-top:14px;border:1px solid var(--stroke-div);border-radius:6px;background:var(--subtler);padding:11px 13px;font-size:12.5px;line-height:1.6}
+.ablock .at{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);margin-bottom:6px}
+.ablock .am{margin-top:6px;color:var(--fg3);font-size:11px}
+.sugtabs{display:flex;gap:6px;margin:10px 0}
+.sugtab{flex:1;min-height:38px;border:1px solid var(--stroke);border-radius:6px;background:#fff;padding:6px;text-align:center}
+.sugtab.on{border-color:var(--accent);background:var(--tint)}
+.sugtab .z{font-size:12px;font-weight:600;display:block}.sugtab .e{font-size:10px;color:var(--fg3)}
+.replyprev{border:1px solid var(--stroke-div);border-radius:6px;background:var(--subtler);padding:11px 12px;font-size:12.5px;line-height:1.6;white-space:pre-wrap}
+.replyprev .tp-en{margin-top:8px;color:var(--fg3)}
+.ablock .am{margin-top:6px;color:var(--fg3);font-size:11px;line-height:1.5}
+.sechead{display:flex;align-items:center;justify-content:space-between;margin:18px 0 8px}
+.sechead .seclabel{margin:0}
+.lnkbtn{border:1px solid var(--stroke);background:#fff;color:var(--accent-h);font-size:11px;font-weight:600;border-radius:4px;padding:3px 9px;cursor:pointer}
+.lnkbtn:hover{background:var(--hover)}
+.suglist{display:flex;flex-direction:column;gap:7px;margin:4px 0 2px}
+.sugrow{text-align:left;border:1px solid var(--stroke);border-radius:7px;background:#fff;padding:9px 12px;cursor:pointer;display:block;width:100%}
+.sugrow.on{border-color:var(--accent);background:var(--tint)}
+.sugrow .z{font-size:12.5px;font-weight:600;color:var(--fg);display:block}
+.sugrow .e{font-size:11px;color:var(--fg3);display:block;margin-top:2px;line-height:1.5}
+.donebtn{display:block;width:100%;text-align:center;background:none;border:none;color:var(--fg2);font-size:12.5px;font-weight:600;margin:12px 0 4px;cursor:pointer}
+.donebtn:hover{color:var(--accent-h)}
+.aitem{border:1px solid var(--stroke);border-radius:6px;padding:10px 12px;margin-top:9px;display:flex;gap:11px;align-items:flex-start}
+.aitem.sel{border-color:var(--accent);background:var(--tint)}
+.aitem .ac{width:15px;height:15px;accent-color:var(--accent);margin-top:2px}
+.aitem .ai2{font-size:20px}.aitem .an{font-size:12.5px;font-weight:500;word-break:break-all}
+.aitem .ar{font-size:11px;color:var(--fg3);margin-top:2px}
+.aitem .ag{font-family:var(--mono);font-size:10px;color:var(--accent);background:var(--tint);padding:1px 6px;border-radius:4px;display:inline-block;margin-top:5px}
+.caps{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.cap{font-size:10.5px;color:var(--fg3);background:var(--subtle);border:1px solid var(--stroke-div);border-radius:5px;padding:2px 8px}
+.ares{font-size:11.5px;line-height:1.6;margin-top:8px;background:var(--subtler);border:1px solid var(--stroke-div);border-radius:6px;padding:9px 11px;display:none}
+.ares.show{display:block}
+
+/* ════ SOC COMPOSE WINDOW (overlay) ════ */
+.scrim{position:absolute;inset:0;background:rgba(0,0,0,.28);display:none;z-index:40}
+.scrim.show{display:block}
+.compose{position:absolute;z-index:50;top:3%;left:50%;transform:translateX(-50%);width:min(960px,94vw);height:92%;background:#fff;border-radius:8px;box-shadow:0 24px 64px rgba(0,0,0,.4);display:none;flex-direction:column;overflow:hidden}
+.compose.show{display:flex}
+.cmp-tb{height:32px;background:var(--titlebar);display:flex;align-items:center;gap:8px;padding:0 8px;border-bottom:1px solid var(--stroke-div);font-size:12px;flex-shrink:0}
+.cmp-tb .tb-oicon{background:none}
+.cmp-tb .ttl{flex:1;text-align:center;color:var(--fg2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cmp-ribtabs{height:28px;display:flex;align-items:flex-end;gap:2px;padding:0 8px;border-bottom:1px solid var(--stroke-div);font-size:12.5px;flex-shrink:0}
+.cmp-ribtabs .rt{padding:4px 10px;color:var(--fg2)}
+.cmp-ribtabs .rt.file{background:var(--accent);color:#fff}
+.cmp-ribtabs .rt.on{color:var(--accent-h);font-weight:600;border-bottom:2px solid var(--accent)}
+.cmp-ribbon{height:50px;background:var(--ribbon);display:flex;align-items:center;gap:0;padding:0 6px;border-bottom:1px solid var(--stroke);flex-shrink:0;overflow:hidden}
+.cmp-grp{display:flex;align-items:center;gap:3px;padding:0 9px;border-right:1px solid var(--stroke);height:40px}
+.cmp-grp .b{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;color:var(--fg2);padding:2px 5px;border-radius:3px}
+.cmp-grp .b .i{font-size:15px}
+.cmp-grp.send .sendb{background:var(--accent);color:#fff;border-radius:4px;width:42px;height:40px;display:grid;place-items:center;font-size:11px;font-weight:600}
+.cmp-hdr{flex-shrink:0;border-bottom:1px solid var(--stroke-div)}
+.cmp-fieldrow{display:flex;align-items:center;min-height:38px;border-bottom:1px solid var(--stroke-div)}
+.cmp-fieldrow:last-child{border-bottom:none}
+.cmp-flabel{width:64px;flex-shrink:0;text-align:center;font-size:13px;color:var(--fg2);border:1px solid var(--stroke);border-radius:4px;height:26px;line-height:24px;margin:0 8px}
+.cmp-fval{flex:1;font-size:13px;color:var(--fg);padding:0 12px;min-width:0}
+.cmp-fval.subj{display:flex;align-items:center;justify-content:space-between}
+.cmp-nolabel{font-size:11px;color:var(--fg3);display:flex;align-items:center;gap:5px;margin-right:12px}
+.cmp-attrow{padding:8px 12px;border-bottom:1px solid var(--stroke-div)}
+.cmp-attchip{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--stroke);border-radius:6px;padding:7px 11px;background:var(--subtler);font-size:12px}
+.cmp-attchip .ci{width:30px;height:30px;border-radius:4px;background:#E8EEF7;display:grid;place-items:center;font-size:15px}
+.cmp-attchip .cn{font-weight:500}.cmp-attchip .ck{font-size:11px;color:var(--fg3)}
+.cmp-body{flex:1;overflow:auto;padding:18px 22px;font-family:Calibri,var(--font)}
+.cmp-close{width:34px;height:28px;display:grid;place-items:center;color:var(--fg2);font-size:13px;margin-top:-2px}
+.cmp-close.x:hover{background:#C50F1F;color:#fff}
+
+/* SOC report body */
+.soc h1{font-size:18.5pt;font-weight:700;margin:0;font-family:Calibri}
+.soc .ref{font-size:9pt;color:var(--fg2);margin:2px 0 0;text-align:left}
+.soc .seclbl{font-size:9pt;font-weight:700;color:#605E5C;letter-spacing:.04em;text-transform:uppercase;margin:14px 0 2px}
+.soc .secval{font-size:11pt;line-height:1.5;color:#1F1F1F}
+.soc .secval b{font-weight:700}
+.soc ul,.soc ol{margin:4px 0 0;padding-left:20px}
+.soc li{font-size:11pt;margin-bottom:3px}
+.soc .kv{margin-bottom:2px;font-size:11pt}
+.soc .foot{margin-top:18px;padding-top:10px;border-top:1px solid var(--stroke-div);font-size:9pt;color:var(--fg3)}
+.soc-toast{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);z-index:60;background:#323130;color:#fff;font-size:12.5px;padding:10px 16px;border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:none;align-items:center;gap:9px}
+.soc-toast.show{display:flex}
+
+@media(max-width:1080px){.taskpane.open{width:340px}}
+</style>
+</head>
+<body>
+<div class="win">
+
+  <!-- ═══ TITLE BAR ═══ -->
+  <div class="titlebar">
+    <div class="tb-oicon"><svg viewBox="0 0 28 24" width="23" height="20" xmlns="http://www.w3.org/2000/svg"><rect x="11" y="4.5" width="16" height="15" rx="1.6" fill="#36A3EB"/><path d="M12 7.5l7 5 7-5" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="6" width="14" height="12" rx="1.8" fill="#0F6CBD"/><ellipse cx="8" cy="12" rx="4.3" ry="3.6" fill="none" stroke="#fff" stroke-width="2"/></svg></div>
+    <div class="tb-qab"><span class="q">↻</span><span class="q">↶</span><span class="q">⌄</span></div>
+    <div class="tb-search"><svg viewBox="0 0 20 20" width="14" height="14" xmlns="http://www.w3.org/2000/svg"><circle cx="8.5" cy="8.5" r="5" fill="none" stroke="#605E5C" stroke-width="1.6"/><path d="M12.5 12.5l4.5 4.5" stroke="#605E5C" stroke-width="1.6" stroke-linecap="round"/></svg>Search</div>
+    <div class="tb-right">
+      <div class="tb-acct">WW</div>
+      <span class="q" style="font-size:14px"><svg viewBox="0 0 20 20" width="15" height="15" xmlns="http://www.w3.org/2000/svg"><path d="M5 8.5a5 5 0 0 1 10 0c0 3.2 1 4.2 1.6 4.8H3.4C4 12.7 5 11.7 5 8.5z" fill="none" stroke="#605E5C" stroke-width="1.4" stroke-linejoin="round"/><path d="M8.2 15.5a1.9 1.9 0 0 0 3.6 0" fill="none" stroke="#605E5C" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      <div class="tb-wbtns"><span class="wb">─</span><span class="wb">▢</span><span class="wb close">✕</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ RIBBON TABS ═══ -->
+  <div class="rib-tabs">
+    <span class="rt file">File</span>
+    <span class="rt on">Home</span>
+    <span class="rt">Send / Receive</span>
+    <span class="rt">Folder</span>
+    <span class="rt">View</span>
+    <span class="rt">Help</span>
+    <span style="flex:1"></span>
+    <div class="tb-newoutlook">Try the new Outlook <span class="tb-toggle"></span> Off</div>
+    <div class="tb-copilot">✦ Copilot ⌄</div>
+  </div>
+
+  <!-- ═══ RIBBON (Home) ═══ -->
+  <div class="ribbon" id="readRibbon">
+    <div class="rib-group">
+      <div class="rib-row">
+        <button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><rect x="1.5" y="6" width="12.5" height="9.5" rx="1.4" fill="#fff" stroke="#0F6CBD" stroke-width="1.4"/><path d="M2 6.8l5.8 4.2L13.5 6.8" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M17 3.2v4M15 5.2h4" stroke="#D83B01" stroke-width="1.6" stroke-linecap="round"/></svg></span><span class="tx">New<br>Email</span></button>
+        <button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="3" width="10" height="13" rx="1.4" fill="#fff" stroke="#0F6CBD" stroke-width="1.4"/><path d="M6.3 6.5h5.4M6.3 9.3h5.4M6.3 12h3.2" stroke="#0F6CBD" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="tx">New<br>Items ▾</span></button>
+      </div><div class="rib-label">New</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row">
+        <div class="rib-smalls"><span class="si"><svg viewBox="0 0 16 16" width="15" height="15" xmlns="http://www.w3.org/2000/svg"><circle cx="8" cy="8" r="5.6" fill="none" stroke="#C50F1F" stroke-width="1.5"/><line x1="4" y1="4" x2="12" y2="12" stroke="#C50F1F" stroke-width="1.5"/></svg></span><span class="si"><svg viewBox="0 0 16 16" width="15" height="15" xmlns="http://www.w3.org/2000/svg"><path d="M10.5 2.5l3 3-5 5-3-3z" fill="#fff" stroke="#5B5B5B" stroke-width="1.2" stroke-linejoin="round"/><path d="M5.5 7.5l-3 6 6-3" fill="none" stroke="#5B5B5B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="si"><svg viewBox="0 0 16 16" width="15" height="15" xmlns="http://www.w3.org/2000/svg"><path d="M3 4.5h10M6 4.5V3.3h4v1.2M4.3 4.5l.6 8.2a1 1 0 0 0 1 .9h4.2a1 1 0 0 0 1-.9l.6-8.2" fill="none" stroke="#5B5B5B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></div>
+        <button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 5.5h13M7 5.5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1.5M5.2 5.5l.8 10.2a1.2 1.2 0 0 0 1.2 1.1h5.6a1.2 1.2 0 0 0 1.2-1.1l.8-10.2" fill="none" stroke="#3B3A39" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="tx">Delete</span></button>
+        <button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="3.5" width="15" height="3.8" rx="0.8" fill="#fff" stroke="#0F6CBD" stroke-width="1.4"/><path d="M4 7.3h12v8.4a1.1 1.1 0 0 1-1.1 1.1H5.1A1.1 1.1 0 0 1 4 15.7z" fill="#fff" stroke="#0F6CBD" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 10.5h4" stroke="#0F6CBD" stroke-width="1.5" stroke-linecap="round"/></svg></span><span class="tx">Archive</span></button>
+      </div><div class="rib-label">Delete</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><path d="M10 2l6 2.2v4.6c0 3.7-2.5 6.3-6 7.4-3.5-1.1-6-3.7-6-7.4V4.2z" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.8 9.6l2.2 2.2 4-4.2" fill="none" stroke="#0F6CBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="tx">Report ▾</span></button></div>
+      <div class="rib-label">Report</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row">
+        <div class="rib-smalls"><span class="si"><svg viewBox="0 0 16 16" width="15" height="15" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="3.5" width="11" height="10" rx="1.2" fill="#fff" stroke="#0F6CBD" stroke-width="1.2"/><path d="M2.5 6h11" stroke="#0F6CBD" stroke-width="1.2"/><path d="M5 2.5v2.2M11 2.5v2.2" stroke="#0F6CBD" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="si"><svg viewBox="0 0 16 16" width="15" height="15" xmlns="http://www.w3.org/2000/svg"><circle cx="4" cy="8" r="1.1" fill="#5B5B5B"/><circle cx="8" cy="8" r="1.1" fill="#5B5B5B"/><circle cx="12" cy="8" r="1.1" fill="#5B5B5B"/></svg></span></div>
+        <div class="rib-col">
+          <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 5L3 9l4.5 4M3.5 9H11a5.5 5.5 0 0 1 5.5 5.5V16" fill="none" stroke="#0F6CBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Reply</span>
+          <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 4.5L1.5 8l4 3.5" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 5L5 8.5l4 3.5M5.5 8.5H12a5 5 0 0 1 5 5V15" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Reply All</span>
+          <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 5l4.5 4-4.5 4M13.5 9H6a5.5 5.5 0 0 0-5.5 5.5V16" fill="none" stroke="#0F6CBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Forward</span>
+        </div>
+      </div><div class="rib-label">Respond</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><circle cx="5" cy="5.5" r="2" fill="#7B83EB"/><path d="M2 15v-2a2.8 2.8 0 0 1 2.8-2.8H6" fill="none" stroke="#7B83EB" stroke-width="1.4" stroke-linecap="round"/><rect x="8" y="4.5" width="9" height="9" rx="1.4" fill="#5059C9"/><path d="M10 6.6h5" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/><path d="M12.5 6.9v5" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="tx">Share to<br>Teams</span></button></div>
+      <div class="rib-label">Teams</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><div class="qsbox"><div class="qi"><span class="i"><svg viewBox="0 0 20 20" width="14" height="14" xmlns="http://www.w3.org/2000/svg"><path d="M11 2L4 11h4l-1 7 7-10h-4z" fill="#FFB900" stroke="#D29200" stroke-width="0.7" stroke-linejoin="round"/></svg></span>AIExp</div><div class="qi"><span class="i"><svg viewBox="0 0 20 20" width="14" height="14" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="6" r="2.6" fill="none" stroke="#0F6CBD" stroke-width="1.4"/><path d="M2.5 16v-1a4.3 4.3 0 0 1 4.3-4.3h.4a4.3 4.3 0 0 1 2.6.9" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round"/><path d="M12 13h5M14.5 10.5l2.5 2.5-2.5 2.5" fill="none" stroke="#D83B01" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>To Manager</div><div class="qi"><span class="i"><svg viewBox="0 0 20 20" width="14" height="14" xmlns="http://www.w3.org/2000/svg"><circle cx="7" cy="7" r="2.4" fill="none" stroke="#0F6CBD" stroke-width="1.4"/><circle cx="13.5" cy="7.5" r="1.9" fill="none" stroke="#7B83EB" stroke-width="1.4"/><path d="M2.5 16v-1a4 4 0 0 1 4-4h1a4 4 0 0 1 4 4v1" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round"/></svg></span>Team Email</div></div></div>
+      <div class="rib-label">Quick Steps</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><div class="rib-col">
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M2 5.5a1 1 0 0 1 1-1h3.6l1.5 1.8H17a1 1 0 0 1 1 1v7.2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" fill="none" stroke="#0F6CBD" stroke-width="1.3" stroke-linejoin="round"/><path d="M10 11l2.2 2 2.2-2M12.2 13V8.8" fill="none" stroke="#0F6CBD" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Move <span class="cv">▾</span></span>
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="2.5" fill="none" stroke="#0F6CBD" stroke-width="1.4"/><path d="M10 3v2M10 15v2M3 10h2M15 10h2M5 5l1.4 1.4M13.6 13.6L15 15M15 5l-1.4 1.4M6.4 13.6L5 15" stroke="#0F6CBD" stroke-width="1.3" stroke-linecap="round"/></svg></span>Rules <span class="cv">▾</span></span>
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="3" width="11" height="14" rx="1.2" fill="#fff" stroke="#7719AA" stroke-width="1.3"/><path d="M14 4.5v11" stroke="#7719AA" stroke-width="2.6"/><path d="M5.5 12V8l3 4V8" fill="none" stroke="#7719AA" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Send to OneNote</span>
+      </div></div><div class="rib-label">Move</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><path d="M5 2.5v15" fill="none" stroke="#3B3A39" stroke-width="1.5" stroke-linecap="round"/><path d="M5 3.5h10.5l-2.2 3.3 2.2 3.3H5z" fill="#C50F1F" stroke="#C50F1F" stroke-width="0.8" stroke-linejoin="round"/></svg></span><span class="tx">Tags ▾</span></button></div>
+      <div class="rib-label">Tags</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><div class="rib-col">
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><text x="0.5" y="11" font-family="sans-serif" font-size="11" font-weight="700" fill="#0F6CBD">文</text><text x="9.5" y="18.5" font-family="sans-serif" font-size="9" font-weight="700" fill="#D83B01">A</text></svg></span>Translate to Simplified Chinese</span>
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><text x="0.5" y="11" font-family="sans-serif" font-size="11" font-weight="700" fill="#0F6CBD">文</text><text x="9.5" y="18.5" font-family="sans-serif" font-size="9" font-weight="700" fill="#D83B01">A</text></svg></span>Translate to Traditional Chinese</span>
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M4 8.5A5 5 0 0 1 13 6" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round"/><path d="M13 3.5V6h-2.5" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 11.5A5 5 0 0 1 7 14" fill="none" stroke="#D83B01" stroke-width="1.4" stroke-linecap="round"/><path d="M7 16.5V14h2.5" fill="none" stroke="#D83B01" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Chinese Conversion</span>
+      </div></div><div class="rib-label">Chinese Conversion</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><div class="rib-col">
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><circle cx="7.5" cy="6.5" r="2.6" fill="none" stroke="#0F6CBD" stroke-width="1.4"/><path d="M2.5 16v-1a4.3 4.3 0 0 1 4.3-4.3h.4a4.3 4.3 0 0 1 4.3 4.3v1" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round"/><path d="M15.5 5v4M13.5 7h4" stroke="#D83B01" stroke-width="1.5" stroke-linecap="round"/></svg></span>New Group</span>
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><circle cx="6.5" cy="7" r="2.3" fill="none" stroke="#0F6CBD" stroke-width="1.4"/><circle cx="13.5" cy="7.5" r="1.9" fill="none" stroke="#7B83EB" stroke-width="1.4"/><path d="M2.5 16v-1a3.8 3.8 0 0 1 3.8-3.8h.6A3.8 3.8 0 0 1 10.5 15v1" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round"/><path d="M12 16v-.8A3.5 3.5 0 0 1 15.5 11.7h.3" fill="none" stroke="#7B83EB" stroke-width="1.3" stroke-linecap="round"/></svg></span>Browse Groups</span>
+      </div></div><div class="rib-label">Groups</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><div class="rib-col">
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><rect x="3.5" y="2.5" width="11" height="15" rx="1.3" fill="#fff" stroke="#0F6CBD" stroke-width="1.3"/><circle cx="9" cy="8" r="2" fill="none" stroke="#0F6CBD" stroke-width="1.2"/><path d="M6 14a3 3 0 0 1 6 0" fill="none" stroke="#0F6CBD" stroke-width="1.2" stroke-linecap="round"/><path d="M14.5 6h2.3M14.5 10h2.3M14.5 14h2.3" stroke="#0F6CBD" stroke-width="1.2" stroke-linecap="round"/></svg></span>Address Book</span>
+        <span class="rcmd-row"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 4.5h13l-5 6v5l-3 1.5v-6.5z" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linejoin="round"/></svg></span>Filter Email <span class="cv">▾</span></span>
+        <span class="findbox"><svg viewBox="0 0 20 20" width="13" height="13" xmlns="http://www.w3.org/2000/svg"><circle cx="8.5" cy="8.5" r="5" fill="none" stroke="#605E5C" stroke-width="1.6"/><path d="M12.5 12.5l4.5 4.5" stroke="#605E5C" stroke-width="1.6" stroke-linecap="round"/></svg>Search People</span>
+      </div></div><div class="rib-label">Find</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><path d="M3 7.5h2.3L9.5 4v12L5.3 12.5H3z" fill="#0F6CBD" stroke="#0F6CBD" stroke-width="0.8" stroke-linejoin="round"/><path d="M12 7a3.2 3.2 0 0 1 0 6M14 4.8a6 6 0 0 1 0 10.4" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round"/></svg></span><span class="tx">Read<br>Aloud</span></button></div>
+      <div class="rib-label">Speech</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><text x="0.5" y="12" font-family="sans-serif" font-size="13" font-weight="700" fill="#0F6CBD">文</text><text x="10" y="19.5" font-family="sans-serif" font-size="10" font-weight="700" fill="#D83B01">A</text></svg></span><span class="tx">Translate ▾</span></button></div>
+      <div class="rib-label">Language</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="4.4" height="4.4" rx="0.9" fill="#0F6CBD"/><rect x="7.8" y="2" width="4.4" height="4.4" rx="0.9" fill="#36A3EB"/><rect x="13.6" y="2" width="4.4" height="4.4" rx="0.9" fill="#0F6CBD"/><rect x="2" y="7.8" width="4.4" height="4.4" rx="0.9" fill="#36A3EB"/><rect x="7.8" y="7.8" width="4.4" height="4.4" rx="0.9" fill="#0F6CBD"/><rect x="13.6" y="7.8" width="4.4" height="4.4" rx="0.9" fill="#36A3EB"/><rect x="2" y="13.6" width="4.4" height="4.4" rx="0.9" fill="#0F6CBD"/><rect x="7.8" y="13.6" width="4.4" height="4.4" rx="0.9" fill="#36A3EB"/><rect x="13.6" y="13.6" width="4.4" height="4.4" rx="0.9" fill="#0F6CBD"/></svg></span><span class="tx">All Apps</span></button></div>
+      <div class="rib-label">Apps</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="4" width="13" height="12.5" rx="1.3" fill="#fff" stroke="#0F6CBD" stroke-width="1.3"/><path d="M2.5 7.3h13M6 2.5v3M12 2.5v3" stroke="#0F6CBD" stroke-width="1.3" stroke-linecap="round"/><path d="M5 11l1.4 1.4 2.6-2.6" fill="none" stroke="#107C10" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 14.5h5.5" stroke="#0F6CBD" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="tx">Reply with<br>Scheduling Poll</span></button></div>
+      <div class="rib-label">Find Time</div>
+    </div>
+    <div class="rib-group">
+      <div class="rib-row"><button class="rcmd"><span class="ic"><svg viewBox="0 0 20 20" width="21" height="21" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="7.6" fill="none" stroke="#5C2E91" stroke-width="1.5"/><circle cx="10" cy="10" r="4.3" fill="none" stroke="#8661C5" stroke-width="1.5"/><circle cx="10" cy="10" r="1.3" fill="#5C2E91"/></svg></span><span class="tx">Viva<br>Insights</span></button></div>
+      <div class="rib-label">Add-in</div>
+    </div>
+    <div class="rib-group" style="border-right:none">
+      <div class="rib-row"><button class="rcmd addin pulse" id="addinBtn"><span class="ic"><svg width="22" height="22" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="egl-bg" x1="3" y1="6" x2="26" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0F6CBD"/><stop offset="1" stop-color="#0A4F8A"/></linearGradient></defs><rect x="3" y="7" width="22" height="15" rx="2" fill="url(#egl-bg)"/><path d="M3.4 8 L14 16 L24.6 8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="22" cy="20" r="6.4" fill="#fff"/><circle cx="22" cy="20" r="6.4" fill="none" stroke="#0A4F8A" stroke-width="1.8"/><circle cx="22" cy="20" r="2.6" fill="#1A8CFF"/><line x1="26.6" y1="24.6" x2="30" y2="28" stroke="#0A4F8A" stroke-width="2.6" stroke-linecap="round"/></svg></span><span class="tx">邮件分<br>析 Lite</span></button></div>
+      <div class="rib-label">EmailGuard Lite</div>
+    </div>
+  </div>
+
+  <!-- ═══ BODY: reading | taskpane ═══ -->
+  <div class="win-body">
+    <div class="reading">
+      <div class="read-scroll" id="readView"></div>
+      <div class="switcher">
+        <span class="sl">预选邮件：</span>
+        <button class="sbtn on-bad" data-s="0">① 钓鱼场景</button>
+        <button class="sbtn" data-s="1">② 不确定场景</button>
+        <button class="sbtn" data-s="2">③ 非钓鱼场景</button>
+        <button class="sbtn" data-s="3">④ 附件场景</button>
+        <span class="hint">点功能区右上角「🛡️ 邮件分析 Lite」打开加载项 · 演示内嵌无后端</span>
+      </div>
+    </div>
+
+    <!-- TASK PANE -->
+    <div class="taskpane" id="taskpane">
+      <div class="tp-head">
+        <div class="tp-title">EmailGuard Lite</div>
+        <button class="tp-ic" title="固定">📌</button>
+        <button class="tp-ic" id="tpClose" title="关闭">✕</button>
+      </div>
+      <div class="pg-tabs">
+        <button class="pg-tab on" data-t="guard">EmailGuard</button>
+        <button class="pg-tab" data-t="assist">EmailAssist</button>
+        <button class="pg-tab" data-t="attach">AttachAnalyst</button>
+      </div>
+      <div class="tp-body">
+        <div class="pg-panel on" id="panel-guard"></div>
+        <div class="pg-panel" id="panel-assist"></div>
+        <div class="pg-panel" id="panel-attach"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SOC FORWARD-DRAFT COMPOSE WINDOW ═══ -->
+<div class="scrim" id="scrim"></div>
+<div class="compose" id="compose">
+  <div class="cmp-tb">
+    <div class="tb-oicon"><svg viewBox="0 0 28 24" width="23" height="20" xmlns="http://www.w3.org/2000/svg"><rect x="11" y="4.5" width="16" height="15" rx="1.6" fill="#36A3EB"/><path d="M12 7.5l7 5 7-5" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="6" width="14" height="12" rx="1.8" fill="#0F6CBD"/><ellipse cx="8" cy="12" rx="4.3" ry="3.6" fill="none" stroke="#fff" stroke-width="2"/></svg></div>
+    <span class="q" style="color:var(--fg2)">💾 ↶ ↷</span>
+    <div class="ttl" id="cmpTitle">PhishGuard 转发 — Message (HTML)</div>
+    <span class="cmp-close">─</span><span class="cmp-close">▢</span><span class="cmp-close x" id="cmpClose">✕</span>
+  </div>
+  <div class="cmp-ribtabs">
+    <span class="rt file">File</span><span class="rt on">Message</span><span class="rt">Insert</span>
+    <span class="rt">Options</span><span class="rt">Format Text</span><span class="rt">Review</span><span class="rt">Help</span>
+  </div>
+  <div class="cmp-ribbon">
+    <div class="cmp-grp send"><div class="sendb">Send</div></div>
+    <div class="cmp-grp"><div class="b"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><rect x="4" y="3.5" width="12" height="14" rx="1.4" fill="#fff" stroke="#0F6CBD" stroke-width="1.3"/><rect x="7" y="2" width="6" height="3" rx="1" fill="#0F6CBD"/><path d="M6.5 9h7M6.5 12h7M6.5 15h4" stroke="#0F6CBD" stroke-width="1.1" stroke-linecap="round"/></svg></span>Clipboard</div></div>
+    <div class="cmp-grp"><div class="b"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><text x="3.5" y="15.5" font-family="Georgia,serif" font-size="15" font-weight="700" fill="#3B3A39">B</text><path d="M13 14.5h4" stroke="#D83B01" stroke-width="1.6" stroke-linecap="round"/></svg></span>Basic Text</div></div>
+    <div class="cmp-grp"><div class="b"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="6.5" r="3" fill="none" stroke="#0F6CBD" stroke-width="1.4"/><path d="M3.5 17v-1.2A5.5 5.5 0 0 1 9 10.3h2a5.5 5.5 0 0 1 5.5 5.5V17" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round"/></svg></span>Names</div></div>
+    <div class="cmp-grp"><div class="b"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 6.5l-7 7a2.5 2.5 0 0 1-3.5-3.5l7.5-7.3a3.5 3.5 0 0 1 5 5L9 14.5" fill="none" stroke="#0F6CBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Include</div></div>
+    <div class="cmp-grp"><div class="b"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M5 2.5v15" fill="none" stroke="#3B3A39" stroke-width="1.5" stroke-linecap="round"/><path d="M5 3.5h10.5l-2.2 3.3 2.2 3.3H5z" fill="#C50F1F" stroke="#C50F1F" stroke-width="0.8" stroke-linejoin="round"/></svg></span>Tags</div></div>
+    <div class="cmp-grp" style="border-right:none"><div class="b"><span class="i"><svg viewBox="0 0 20 20" width="16" height="16" xmlns="http://www.w3.org/2000/svg"><path d="M10 2l6 2.2v4.6c0 3.7-2.5 6.3-6 7.4-3.5-1.1-6-3.7-6-7.4V4.2z" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linejoin="round"/><path d="M6.8 9.6l2.2 2.2 4-4.2" fill="none" stroke="#0F6CBD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>EmailGuard</div></div>
+  </div>
+  <div class="cmp-hdr">
+    <div class="cmp-fieldrow"><div class="cmp-flabel">From ⌄</div><div class="cmp-fval">kwu2@glp.com</div></div>
+    <div class="cmp-fieldrow"><div class="cmp-flabel">To</div><div class="cmp-fval" id="cmpTo">securityoperationscenter@glprop.com</div></div>
+    <div class="cmp-fieldrow"><div class="cmp-flabel">Cc</div><div class="cmp-fval"></div></div>
+    <div class="cmp-fieldrow"><div class="cmp-flabel">Subject</div><div class="cmp-fval subj"><span id="cmpSubject"></span><span class="cmp-nolabel"><svg viewBox="0 0 20 20" width="13" height="13" xmlns="http://www.w3.org/2000/svg" style="display:block"><path d="M3 3.5h6.5a1.5 1.5 0 0 1 1.06.44l5 5a1.5 1.5 0 0 1 0 2.12l-4.94 4.94a1.5 1.5 0 0 1-2.12 0l-5-5A1.5 1.5 0 0 1 3 9.94z" fill="none" stroke="#605E5C" stroke-width="1.3" stroke-linejoin="round"/><circle cx="6.5" cy="6.5" r="1.1" fill="#605E5C"/></svg>No Label ⌄</span></div></div>
+  </div>
+  <div class="cmp-attrow">
+    <div class="cmp-attchip"><span class="ci"><svg viewBox="0 0 20 20" width="18" height="18" xmlns="http://www.w3.org/2000/svg" style="display:block"><rect x="2.5" y="5" width="15" height="11" rx="1.4" fill="#fff" stroke="#0F6CBD" stroke-width="1.4"/><path d="M3 6l7 5 7-5" fill="none" stroke="#0F6CBD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span><div><div class="cn" id="cmpAttName"></div><div class="ck">Outlook item · .eml</div></div></div>
+  </div>
+  <div class="cmp-body"><div class="soc" id="socReport"></div></div>
+</div>
+<div class="soc-toast" id="socToast">✓ 已转发给安全团队 · 演示草稿已生成（真实环境点 Send 即发送给 SOC）</div>
+
+<script>
+/* ═══════ ported engine (rules.js / analyzer.js / intel.js) — used only for the SOC technical report ═══════ */
+const CONFIG={orgDomains:['glprop.com','glp.com'],orgNames:['glprop','gl prop','glp'],soc:'securityoperationscenter@glprop.com'};
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const BRANDS=[['microsoft',/m1crosoft|micros0ft|rnicrosoft/i],['google',/g00gle|googel/i],['apple',/appie|app1e/i],['paypal',/paypa1|payp4l/i],['amazon',/amaz0n|arnazon/i],['docusign',/docu-sign|doc-usign/i]];
+const URG=[/24\s*小时|24\s*hours?/i,/立即|立刻|马上|urgent|immediate(ly)?/i,/账户.{0,4}(锁定|冻结|停用|过期)|account.{0,4}(lock|suspend|expir)/i,/密码.{0,4}过期|password.{0,4}expir/i];
+const FIN=[/银行账户.{0,4}变更|change.{0,8}bank.{0,8}account/i,/汇款|wire transfer|转账/i,/发票|invoice/i,/付款|收款|payment.{0,4}(due|terms?)/i];
+const TLD=/\.(zip|country|click|biz|top|tk|gq|ml|cf|xyz|info)$/i;
+const PUB=/@(gmail|outlook|hotmail|yahoo|qq|163|126|protonmail)\.com$/i;
+const PTS={'RULE-IMP-001':24,'RULE-DOM-001':22,'RULE-ATT-001':20,'RULE-DOM-014':18,'RULE-AUTH-001':15,'RULE-FIN-001':12,'RULE-URG-001':10,'RULE-TLD-001':8,'RULE-LINK-001':6};
+function runRules(m){
+  const rs=[];let sc=0;const fa=(m.from?.address||'').toLowerCase(),fn=(m.from?.name||'').toLowerCase(),fd=fa.split('@')[1]||'',body=m.body||'',hd=m.headers||'';
+  const isOrg=d=>CONFIG.orgDomains.some(o=>d===o||d.endsWith('.'+o));
+  const hit=(c,zh,en)=>{sc+=PTS[c];rs.push({code:c,zh,en});};
+  if(fa&&fd&&!isOrg(fd)&&CONFIG.orgNames.some(n=>fn.includes(n)))hit('RULE-IMP-001','显示名冒充本公司但发件域为外部地址','Display name impersonates org, external domain');
+  for(const[b,p]of BRANDS){if(p.test(fd)||p.test(fn)){hit('RULE-DOM-001',`发件域名仿冒 ${b}.com`,`Sender domain spoofs ${b}.com`);break;}}
+  if(PUB.test(fa)&&/(helpdesk|support|admin|security|finance|hr|payroll)/i.test(fn))hit('RULE-DOM-014','内部职能显示名但用公共邮箱','Internal-role name on public mailbox');
+  if(TLD.test(fd))hit('RULE-TLD-001',`发件域高危 TLD (.${fd.split('.').pop()})`,'High-risk TLD');
+  const hay=(m.subject||'')+'\n'+body;
+  if(URG.some(p=>p.test(hay)))hit('RULE-URG-001','账户锁定/时限等紧迫话术','Urgency/account-lockout pattern');
+  if(FIN.some(p=>p.test(hay)))hit('RULE-FIN-001','涉及银行账户变更/资金操作','Money-movement keywords');
+  if(/spf=fail/i.test(hd)||/dmarc=fail/i.test(hd))hit('RULE-AUTH-001','SPF/DMARC 验证失败','SPF/DMARC failed');
+  const urls=body.match(/https?:\/\/[^\s<>"']+/gi)||[];
+  if(urls.filter(u=>{try{const h=new URL(u).hostname.toLowerCase();return fd&&!h.endsWith(fd)&&!fd.endsWith(h);}catch{return 0;}}).length)hit('RULE-LINK-001','正文链接与发件域不一致','Link host differs from sender');
+  return{score:sc,reasons:rs};
+}
+function analyze(s){
+  const r=runRules(s);const mal=s.intel.malicious,sus=s.intel.suspicious;
+  const intelScore=Math.min(mal*25+sus*8,100);
+  const rN=clamp(r.score,0,100),iN=clamp(intelScore,0,100),aN=clamp(s.ai.riskScore,0,100);
+  const score=Math.round(clamp(.30*rN+.20*iN+.50*aN,0,100));
+  let verdict;
+  if(mal>=2)verdict='phish';else if(score>=65||(r.score>=30&&s.ai.leaning==='phish')||(mal>=1&&s.ai.leaning!=='safe'))verdict='phish';
+  else if(mal>=1||sus>=1)verdict='uncertain';else if(score<=18&&s.ai.leaning==='safe')verdict='safe';else verdict='uncertain';
+  return{verdict,score,rules:r,intel:{score:intelScore,indicators:s.intel.indicators||[],configured:true},ai:s.ai};
+}
+
+/* ═══════ verdict copy (verdicts.js / templates.js) ═══════ */
+const VMETA={
+  phish:{pill:'钓鱼',pillEn:'Phishing',tone:'phish',title:'已确认为钓鱼邮件',titleEn:'Confirmed phishing'},
+  uncertain:{pill:'不确定',pillEn:'Uncertain',tone:'uncertain',title:'分析结果不确定',titleEn:'Analysis inconclusive'},
+  safe:{pill:'非钓鱼',pillEn:'Not phishing',tone:'safe',title:'未发现明显风险',titleEn:'No phishing risk detected'},
+};
+
+/* ═══════ samples (user-facing reasons are plain; SOC report uses engine) ═══════ */
+const SAMPLES=[
+ { id:'phish', avc:'#8B5CF6', av:'IT',
+   from:{name:'IT Helpdesk',address:'it-support@m1crosoftt-online.com'},
+   to:[{name:'Wu, Wills',address:'kwu2@glprop.com'}],
+   subject:'[紧急] 您的 Microsoft 365 密码将在 24 小时内过期',
+   date:'2026-06-22 09:42', external:true, attachments:[],
+   headers:'Authentication-Results: spf=fail smtp.mailfrom=m1crosoftt-online.com; dmarc=fail',
+   intel:{malicious:6,suspicious:0,indicators:[{type:'Domain',name:'m1crosoftt-online.com',verdict:'恶意 (6 个引擎命中)'},{type:'URL',name:'login.m1crosoftt-online.com/...',verdict:'恶意 (4 个引擎命中)'}]},
+   ai:{riskScore:92,leaning:'phish',model:'qwen3.7-max',summary_zh:'邮件冒充 Microsoft 365 安全团队，以密码即将过期为由诱导用户点击伪造登录链接，属典型凭证钓鱼。',summary_en:'Impersonates the Microsoft 365 security team and lures the user to a fake login page; classic credential phishing.'},
+   bodyHtml:`<p>尊敬的用户，</p><p>我们的系统检测到您的 <b>Microsoft 365</b> 账户密码将在 <b style="color:#C50F1F">24 小时内过期</b>。为避免账户被锁定，导致邮件、Teams 和 OneDrive 数据无法访问，请<b>立即</b>完成密码重新验证：</p><p style="text-align:center;margin:20px 0"><a class="pbtn">立即重新验证密码 →</a></p><p style="font-size:12px;color:var(--fg2)">如果按钮无法点击，请复制以下链接到浏览器：<br><span class="lk">https://login.m1crosoftt-online.com/common/oauth2/v2.0/authorize?reset=1&user=...</span></p><p style="margin-top:24px">感谢配合，<br>Microsoft 365 安全运营团队</p>`,
+   body:'请立即点击 https://login.m1crosoftt-online.com/ 重新验证您的身份，账户将在 24 小时内过期被锁定。',
+   uiReasons:[['发件域名 m1crosoftt-online.com 仿冒 microsoft.com','Sender domain spoofs microsoft.com'],['链接命中已知钓鱼基础设施情报','URL matched known phishing infrastructure'],['SPF / DMARC 验证失败','SPF / DMARC failed'],['使用「24 小时内过期」紧迫话术','Urgency social-engineering pattern']],
+   headline:'安全团队已确认该邮件存在钓鱼风险。请删除该邮件并转给安全团队。',
+   headlineEn:'Confirmed phishing. Please delete it and forward it to the security team.',
+   next:['请勿点击其中任何链接或回复。建议立即删除，并使用下方按钮转交安全团队归档。','Do not click any link or reply. Delete it and forward to the security team using the button below.'],
+ },
+ { id:'uncertain', avc:'#8764B8', av:'AC',
+   from:{name:'Anna Chen',address:'anna.chen@acme-procure.co'},
+   to:[{name:'Wu, Wills',address:'kwu2@glprop.com'}],
+   subject:'关于 PO #20260512 的付款条款变更',
+   date:'2026-06-22 08:17', external:true, attachments:[
+     {ic:'📕',name:'发票_INV-20260512.pdf',kb:'234 KB',ext:'pdf',route:'文本 · qwen3.7-plus',res:'文本摘要：供应商发票，含金额与付款条款。收款方为新账户，与历史记录不一致——建议人工核对。'},
+     {ic:'🖼️',name:'新收款账户截图.png',kb:'88 KB',ext:'png',route:'图像 · gpt-4.1-mini',res:'OCR：图片为银行账户信息截图，含账号与开户行；客观读取，不做风险判断。'},
+     {ic:'🗜️',name:'合同与资质_v2.zip',kb:'156 KB',ext:'zip',zip:true,route:'ZIP 展开 · 安全护栏',res:'已展开为 3 个子项，逐项独立分析（见下各子项结果）。',children:[
+       {ic:'📘',name:'供货合同_2026.docx',kb:'142 KB',ext:'docx',route:'文本 · qwen3.7-plus',res:'文本摘要：标准供货合同，条款常规；未见异常资金指令。'},
+       {ic:'📕',name:'营业执照与资质.pdf',kb:'96 KB',ext:'pdf',route:'文本 · qwen3.7-plus',res:'文本摘要：企业资质文件；公司抬头与发件域名不完全一致，建议核实。'},
+       {ic:'🖼️',name:'开户许可证.png',kb:'210 KB',ext:'png',route:'图像 · gpt-4.1-mini',res:'OCR：开户许可证图片，提取到开户行与账号；客观读取。'},
+     ]},
+   ],
+   headers:'Authentication-Results: spf=pass smtp.mailfrom=acme-procure.co; dmarc=pass',
+   intel:{malicious:0,suspicious:0,indicators:[{type:'Domain',name:'acme-procure.co',verdict:'未收录 (no record)'}]},
+   ai:{riskScore:48,leaning:'uncertain',model:'qwen3.7-max',summary_zh:'供应商通知收款银行账户变更并附 PDF，发件域为新注册外部域，存在 BEC（商业邮件诈骗）可能，但无确凿恶意证据。',summary_en:'Vendor announces a bank-account change with a PDF; newly registered external domain. Possible BEC but no conclusive malicious signal.'},
+   bodyHtml:`<p>Hi 林总，</p><p>关于上月的采购单 <b>PO #20260512</b>，我们已经按合同条款准备发货。这里有一个紧急通知：</p><p><b>由于我们财务系统正在迁移，本笔订单的收款账户临时变更</b>，请财务在打款前以新账户为准（详见附件）。</p><p>附件：<a class="lk">📎 发票_INV-20260512.pdf</a>、<a class="lk">新收款账户截图.png</a>、<a class="lk">合同与资质_v2.zip</a></p><p>本周五前付款的话，我们这边可以保持原有的现金折扣。如果有疑问，请回邮件或直接联系我。</p><p style="margin-top:24px">Best,<br><b>Anna Chen</b><br><span style="font-size:12px;color:var(--fg2)">Senior Account Manager · ACME Procurement Co.</span></p>`,
+   body:'由于财务系统迁移，本笔订单收款账户临时变更，请财务在打款前以新账户为准，详见附件。本周五前付款可保持现金折扣。',
+   uiReasons:[['发件人为外部首次联系','External sender, first contact'],['提到银行账户变更（高敏感操作）','Mentions bank-account change (high-risk)'],['附件为 PDF，含外部链接','PDF attachment with outbound link'],['发件域为新注册（28 天），无信誉记录','Domain newly registered (28 days)']],
+   headline:'系统暂无法确认风险，建议人工复核。请将原邮件与分析报告转交 SOC。',
+   headlineEn:'We could not conclude. Please forward the message and report to SOC for review.',
+   next:['请点击「转给安全团队」，由 SOC 人工核查。在收到结论前，请勿按邮件指引付款。','Click "Forward to SOC" for manual review. Do not pay until SOC replies.'],
+ },
+ { id:'safe', avc:'#107C10', av:'PO',
+   from:{name:'People Ops',address:'peopleops@glprop.com'},
+   to:[{name:'Wu, Wills',address:'kwu2@glprop.com'}],
+   subject:'2026 Q2 全员调研问卷',
+   date:'昨天 14:30', external:false, attachments:[],
+   headers:'Authentication-Results: spf=pass smtp.mailfrom=glprop.com; dmarc=pass; dkim=pass',
+   intel:{malicious:0,suspicious:0,indicators:[{type:'Domain',name:'survey.glprop.com',verdict:'未命中'}]},
+   ai:{riskScore:4,leaning:'safe',model:'qwen3.7-max',summary_zh:'公司内部 People Ops 发出的季度调研问卷，链接均指向公司域，无任何钓鱼特征。',summary_en:'Internal quarterly survey from People Ops; all links go to corporate domains. No phishing signal.'},
+   bodyHtml:`<p>各位同事好，</p><p>2026 年第二季度的全员调研问卷已经开放。和往常一样，我们想了解大家最近的工作节奏、协作体验和对公司方向的看法。</p><p><b>调研链接：</b><a class="lk">https://survey.glprop.com/q2-2026</a><br><b>截止时间：</b>2026 年 5 月 20 日（周三）23:59<br><b>预计耗时：</b>约 5 分钟</p><p>调研结果会以聚合方式呈现，不会标识个人。</p><p style="margin-top:24px">Thanks,<br>People Ops 团队</p>`,
+   body:'2026 Q2 全员调研问卷已开放，链接 https://survey.glprop.com/q2-2026 ，5 月 20 日前有效，约 5 分钟完成。',
+   uiReasons:[['发件人来自公司内部域 glprop.com','Internal sender domain glprop.com'],['SPF / DKIM / DMARC 均通过','SPF / DKIM / DMARC all pass'],['链接均指向公司已知域','All links go to corporate domains'],['未触发任何钓鱼规则与情报命中','No phishing rule or intel match']],
+   headline:'系统未发现该邮件存在明显钓鱼风险，邮件保持原位置不变。',
+   headlineEn:'No clear phishing signal was found. The message has been left in place.',
+   next:['可继续按邮件内容正常处理。如有疑问，欢迎随时再次上报。','Proceed as normal. Re-report any time if you have doubts.'],
+ },
+ { id:'report', avc:'#0F6CBD', av:'SO', external:false, verdict:'safe',
+   from:{name:'Security Operations Center',address:'soc-report@glprop.com'},
+   to:[{name:'Wu, Wills',address:'kwu2@glprop.com'}],
+   subject:'终端代理版本与在线状态周报 · Agent Version Report',
+   date:'2026-06-22 08:00',
+   attachments:[
+     {ic:'📕',name:'Agent_Version_Report.pdf',kb:'68 KB',ext:'pdf',risk:'low',vt:'未收录 · No record',
+      resZh:'这是一份由安全运营中心生成的机器代理版本报告，详细列出了 777 个终端代理的在线/离线状态及软件版本分布。报告显示大量代理处于离线状态，且存在显著比例的未知主机和版本碎片化问题，主要用于内部 IT 资产管理和安全合规审查。',
+      resEn:'This is a confidential Agent Version Report generated by the Security Operations Center, detailing the online/offline status and software version distribution of 777 endpoints. The report highlights a significant number of offline agents, a high percentage of unknown hosts, and version fragmentation, serving internal IT asset management and security compliance purposes.'},
+   ],
+   headers:'Authentication-Results: spf=pass smtp.mailfrom=glprop.com; dmarc=pass; dkim=pass',
+   intel:{malicious:0,suspicious:0,indicators:[{type:'Domain',name:'glprop.com',verdict:'内部可信 (trusted)'}]},
+   ai:{riskScore:6,leaning:'safe',model:'qwen3.7-max',summary_zh:'安全运营中心发出的终端代理版本周报，随附 PDF 报告，发件域为公司内部域，无任何钓鱼特征。',summary_en:'Weekly endpoint agent-version report from the SOC with a PDF attachment; internal sender domain, no phishing signal.'},
+   bodyHtml:`<p>Hi Wills，</p><p>附件是本周的终端代理版本报告（<b>Agent_Version_Report.pdf</b>），覆盖全部 <b>777</b> 台受管终端的在线/离线状态与软件版本分布。</p><p><b>重点：</b><br>· 当前有较多代理处于离线状态；<br>· 观察到一定比例的未知主机；<br>· 代理版本存在碎片化（多个构建并存）。</p><p>本报告用于内部 IT 资产管理与安全合规审查。如有疑问欢迎随时联系。</p><p style="margin-top:24px">Thanks,<br>Security Operations Center</p>`,
+   body:'本周终端代理版本报告（Agent_Version_Report.pdf）覆盖 777 台受管终端的在线/离线状态与版本分布；存在较多离线代理、未知主机与版本碎片化，用于内部资产管理与合规审查。',
+   uiReasons:[['发件人来自公司内部域 glprop.com','Internal sender domain glprop.com'],['SPF / DKIM / DMARC 均通过','SPF / DKIM / DMARC all pass'],['附件为内部生成的 PDF 报告','Attachment is an internally generated PDF report'],['未触发任何钓鱼规则与情报命中','No phishing rule or intel match']],
+   headline:'系统未发现该邮件存在明显钓鱼风险，邮件保持原位置不变。',
+   headlineEn:'No clear phishing signal was found. The message has been left in place.',
+   next:['这是一封内部报告邮件。切换到 AttachAnalyst 标签可查看附件分析示例。','This is an internal report email. Switch to the AttachAnalyst tab to view the attachment analysis.'],
+ },
+];
+
+/* ═══════ state ═══════ */
+let cur=0, activeTab='guard', paneOpen=false;
+const guardState={};   // per-sample state
+let guardConsent=false;
+const assistState={};
+let assistConsent=false;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const refOf=s=>'PG-'+s.id.toUpperCase()+'-'+Math.floor(1000+Math.random()*9000);
+
+/* ═══════ reading pane ═══════ */
+function renderRead(){
+  const s=SAMPLES[cur];
+  const att=s.attachments.map(a=>`<div class="attchip"><span class="ai">${a.ic}</span><div><div>${esc(a.name)}</div><div style="font-size:11px;color:var(--fg3)">${a.kb} · ${a.ext}</div></div></div>`).join('');
+  $('#readView').innerHTML=`
+    <div class="read-subj">${esc(s.subject)}</div>
+    <div class="read-from">
+      <div class="rav" style="background:${s.avc}">${esc(s.av)}</div>
+      <div class="rwho">
+        <div class="rn">${esc(s.from.name)} <span style="font-weight:400;color:var(--fg3);font-size:12.5px">&lt;${esc(s.from.address)}&gt;</span></div>
+        <div class="rto">收件人 To: ${s.to.map(t=>esc(t.name)).join(', ')}</div>
+      </div>
+      <div class="rmeta">${esc(s.date)}</div>
+    </div>
+    ${s.external?'<div class="extban">⚠️ <span><b>[外部发件人]</b> · External sender · 该邮件来自您组织外部，点击链接或打开附件前请确认发件人。</span></div>':''}
+    <div class="read-body">${s.bodyHtml}</div>
+    ${att?`<div class="read-att"><div style="font-size:12px;font-weight:600;color:var(--fg2);margin-bottom:9px">📎 ${s.attachments.length} 个附件 · ${s.attachments.length} attachments</div><div style="display:flex;gap:10px;flex-wrap:wrap">${att}</div></div>`:''}`;
+}
+
+/* ═══════ task pane routing ═══════ */
+function renderTab(){ if(activeTab==='guard')renderGuard();else if(activeTab==='assist')renderAssist();else renderAttach();}
+document.querySelectorAll('.pg-tab').forEach(t=>t.onclick=()=>{
+  activeTab=t.dataset.t;
+  document.querySelectorAll('.pg-tab').forEach(x=>x.classList.toggle('on',x===t));
+  document.querySelectorAll('.pg-panel').forEach(x=>x.classList.toggle('on',x.id==='panel-'+activeTab));
+  renderTab();
+});
+
+/* ═══════ EmailGuard ═══════ */
+function renderGuard(){
+  const s=SAMPLES[cur], st=guardState[cur]||'confirm', p=$('#panel-guard');
+  if(st==='confirm') p.innerHTML=confirmHTML(s);
+  else if(st==='analyzing'){ p.innerHTML=analyzingHTML(s); runStages(()=>{guardState[cur]='done';renderGuard();}); }
+  else p.innerHTML=doneHTML(s);
+}
+function confirmHTML(s){
+  return `
+  <span class="pill accent">🛡️ 准备上报 · About to report</span>
+  <div class="h2">将此邮件提交 EmailGuard 调查？</div>
+  <div class="sub">Submit this message to EmailGuard for investigation?</div>
+  <div class="privacy">
+    <div class="pt">🔒 隐私提示 · Privacy notice</div>
+    内容数据会发送给公司授权的 AI 大模型分析，不会用于模型训练以及人为使用。
+    <div class="pe">Content data is sent to company-authorized AI large models for analysis. It is not used for model training or human use.</div>
+  </div>
+  <div class="preview">
+    <div class="pav" style="background:${s.avc}">${esc(s.av)}</div>
+    <div style="flex:1;min-width:0">
+      <div class="pn">${esc(s.from.name)}</div><div class="pa">${esc(s.from.address)}</div>
+      <div class="ps">${esc(s.subject)}</div><div class="pd">${esc(s.date)}</div>
+    </div>
+  </div>
+  ${guardConsent?'':`
+  <div class="lead">点击「确认上报」后，系统将：</div>
+  <ul class="bullets">
+    <li class="bullet"><span class="bm">•</span><div>读取当前邮件的发件人、收件人、主题、邮件头与正文<div class="be">Read this message's sender, recipients, subject, headers and body</div></div></li>
+    <li class="bullet"><span class="bm">•</span><div>进行规则、威胁情报与 AI 分析<div class="be">Run rule, threat-intel and AI analysis</div></div></li>
+    <li class="bullet warn"><span class="bm">•</span><div>判定为钓鱼时，<b>系统会提示您手动将邮件删除</b><div class="be">If confirmed phishing, you'll be prompted to manually delete it</div></div></li>
+    <li class="bullet"><span class="bm">•</span><div>判定为不确定时，可一键打开 Outlook 转发草稿提交给安全团队（由您点击发送）<div class="be">If uncertain, open a one-click forward draft to the security team (you click Send)</div></div></li>
+    <li class="bullet"><span class="bm">•</span><div>完整分析结果立即在本面板显示<div class="be">The full analysis result is shown in this panel immediately</div></div></li>
+  </ul>
+  <label class="consent"><input type="checkbox" id="gConsent">
+    <span style="font-size:12.5px;line-height:1.5">我已了解上述说明，并同意将本邮件提交 EmailGuard 调查。<br><span class="ce">I understand and agree to submit this message to EmailGuard for investigation.</span></span>
+  </label>`}
+  <div class="btnrow">
+    ${guardConsent?'':'<button class="btn-sec" id="gCancel">取消 · Cancel</button>'}
+    <button class="btn-pri" id="gReport" ${guardConsent?'':'disabled'}>确认上报 · Report</button>
+  </div>`;
+}
+const STAGES=[['规则检查','Heuristic rules',700],['威胁情报查询','Threat intel lookup',1100],['AI 语义分析','AI semantic analysis',1500],['综合风险归一','Risk normalization',700]];
+function analyzingHTML(s){
+  return `
+  <span class="pill accent"><span class="spin" style="width:12px;height:12px"></span> 正在分析 · Analyzing</span>
+  <div class="h2">正在为您分析这封邮件</div>
+  <div class="sub">通常 15–30 秒内出结果，请勿关闭此窗口。</div>
+  <div class="preview"><div class="pav" style="background:${s.avc}">${esc(s.av)}</div><div style="flex:1;min-width:0"><div class="ps" style="margin-top:0">${esc(s.subject)}</div><div class="pd">${esc(s.from.name)} · ${esc(s.date)}</div></div></div>
+  <div class="stages" id="stages">${STAGES.map(g=>`<div class="stage"><span class="sd"><span class="dt"></span></span><div style="flex:1"><div class="sz">${g[0]}</div><div class="se">${g[1]}</div></div></div>`).join('')}</div>`;
+}
+function runStages(done){
+  const host=$('#stages');if(!host)return;const rows=[...host.children];let i=0;
+  const step=()=>{ if(i>0){rows[i-1].className='stage done';rows[i-1].querySelector('.sd').innerHTML='<span class="ck">✓</span>';}
+    if(i>=rows.length){done();return;}
+    rows[i].className='stage active';rows[i].querySelector('.sd').innerHTML='<span class="spin" style="width:11px;height:11px"></span>';
+    setTimeout(step,STAGES[i][2]);i++; };
+  step();
+}
+function doneHTML(s){
+  const v=VMETA[s.verdict];const ref=s._ref||(s._ref=refOf(s));
+  let actionBlock;
+  if(s.verdict==='safe'){
+    actionBlock=`<div class="actbadge success">✓ 邮件保持不变<span class="ae">Left in place</span></div>`;
+  }else if(s._forwarded){
+    actionBlock=`<div class="actbadge success">✓ 已转发给安全团队<span class="ae">Forwarded to SOC</span></div>`;
+  }else{
+    const warn=s.verdict==='phish'?`<div class="delwarn"><b>请删除该邮件并转给安全团队</b><div class="de">Please delete this email and forward it to the security team.</div></div>`:'';
+    actionBlock=warn+`<button class="fwdbtn ${s.verdict}" id="fwdBtn">➡️ 转给安全团队 · Forward to SOC</button>`;
+  }
+  const tcol=s.verdict==='phish'?'var(--danger)':s.verdict==='uncertain'?'var(--warning-s)':'var(--success)';
+  const why=s.uiReasons.map(r=>`<div class="whyrow"><span class="wd" style="background:${tcol}"></span><div><div>${esc(r[0])}</div><div class="we">${esc(r[1])}</div></div></div>`).join('');
+  return `
+  <span class="pill ${v.tone}">${s.verdict==='phish'?'⚠️':s.verdict==='uncertain'?'ℹ️':'✓'} ${v.pill} · ${v.pillEn}</span>
+  <div class="h2">${v.title}</div><div class="sub">${v.titleEn}</div>
+  <div class="headline">${esc(s.headline)}</div>
+  <div class="headline-e">${esc(s.headlineEn)}</div>
+  ${actionBlock}
+  <div class="seclabel">判定依据 · Why</div>
+  <div class="why">${why}</div>
+  <div class="nextbox"><div class="nt">下一步 · What's next</div>${esc(s.next[0])}<div class="ne">${esc(s.next[1])}</div></div>
+  <div class="btnrow"><button class="btn-pri" id="gDone">完成 · Done</button></div>
+  <div class="ref">参考编号 · Ref · ${ref}</div>`;
+}
+
+/* ═══════ EmailAssist (faithful, light) ═══════ */
+function renderAssist(){
+  const s=SAMPLES[cur], st=assistState[cur]||'confirm', p=$('#panel-assist');
+  if(st==='confirm'){
+    p.innerHTML=`
+    <span class="pill accent">准备协助 · About to assist</span>
+    <div class="h2">将此邮件交给 EmailAssist 协助？</div>
+    <div class="sub">Submit this message to EmailAssist for assistance?</div>
+    <div class="privacy">
+      <div class="pt">🔒 隐私提示 · Privacy notice</div>
+      内容数据会发送给公司授权的 AI 大模型分析，不会用于模型训练以及人为使用。
+      <div class="pe">Content data is sent to company-authorized AI large models for analysis. It is not used for model training or human use.</div>
+    </div>
+    <div class="preview">
+      <div class="pav" style="background:${s.avc}">${esc(s.av)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="pn">${esc(s.from.name)}</div><div class="pa">${esc(s.from.address)}</div>
+        <div class="ps">${esc(s.subject)}</div><div class="pd">${esc(s.date)}</div>
+      </div>
+    </div>
+    ${assistConsent?'':`
+    <div class="lead">点击「开始协助」后，系统将：</div>
+    <ul class="bullets">
+      <li class="bullet"><span class="bm">•</span><div>读取当前邮件的发件人、收件人、主题与正文<div class="be">Read this message's sender, recipients, subject and body</div></div></li>
+      <li class="bullet"><span class="bm">•</span><div>生成中文与英文摘要，并按需翻译正文<div class="be">Generate Chinese and English summaries, plus translation</div></div></li>
+      <li class="bullet"><span class="bm">•</span><div>生成 3 个可选回复建议<div class="be">Generate three reply suggestions</div></div></li>
+      <li class="bullet warn"><span class="bm">•</span><div>选定建议后由您在 Outlook 中确认并发送<div class="be">You confirm and send the chosen reply from Outlook</div></div></li>
+    </ul>
+    <label class="consent"><input type="checkbox" id="aConsent">
+      <span style="font-size:12.5px;line-height:1.5">我已了解上述说明，并同意将本邮件提交 EmailAssist 协助处理。<br><span class="ce">I understand and agree to use AI assistance for this message.</span></span>
+    </label>`}
+    <div class="btnrow"><button class="btn-sec" id="aCancel">取消 · Cancel</button><button class="btn-pri" id="aStart" ${assistConsent?'':'disabled'}>开始协助 · Start</button></div>`;
+  }else if(st==='analyzing'){
+    p.innerHTML=`<span class="pill accent"><span class="spin" style="width:12px;height:12px"></span> 正在协助 · Working</span>
+      <div class="h2">正在准备摘要和回复建议</div>
+      <div class="stages" id="aStages">${[['语言检测','Detect language'],['生成双语摘要','Bilingual summary'],['生成回复建议','Reply drafts'],['准备回复操作','Reply actions']].map(g=>`<div class="stage"><span class="sd"><span class="dt"></span></span><div style="flex:1"><div class="sz">${g[0]}</div><div class="se">${g[1]}</div></div></div>`).join('')}</div>`;
+    const host=$('#aStages');const rows=[...host.children];let i=0;const ms=[600,700,900,500];
+    const step=()=>{if(i>0){rows[i-1].className='stage done';rows[i-1].querySelector('.sd').innerHTML='<span class="ck">✓</span>';}if(i>=rows.length){assistState[cur]='done';renderAssist();return;}rows[i].className='stage active';rows[i].querySelector('.sd').innerHTML='<span class="spin" style="width:11px;height:11px"></span>';setTimeout(step,ms[i]);i++;};step();
+  }else{
+    const s2=SAMPLES[cur];const full=s2.from.name,hz=`您好 ${full}，`,hen=`Hi ${full},`;
+    // English translation of each scenario's body (content follows the open email)
+    const trans={
+      phish:`Dear user,\n\nOur system has detected that your Microsoft 365 account password will expire within 24 hours. To avoid your account being locked — losing access to email, Teams and OneDrive — please re-verify your password immediately: [Re-verify password now →]\n\nIf the button does not work, copy this link into your browser:\nhttps://login.m1crosoftt-online.com/common/oauth2/v2.0/authorize?reset=1&user=...\n\nThank you for your cooperation,\nMicrosoft 365 Security Operations Team`,
+      uncertain:`Hi Mr. Lin,\n\nRegarding last month's purchase order PO #20260512, we have prepared the shipment per the contract terms. One urgent note:\n\nBecause our finance system is migrating, the receiving account for this order has been temporarily changed — please have finance pay to the new account before remitting (see attachments).\n\nAttachments: Invoice_INV-20260512.pdf, New_account_screenshot.png, Contract_and_credentials_v2.zip\n\nIf payment is made before this Friday, we can keep the original cash discount. If you have any questions, please reply or contact me directly.\n\nBest,\nAnna Chen\nSenior Account Manager · ACME Procurement Co.`,
+      safe:`Hello everyone,\n\nThe Q2 2026 company-wide survey is now open. As always, we'd like to learn about your recent workload, collaboration experience, and views on the company's direction.\n\nSurvey link: https://survey.glprop.com/q2-2026\nDeadline: Wed, May 20, 2026, 23:59\nEstimated time: about 5 minutes\n\nResults are presented in aggregate and will not identify any individual.\n\nThanks,\nPeople Ops team`,
+      report:`Hi Wills,\n\nAttached is this week's Agent Version Report (Agent_Version_Report.pdf), covering the online/offline status and software-version distribution of all 777 managed endpoints.\n\nHighlights:\n- A large share of agents are currently offline.\n- A notable percentage of unknown hosts were observed.\n- Agent versions are fragmented across multiple builds.\n\nThe report is for internal IT asset management and security-compliance review. Feel free to reach out with any questions.\n\nThanks,\nSecurity Operations Center`
+    };
+    const tr=trans[s2.id]||s2.ai.summary_en;
+    const replies=[
+      ['简洁确认','Concise','简洁',
+        `${hz}\n\n已收到这封邮件。我会先核对相关信息，如需进一步处理会再回复。谢谢。`,
+        `${hen}\n\nI've received this message. I'll verify the relevant details first and follow up if any further action is needed. Thank you.`],
+      ['正式回复','Formal','正式',
+        `${hz}\n\n感谢您的来信。出于安全和准确性考虑，我会先通过内部渠道确认该事项，再决定后续处理方式。`,
+        `${hen}\n\nThank you for your message. For security and accuracy, I will first confirm this matter through internal channels before deciding how to proceed.`],
+      ['请求澄清','Clarify','询问',
+        `${hz}\n\n请您补充说明该请求对应的系统、截止时间，以及可通过内部渠道验证的联系人信息。谢谢。`,
+        `${hen}\n\nCould you please specify the system involved, the deadline, and a contact we can verify through internal channels? Thank you.`]
+    ];
+    let sel=0,enFirst=false;
+    const renderPrev=()=>{const r=replies[sel];const a=enFirst?r[4]:r[3],b=enFirst?r[3]:r[4];$('#replyPrev').innerHTML=`${esc(a)}<div class="tp-en">${esc(b)}</div>`;};
+    p.innerHTML=`
+    <span class="pill success">已完成 · Ready</span>
+    <div class="h2">EmailAssist 已准备好摘要与回复建议</div>
+    <div class="sub">Review the result before creating a draft or sending a reply.</div>
+
+    <div class="seclabel">摘要 · Summary</div>
+    <div class="ablock">${esc(s2.ai.summary_zh)}<div class="am">${esc(s2.ai.summary_en)}</div></div>
+
+    <div class="seclabel">译文 · Translation</div>
+    <div class="replyprev">${esc(tr)}</div>
+
+    <div class="sechead"><span class="seclabel">回复建议 · Reply suggestions</span><button class="lnkbtn" id="aLang">Switch to EN</button></div>
+    <div class="suglist" id="sugtabs">${replies.map((r,i)=>`<button class="sugrow ${i===0?'on':''}" data-i="${i}"><span class="z">${r[0]}</span><span class="e">${r[1]} · ${r[2]}</span></button>`).join('')}</div>
+
+    <div class="seclabel">回复对象 · Recipients</div>
+    <div class="suglist" id="recip">
+      <button class="sugrow on" data-r="0"><span class="z">回复全部 · Reply all</span><span class="e">适合原邮件收件人都需要同步的场景。</span></button>
+      <button class="sugrow" data-r="1"><span class="z">仅回复发件人 · Reply to sender</span><span class="e">只回复发件人，不打扰其他收件人。</span></button>
+    </div>
+
+    <div class="seclabel">回复预览 · Reply preview</div>
+    <div class="replyprev" id="replyPrev"></div>
+
+    <div class="btnrow"><button class="btn-pri" id="aOpen">在 Outlook 中回复 · Reply in Outlook</button></div>
+    <button class="donebtn" id="aDone">完成 · Done</button>`;
+    renderPrev();
+    $('#sugtabs').onclick=e=>{const b=e.target.closest('.sugrow');if(!b)return;sel=+b.dataset.i;[...$('#sugtabs').children].forEach(x=>x.classList.remove('on'));b.classList.add('on');renderPrev();};
+    $('#recip').onclick=e=>{const b=e.target.closest('.sugrow');if(!b)return;[...$('#recip').children].forEach(x=>x.classList.remove('on'));b.classList.add('on');};
+    $('#aLang').onclick=()=>{enFirst=!enFirst;$('#aLang').textContent=enFirst?'Switch to 中文':'Switch to EN';renderPrev();};
+    $('#aOpen').onclick=()=>alert('演示：桌面端调用 displayReplyAllFormAsync 打开 Outlook 原生回复窗口并预填正文。');
+    $('#aDone').onclick=()=>{assistState[cur]='confirm';renderAssist();};
+  }
+}
+
+/* ═══════ AttachAnalyst — lists the OPEN email's attachments ═══════ */
+const attachSel=new Set();
+let attachCur=-1;
+function flatAtts(s){
+  const out=[];
+  (s.attachments||[]).forEach(a=>{
+    out.push(Object.assign({},a,{_child:false}));
+    if(a.zip&&a.children)a.children.forEach(c=>out.push(Object.assign({},c,{_child:true})));
+  });
+  return out;
+}
+function renderAttach(){
+  const s=SAMPLES[cur];const p=$('#panel-attach');
+  if(attachCur!==cur){attachSel.clear();attachCur=cur;}   // reset selection when the email changes
+  const head=`
+    <span class="pill accent">📎 附件审查 · Attachment review</span>
+    <div class="h2">选择附件传递 AttachAnalyst 分析</div>
+    <div class="sub">Select attachments to send to AttachAnalyst for analysis.</div>
+    <div class="privacy"><div class="pt">🔒 隐私提示 · Privacy notice</div>内容数据会发送给公司授权的 AI 大模型分析，不会用于模型训练以及人为使用。<div class="pe">Content data is sent to company-authorized AI large models for analysis. It is not used for model training or human use.</div></div>`;
+  const list=flatAtts(s);
+  if(!list.length){
+    p.innerHTML=head+`<div style="margin-top:18px;padding:24px 16px;text-align:center;color:var(--fg3);font-size:13px;border:1px dashed var(--stroke);border-radius:8px">
+      📭 当前邮件没有附件 · No attachments to analyze
+      <div style="font-size:11.5px;margin-top:8px;line-height:1.6">本演示中「② 不确定场景」的供应商邮件带有发票、银行账户截图和合同压缩包，可切换查看附件分析示例。</div></div>`;
+    return;
+  }
+  const rows=list.map((a,i)=>{
+    const sel=attachSel.has(i);
+    const res=a.resZh
+      ? `<div class="arhead"><span class="arname">${esc(a.name)}</span><span class="vbadge ${a.risk||'low'}">${(a.risk||'low').toUpperCase()}</span></div><div class="arvt">VirusTotal · ${esc(a.vt||'未收录 · No record')}</div><div class="arzh">${esc(a.resZh)}</div>${a.resEn?`<div class="aren">${esc(a.resEn)}</div>`:''}`
+      : `<span class="rt">${esc(a.route||'')}</span> ${esc(a.res||'')}`;
+    return `<div class="att-row ${a._child?'child':''} ${sel?'sel':''}" data-i="${i}">
+      <input type="checkbox" ${sel?'checked':''} tabindex="-1">
+      ${a.zip?'<span class="zip-badge">已展开</span>':''}
+      <span class="nm">${esc(a.name)}</span>
+      <span class="meta">${a.kb} · ${a.ext}</span>
+    </div>
+    <div class="att-res ${a.resZh?'rich':''}" id="ares${i}">${res}</div>`;
+  }).join('');
+  const n=attachSel.size;
+  p.innerHTML=head+`
+    <div class="att-head"><span>共 ${list.length} 个 · ${list.length} total</span><span class="links"><a id="selAll">全选 · All</a><a id="selClear">清空 · Clear</a></span></div>
+    ${rows}
+    <div class="btnrow"><button class="btn-pri ${n?'':'dis'}" id="attBtn" ${n?'':'disabled'}>${n?`分析所选 ${n} 个 · Analyze ${n}`:'请先勾选附件 · Select attachments first'}</button></div>`;
+  p.querySelectorAll('.att-row').forEach(row=>row.onclick=()=>{const i=+row.dataset.i;attachSel.has(i)?attachSel.delete(i):attachSel.add(i);renderAttach();});
+  $('#selAll').onclick=()=>{list.forEach((_,i)=>attachSel.add(i));renderAttach();};
+  $('#selClear').onclick=()=>{attachSel.clear();renderAttach();};
+  const btn=$('#attBtn');
+  if(n)btn.onclick=()=>{btn.textContent='分析中… · Analyzing '+n;btn.disabled=true;
+    [...attachSel].forEach((i,k)=>setTimeout(()=>{const r=$('#ares'+i);if(r)r.classList.add('show');},300+k*450));
+    setTimeout(()=>btn.textContent='✓ 分析完成 · Done',300+n*450);};
+}
+
+/* ═══════ SOC forward draft (templates.js renderSocReportHtml) ═══════ */
+function openSocDraft(s){
+  const a=analyze(s);const v=VMETA[s.verdict];const ref=s._ref;
+  const tag=s.verdict==='phish'?'PhishGuard 钓鱼':'PhishGuard 不确定';
+  $('#cmpTitle').textContent='['+tag+'] '+s.subject+' — Message (HTML)';
+  $('#cmpSubject').textContent='['+tag+'] '+s.subject;
+  $('#cmpAttName').textContent=s.subject+'.eml';
+  const fld=(k,val)=>`<div class="kv"><b>${k}：</b>${val}</div>`;
+  const bullets=(arr,empty)=>arr.length?`<ul>${arr.map(x=>`<li>${x}</li>`).join('')}</ul>`:`<div style="color:#8A8A8A">${empty}</div>`;
+  const vcolor=s.verdict==='phish'?'#C50F1F':s.verdict==='uncertain'?'#BC4B00':'#107C10';
+  $('#socReport').innerHTML=`
+    <h1>PhishGuard 邮件分析报告</h1>
+    <div class="ref">Ref · ${ref}</div>
+    <div class="seclbl">结论 · Verdict</div>
+    <div class="secval"><b style="color:${vcolor}">${v.pill} / ${v.pillEn}</b> &nbsp;·&nbsp; 风险评分 <b>${a.score} / 100</b></div>
+    <div class="seclbl">上报人 · Reporter</div>
+    <div class="secval">Wu, Wills &lt;kwu2@glp.com&gt;</div>
+    <div class="seclbl">原邮件 · Original message</div>
+    <div class="secval">
+      ${fld('发件人 From',esc(s.from.name)+' &lt;'+esc(s.from.address)+'&gt;')}
+      ${fld('收件人 To',s.to.map(t=>esc(t.address)).join(', '))}
+      ${fld('主题 Subject',esc(s.subject))}
+      ${fld('时间 Date','Mon Jun 22 2026 '+(s.date.match(/\d/)?s.date:'14:27:50')+' GMT+0800 (China Standard Time)')}
+      ${fld('Message-ID','&lt;631825908.300413.'+ref.replace(/\D/g,'')+'@glprop.com&gt;')}
+      ${fld('含附件 Has attachments',s.attachments.length?'yes':'no')}
+    </div>
+    <div class="seclbl">分数明细 · Score breakdown</div>
+    <div class="secval">
+      ${fld('规则 Rules',a.rules.score)}
+      ${fld('威胁情报 Intel',a.intel.score)}
+      ${fld('AI',a.ai.riskScore)}
+      ${fld('AI 倾向 Leaning',a.ai.leaning)}
+      ${fld('AI 模型 Model',a.ai.model)}
+    </div>
+    <div class="seclbl">AI 摘要 · AI summary</div>
+    <div class="secval">${esc(a.ai.summary_zh)}<div style="margin-top:4px;color:#605E5C">${esc(a.ai.summary_en)}</div></div>
+    <div class="seclbl">规则命中 · Rule signals</div>
+    <div class="secval">${bullets(a.rules.reasons.map(r=>esc(r.code)+' · '+esc(r.zh)),'无规则命中 None')}</div>
+    <div class="seclbl">威胁情报 · Intel indicators</div>
+    <div class="secval">${bullets(a.intel.indicators.map(i=>esc(i.type)+' '+esc(i.name)+' → '+esc(i.verdict)),'无指标 None')}</div>
+    <div class="seclbl">建议动作 · Recommended actions</div>
+    <div class="secval"><ol>
+      <li>线下与员工 <b>kwu2@glprop.com</b> 核实是否为正常业务邮件。</li>
+      <li>通过已知联系方式联系发件方 (${esc(s.from.address)}) 确认请求合规。</li>
+      <li>如确认为钓鱼，将发件域加入企业黑名单。</li>
+    </ol></div>
+    <div class="foot">报告生成时间 · 2026-06-22T06:27:50.000Z<br>原邮件作为附件附在本封邮件中，供人工调查与归档。</div>`;
+  $('#scrim').classList.add('show');
+  $('#compose').classList.add('show');
+}
+function closeSoc(){$('#scrim').classList.remove('show');$('#compose').classList.remove('show');}
+
+/* ═══════ open/close pane ═══════ */
+function openPane(){paneOpen=true;$('#taskpane').classList.add('open');$('#addinBtn').classList.remove('pulse');renderTab();}
+function closePane(){paneOpen=false;$('#taskpane').classList.remove('open');}
+$('#addinBtn').onclick=()=>paneOpen?closePane():openPane();
+$('#tpClose').onclick=closePane;
+$('#cmpClose').onclick=closeSoc;$('#scrim').onclick=closeSoc;
+
+/* compute verdict lazily on first done */
+function ensureVerdict(s){ if(!s.verdict){const a=analyze(s);s.verdict=a.verdict;} }
+
+/* scenario switcher */
+document.querySelector('.switcher').addEventListener('click',e=>{
+  const b=e.target.closest('.sbtn');if(!b)return;
+  cur=+b.dataset.s;
+  document.querySelectorAll('.sbtn').forEach((x,i)=>x.className='sbtn'+(i===cur?(' on-'+['bad','warn','ok','ok'][i]):''));
+  renderRead(); if(paneOpen)renderTab();
+});
+
+/* task pane delegated clicks */
+$('#taskpane').addEventListener('click',e=>{
+  const id=e.target.id||e.target.closest('button')?.id;
+  if(id==='gReport'){guardState[cur]='analyzing';renderGuard();}
+  else if(id==='gCancel'||id==='gDone'){closePane();}
+  else if(id==='aCancel'){closePane();}
+  else if(id==='aStart'){assistConsent=true;assistState[cur]='analyzing';renderAssist();}
+  else if(id==='fwdBtn'){
+    const s=SAMPLES[cur];
+    openSocDraft(s);
+    s._forwarded=true; renderGuard();
+    const t=$('#socToast');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3200);
+  }
+});
+$('#taskpane').addEventListener('change',e=>{
+  if(e.target.id==='gConsent'){guardConsent=e.target.checked;const b=$('#gReport');if(b)b.disabled=!guardConsent;}
+  if(e.target.id==='aConsent'){const b=$('#aStart');if(b)b.disabled=!e.target.checked;}
+});
+
+/* compute verdicts up-front so done state is correct */
+SAMPLES.forEach(ensureVerdict);
+
+/* init */
+renderRead();renderGuard();
+// reveal the right end of the ribbon (Read Aloud … EmailGuard Lite) like the real wide window
+setTimeout(()=>{const rb=$('#readRibbon');if(rb)rb.scrollLeft=rb.scrollWidth;},60);
+</script>
+</body>
+</html>
