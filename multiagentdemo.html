@@ -1,0 +1,986 @@
+<!DOCTYPE html>
+<!--
+  ============================================================================
+  MultiAgent Cowork · SOC AI Platform —— 产品 UI 可交互演示（带讲解注释）
+  ----------------------------------------------------------------------------
+  本页以【真实产品界面】的视角呈现功能：复刻了 SOC Hub 的侧边栏 / 顶栏 /
+  工单列表 / 事件详情（三栏：资产档案+情报矩阵 / 研判流水线时间线 / 处置面板）
+  / Agent 配置中心。所有术语、配色(hex)、布局、字段都对齐真实前端与后端代码
+  （Primitives.jsx / AlertList.jsx / AlertDetail.jsx / AgentConfig.jsx 及
+   agents/intel|tier1|hunter.py、main.py）。
+
+  自包含单文件，不联网、不依赖后端，双击即可打开。数据为贴近真实的演示数据。
+  右上「讲解模式」可显示功能注释（①②③ 蓝点，悬停查看）。
+  ============================================================================
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>SOC Hub · MultiAgent Cowork · 产品演示</title>
+<style>
+  /* ---- 调色板：取自前端 index.css / Primitives.jsx 真实 hex ---- */
+  :root{
+    --bg:#0A0E14; --card:#0B1018; --card-2:#0F141B; --line:#1F2937; --line-soft:#161C26;
+    --accent:#3B82F6; --accent-2:#1D4ED8; --text:#E5E7EB; --text-2:#CBD5E1; --muted:#64748B;
+    --p1:#EF4444; --p2:#F59E0B; --p3:#EAB308; --p4:#10B981; --undef:#94A3B8;
+    --mono:'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    --sans:'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--bg);color:var(--text);font-family:var(--sans);font-size:13.5px;line-height:1.5;
+    -webkit-font-smoothing:antialiased;overflow:hidden;
+  }
+  .mono{font-family:var(--mono)}
+  .muted{color:var(--muted)} .dim{color:var(--text-2)}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:#1c2632;border-radius:6px}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  /* ================= 应用骨架：侧边栏 + 主区 ================= */
+  .app{display:flex;height:100vh;overflow:hidden}
+
+  /* ---- 侧边栏（复刻 Primitives.jsx Sidebar） ---- */
+  .sidebar{width:236px;flex:0 0 236px;background:#080B11;border-right:1px solid var(--line);display:flex;flex-direction:column;padding:16px 14px}
+  .logoRow{display:flex;align-items:center;gap:11px;padding:4px 6px 16px}
+  .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3B82F6,#1D4ED8);box-shadow:0 0 12px rgba(59,130,246,.35);display:grid;place-items:center;color:#fff;font-size:17px}
+  .logoRow .nm{font-size:14px;font-weight:700;letter-spacing:.2px}
+  .logoRow .sb{font-size:9.5px;color:var(--muted);letter-spacing:1.6px;text-transform:uppercase}
+  .navlabel{font-size:9.5px;letter-spacing:1.6px;text-transform:uppercase;color:#3b4656;margin:14px 8px 6px}
+  .nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:9px;color:var(--text-2);cursor:pointer;font-size:13px;transition:.13s;margin-bottom:2px}
+  .nav:hover{background:#10161f;color:var(--text)}
+  .nav.active{background:rgba(59,130,246,.10);color:#cfe0ff;box-shadow:0 0 0 1px rgba(59,130,246,.22) inset}
+  .nav.disabled{opacity:.4;cursor:not-allowed}
+  .nav .ic{width:16px;text-align:center;opacity:.85}
+  .nav .ct{margin-left:auto;font-size:11px;font-family:var(--mono);background:#131b25;border:1px solid var(--line);border-radius:999px;padding:0 7px;color:var(--muted)}
+  .nav.active .ct{color:#9fc0ff;border-color:rgba(59,130,246,.4)}
+  .sidefoot{margin-top:auto;padding:10px 8px 2px;border-top:1px solid var(--line-soft);font-size:10.5px;color:var(--muted)}
+
+  /* ---- 主区 ---- */
+  .main{flex:1;display:flex;flex-direction:column;min-width:0}
+  .topbar{height:54px;flex:0 0 54px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 22px;background:rgba(10,14,20,.7)}
+  .crumb{font-size:12px;color:var(--muted)}
+  .crumb b{color:var(--text-2);font-weight:600}
+  .topbar .ttl{font-size:15px;font-weight:700}
+  .topbar .spacer{flex:1}
+  .sync{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-2)}
+  .pulse{width:7px;height:7px;border-radius:50%;background:#10B981;box-shadow:0 0 8px #10B981;animation:bp 1.6s infinite}
+  @keyframes bp{0%,100%{opacity:1}50%{opacity:.4}}
+  .demoPill{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:#7fd1e8;border:1px solid #1d3346;background:#0c1a24;border-radius:999px;padding:3px 9px}
+  .btn{border:1px solid var(--line);background:var(--card-2);color:var(--text-2);padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer;font-family:var(--sans);transition:.14s}
+  .btn:hover{border-color:#2b3a50;color:var(--text)}
+  .btn.primary{background:linear-gradient(135deg,#3B82F6,#1D4ED8);border-color:transparent;color:#fff;font-weight:600}
+  .btn.sm{padding:4px 9px;font-size:11.5px}
+  .toggle{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--text-2);cursor:pointer;user-select:none}
+  .switch{width:36px;height:20px;border-radius:11px;background:#1b2330;border:1px solid var(--line);position:relative;transition:.2s}
+  .switch::after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#64748B;top:2px;left:2px;transition:.2s}
+  .toggle.on .switch{background:rgba(59,130,246,.35);border-color:var(--accent)}
+  .toggle.on .switch::after{left:18px;background:var(--accent)}
+  select.speed{background:var(--card-2);color:var(--text-2);border:1px solid var(--line);border-radius:8px;padding:5px 7px;font-size:11.5px;font-family:var(--mono)}
+
+  .screen{flex:1;overflow:auto;padding:22px}
+
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .ptitle{font-size:13px;font-weight:700;margin-top:2px}
+
+  /* ================= SOC Hub 工单列表 ================= */
+  /* 搜索 + 筛选条（对齐真实界面：搜索框 + 分段 P1-4 + 下拉 + SLA + 计数） */
+  .searchbar{display:flex;align-items:center;gap:11px;margin-bottom:16px;flex-wrap:wrap}
+  .searchbox{flex:1;min-width:240px;display:flex;align-items:center;gap:9px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 13px}
+  .searchbox .mg{color:var(--muted)}
+  .searchbox input{flex:1;background:transparent;border:0;outline:0;color:var(--text);font-family:var(--sans);font-size:13px}
+  .searchbox input::placeholder{color:#475569}
+  .kbd{font-size:10px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-family:var(--mono)}
+  .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .seg button{background:transparent;border:0;color:var(--text-2);padding:8px 15px;font-size:12.5px;cursor:pointer;font-family:var(--mono);transition:.12s}
+  .seg button:hover{color:var(--text)}
+  .seg button.on{background:rgba(59,130,246,.16);color:#cfe0ff;font-weight:600}
+  .dd{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 13px;font-size:12.5px;color:var(--muted);cursor:pointer;transition:.12s}
+  .dd:hover{border-color:#2b3a50}
+  .dd b{color:var(--text);font-weight:600}
+  .dd .ar{color:var(--muted);font-size:9px}
+  .sla{font-size:12px;color:var(--muted);font-family:var(--mono);padding-left:4px}
+  .listcnt{font-size:12px;color:var(--muted);font-family:var(--mono)}
+  .listcnt b{color:var(--text-2)}
+
+  /* 统计卡片：英文大写标题 + 大数字 + 中文副标 + sparkline 柱状图 */
+  .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-bottom:18px}
+  @media(max-width:1100px){.stats{grid-template-columns:repeat(3,1fr)}}
+  .stat-card{background:var(--card);border:1px solid var(--line);border-radius:13px;cursor:pointer;transition:.14s;overflow:hidden;padding:0}
+  .stat-card:hover{border-color:#2b3a50}
+  .stat-card.active{border-color:var(--cat);box-shadow:0 0 0 1px var(--cat) inset}
+  .sc-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 12px}
+  .sc-en{font-size:11.5px;letter-spacing:1.6px;font-weight:700;color:var(--cat)}
+  .sc-num{font-size:27px;font-weight:800;font-family:var(--mono);color:#F1F5F9;line-height:1}
+  .sc-body{padding:0 16px 14px}
+  .sc-cn{font-size:12px;color:var(--text-2)}
+  .spark{display:flex;align-items:flex-end;gap:3px;height:42px;margin-top:11px}
+  .spark i{flex:1;min-width:0;background:var(--cat);opacity:.3;border-radius:1.5px;transition:opacity .3s}
+  .spark i.hot{opacity:.92}
+
+  table.tickets{width:100%;border-collapse:collapse;font-size:12.5px}
+  table.tickets th{text-align:left;font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:600;padding:10px 12px;border-bottom:1px solid var(--line)}
+  table.tickets td{padding:11px 12px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
+  table.tickets tr.trow{cursor:pointer;transition:.12s}
+  table.tickets tr.trow:hover{background:#0e141d}
+  table.tickets td.selcol{width:30px}
+  table.tickets input[type=checkbox]{accent-color:var(--accent);cursor:pointer}
+  .mssrow{display:flex;align-items:center;gap:8px}
+  .sdot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .mss{font-family:var(--mono);color:#cfe0ff}
+  .tstamp{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:4px;padding-left:16px}
+  .alertcell{max-width:290px;line-height:1.45}
+  .divbadge{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;padding:1px 7px;border-radius:6px;background:rgba(245,158,11,.10);border:1px solid rgba(245,158,11,.32);color:#FCD34D;margin-top:7px;font-family:var(--mono)}
+  .hostcell .h{font-family:var(--mono)} .hostcell .ip{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px}
+  .critbadge{font-size:11px;padding:2px 9px;border-radius:6px;font-weight:600}
+  .agcol{min-width:150px}
+  .agcol .lbl{font-size:12.5px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .agcol .lbl .pct{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .agcol .done{color:#6EE7B7} .agcol .run{color:#9fc0ff} .agcol .warn{color:#FCD34D} .agcol .skipc{color:#94A3B8}
+  .progress{height:6px;border-radius:4px;background:#16202e;overflow:hidden;margin-top:6px}
+  .progress > i{display:block;height:100%;border-radius:4px;transition:width 1s}
+  .arrowcell{color:var(--muted);text-align:right;font-size:16px}
+  table.tickets tr.trow:hover .arrowcell{color:var(--accent)}
+  .stat-pill{font-size:10.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);font-family:var(--mono)}
+  .stat-pill.ok{color:#6EE7B7;border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.08)}
+  .stat-pill.run{color:#cfe0ff;border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.10)}
+  .stat-pill.warn{color:#FCD34D;border-color:rgba(245,158,11,.4);background:rgba(245,158,11,.08)}
+  .stat-pill.skip{color:#94A3B8;border-color:var(--line)}
+
+  .pbadge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:7px;font-weight:800;font-size:12.5px;font-family:var(--mono)}
+  .dot{width:8px;height:8px;border-radius:50%}
+
+  /* ================= 事件详情 ================= */
+  .detail-grid{display:grid;grid-template-columns:300px minmax(0,1.7fr) 320px;gap:18px;align-items:start}
+  @media(max-width:1180px){.detail-grid{grid-template-columns:1fr}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:16px}
+  .card h3{margin:0 0 11px;font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted)}
+  .kv{display:flex;justify-content:space-between;gap:10px;padding:5px 0;border-bottom:1px dashed var(--line-soft);font-size:12.5px}
+  .kv:last-child{border-bottom:0}
+  .kv .k{color:var(--muted)} .kv .v{color:var(--text);text-align:right;font-family:var(--mono)}
+
+  .srcrow{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--line-soft)}
+  .srcrow:last-child{border-bottom:0}
+  .srcrow .nm{font-size:12px}
+  .srcrow .sc{font-family:var(--mono);font-weight:700}
+  .scorebox{margin-top:10px;background:var(--card-2);border:1px solid var(--line-soft);border-radius:9px;padding:10px}
+  .bar{height:7px;border-radius:4px;background:#16202e;overflow:hidden;margin-top:7px}
+  .bar > i{display:block;height:100%;width:0;border-radius:4px;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+
+  /* 时间线 */
+  .tl{position:relative}
+  .node{position:relative;padding:0 0 16px 50px}
+  .node:not(:last-child)::before{content:"";position:absolute;left:18px;top:36px;bottom:-2px;width:2px;background:linear-gradient(180deg,rgba(96,165,250,.30),rgba(96,165,250,.05))}
+  .glyph{position:relative;left:0;top:0;width:38px;height:38px;display:grid;place-items:center;font-family:var(--mono);font-weight:700;font-size:14px;color:var(--muted);position:absolute}
+  .glyph::before{content:"";position:absolute;inset:0;background:var(--card-2);transition:.25s}
+  .glyph.hex::before{clip-path:polygon(25% 6%,75% 6%,100% 50%,75% 94%,25% 94%,0 50%)}
+  .glyph.tri::before{clip-path:polygon(50% 8%,93% 90%,7% 90%)}
+  .glyph.dia::before{clip-path:polygon(50% 4%,96% 50%,50% 96%,4% 50%)}
+  .glyph.sq::before{clip-path:inset(6% round 8px)}
+  .glyph span{position:relative;z-index:1}
+  .node.run .glyph::before{background:rgba(59,130,246,.18)}
+  .node.run .glyph{color:#cfe0ff;animation:gp 1.1s infinite}
+  .node.done .glyph::before{background:rgba(96,165,250,.14)}
+  .node.done .glyph{color:#9fc0ff}
+  .node.skip .glyph::before{background:#10141b}
+  @keyframes gp{0%,100%{filter:drop-shadow(0 0 0 rgba(59,130,246,.5))}50%{filter:drop-shadow(0 0 6px rgba(59,130,246,.5))}}
+
+  .acard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;opacity:.5;transition:.3s}
+  .node.run .acard,.node.done .acard{opacity:1}
+  .node.skip .acard{opacity:.72}
+  .node.run .acard{border-color:rgba(59,130,246,.45)}
+  .ahead{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .code{font-family:var(--mono);font-weight:700;font-size:13px}
+  .aname{color:var(--text-2);font-size:12.5px}
+  .ahead .right{margin-left:auto;display:flex;align-items:center;gap:7px}
+  .model-tag{font-size:10px;font-family:var(--mono);padding:1px 7px;border-radius:5px;background:#10202e;border:1px solid #1d3346;color:#7fd1e8}
+  .model-tag.esc{background:#241a2e;border-color:#3d2a4e;color:#d6a8ff}
+  .ameta{font-size:10.5px;color:var(--muted);font-family:var(--mono);margin-top:4px}
+  .abody{margin-top:10px;display:none}
+  .node.done .abody,.node.skip .abody{display:block}
+  .out-summary{font-size:12.5px;color:var(--text-2);background:var(--card-2);border:1px solid var(--line-soft);border-radius:9px;padding:9px 11px;margin-top:8px}
+  .fields{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:9px}
+  .field{background:var(--card-2);border:1px solid var(--line-soft);border-radius:9px;padding:7px 10px}
+  .field.full{grid-column:1/-1}
+  .field .lab{font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+  .field .val{font-size:12.5px;margin-top:2px;font-weight:600}
+  .verdict{display:inline-block;padding:2px 9px;border-radius:6px;font-size:11.5px;font-weight:700}
+  .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .tag{font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:6px;background:#1a1410;border:1px solid #3a2a1a;color:#f0b27a}
+  .chain{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;font-size:11.5px;color:var(--text-2)}
+  .chain .arr{color:var(--muted)}
+  .acts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+  .act{font-size:10.5px;padding:2px 9px;border-radius:6px;background:#10202e;border:1px solid #1d3346;color:#9fd4e8}
+
+  /* RAW 折叠块 */
+  .raw{margin-top:9px;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+  .raw > summary{list-style:none;cursor:pointer;padding:7px 11px;font-size:11px;color:var(--muted);font-family:var(--mono);background:#0a0f16;display:flex;align-items:center;gap:7px}
+  .raw > summary::-webkit-details-marker{display:none}
+  .raw > summary::before{content:"▸";transition:.2s}
+  .raw[open] > summary::before{transform:rotate(90deg)}
+  .raw pre{margin:0;padding:11px;font-family:var(--mono);font-size:11px;line-height:1.6;color:#a9c2dd;background:#070A0F;overflow:auto;max-height:230px}
+  .raw .ky{color:#7fd1e8} .raw .st{color:#9ae6b4} .raw .nu{color:#f0b27a}
+
+  /* 处置面板 */
+  .disp-warn{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.35);border-radius:9px;padding:9px 11px;font-size:12px;color:#FCA5A5;margin-bottom:12px}
+  .check{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--text-2);padding:5px 0}
+  .check input{margin-top:2px}
+  textarea.basis{width:100%;background:var(--card-2);border:1px solid var(--line);border-radius:8px;color:var(--text);font-family:var(--sans);font-size:12px;padding:8px 10px;resize:vertical;min-height:64px;margin-top:6px}
+  .dispbtns{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+  .btn.full{width:100%;text-align:center}
+  .btn.danger{border-color:rgba(239,68,68,.4);color:#FCA5A5}
+  .btn.ghost{background:transparent}
+
+  /* mini WS 事件流（详情底部） */
+  .wsmini{margin-top:14px;font-family:var(--mono);font-size:10.5px;background:#070A0F;border:1px solid var(--line);border-radius:10px;padding:9px 11px;height:118px;overflow:auto}
+  .wsline{padding:1px 0;color:var(--text-2);opacity:0;animation:fadein .25s forwards}
+  @keyframes fadein{to{opacity:1}}
+  .wsline .t{color:#3d5775}
+  .wsline .ev{color:#7fd1e8} .wsline .ev.c{color:#6EE7B7} .wsline .ev.s{color:#9fb4cf}
+
+  /* ================= Agent 配置中心 ================= */
+  .cfg-grid{display:grid;grid-template-columns:minmax(0,1.5fr) 320px;gap:18px;align-items:start}
+  @media(max-width:1100px){.cfg-grid{grid-template-columns:1fr}}
+  .agcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
+  .agcard .info{flex:1}
+  .agcard .nm{font-weight:700}
+  .agcard .role{font-size:11.5px;color:var(--muted)}
+  .agcard .mt{font-size:11px;font-family:var(--mono);color:var(--text-2);margin-top:3px}
+  .online{font-size:10.5px;color:#6EE7B7;display:flex;align-items:center;gap:5px}
+  .sop{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+  .sop th,.sop td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-soft)}
+  .sop th{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+
+  /* ================= 讲解注释 pin ================= */
+  .pin{display:none;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:9.5px;font-weight:700;align-items:center;justify-content:center;cursor:help;vertical-align:super;margin-left:5px;position:relative;font-family:var(--mono)}
+  body.notes-on .pin{display:inline-flex;animation:pinp 1.7s infinite}
+  @keyframes pinp{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.5)}50%{box-shadow:0 0 0 5px rgba(59,130,246,0)}}
+  .pin .tip{display:none;position:absolute;bottom:150%;left:50%;transform:translateX(-50%);width:250px;background:#0d1622;border:1px solid var(--accent);border-radius:9px;padding:9px 11px;font-size:11.5px;line-height:1.6;color:var(--text-2);font-weight:400;text-align:left;z-index:60;box-shadow:0 8px 30px rgba(0,0,0,.55)}
+  .pin:hover .tip{display:block}
+  .notes-banner{display:none;margin-bottom:16px;padding:9px 13px;border:1px dashed var(--accent);border-radius:10px;background:rgba(59,130,246,.06);font-size:12px;color:var(--text-2)}
+  body.notes-on .notes-banner{display:block}
+
+  /* toast */
+  #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:#0d1622;border:1px solid var(--accent);border-radius:10px;padding:10px 18px;font-size:12.5px;color:var(--text);opacity:0;transition:.25s;z-index:80;pointer-events:none}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===================== 侧边栏 ===================== -->
+  <aside class="sidebar">
+    <div class="logoRow">
+      <div class="logo">◈</div>
+      <div>
+        <div class="nm">MultiAgent Cowork<span class="pin">1<span class="tip">侧边栏真实命名：主标题「MultiAgent Cowork」，副标题「SOC AI Platform」。这是一个把工单从接入到处置全自动化的安全运营智能平台。</span></span></div>
+        <div class="sb">SOC AI Platform</div>
+      </div>
+    </div>
+
+    <div class="navlabel">运营</div>
+    <div class="nav active" data-nav="list"><span class="ic">▦</span> SOC Hub <span class="ct" id="nav-ct">8</span></div>
+    <div class="nav disabled" data-nav="detail" id="nav-detail"><span class="ic">▣</span> 事件详情</div>
+    <div class="nav" data-nav="config"><span class="ic">⚙</span> Agent 配置 <span class="ct">3</span></div>
+
+    <div class="navlabel">监控</div>
+    <div class="nav disabled" data-nav="cmdb"><span class="ic">▤</span> 资产 CMDB <span class="ct">1,842</span></div>
+    <div class="nav disabled" data-nav="intel"><span class="ic">◎</span> 情报源 <span class="ct">4</span></div>
+    <div class="nav disabled" data-nav="notif"><span class="ic">✉</span> 通知日志</div>
+
+    <div class="sidefoot">
+      <div class="sync" style="margin-bottom:6px"><span class="pulse"></span> MSSP 同步 · 在线</div>
+      上次同步 45 秒前 · 轮询 60s
+    </div>
+  </aside>
+
+  <!-- ===================== 主区 ===================== -->
+  <div class="main">
+    <div class="topbar" id="topbar"></div>
+    <div class="screen" id="screen"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ============================================================================
+   数据：8 个工单，单一数据源驱动「列表行 + 详情页」。
+   字段对齐后端：intel(恶意评分/建议动作/情报源) · tier1(判定/资产/建议) ·
+   hunter(P级定级/MITRE/处置) · cmd(人工决策)。
+   ============================================================================ */
+const CRIT = {critical:{t:'核心',bg:'rgba(239,68,68,.14)',c:'#FCA5A5'},high:{t:'重要',bg:'rgba(245,158,11,.14)',c:'#FCD34D'},low:{t:'一般',bg:'rgba(148,163,184,.12)',c:'#94A3B8'}};
+const GRADE = {P1:{c:'#EF4444',bg:'rgba(239,68,68,.15)',fg:'#FCA5A5',label:'P1 严重'},P2:{c:'#F59E0B',bg:'rgba(245,158,11,.15)',fg:'#FCD34D',label:'P2 高危'},P3:{c:'#EAB308',bg:'rgba(234,179,8,.15)',fg:'#FDE68A',label:'P3 中危'},P4:{c:'#10B981',bg:'rgba(16,185,129,.15)',fg:'#6EE7B7',label:'P4 低危'}};
+const VERDICT = {confirmed_attack:{t:'确认攻击',bg:'rgba(239,68,68,.15)',c:'#FCA5A5'},suspicious:{t:'可疑',bg:'rgba(245,158,11,.15)',c:'#FCD34D'},false_positive:{t:'误报',bg:'rgba(148,163,184,.12)',c:'#94A3B8'}};
+const STATUS = {pending_approval:{t:'待审批',cls:'warn'},processing:{t:'处理中',cls:'run'},completed:{t:'完成',cls:'ok'},closed_false_positive:{t:'误报关闭',cls:'skip'}};
+function scoreColor(v){return v>=70?'#EF4444':v>=40?'#F59E0B':'#10B981'}
+
+const TICKETS = [
+  { id:'MSS-354807', alert:'Web Shell 文件上传检测', host:'PDCVWEB07P', ip:'10.12.34.21', crit:'critical',
+    env:'生产', device:'Web 服务器', os:'Linux', owner:'交易平台事业部', services:['Nginx','交易门户 API'],
+    src:'45.133.216.88（公网）', ioc:['45.133.216.88','/upload/shell.aspx','sha256:3f2a…e91'],
+    status:'pending_approval', grade:'P1', elapsed:'14.2s',
+    intel:{model:'haiku-4-5',esc:false,score:92,action:'block 封禁',conf:90,
+      srcs:[['腾讯 TIX',92],['VirusTotal','88 (62/70)'],['AbuseIPDB','76 · 134 reports']],
+      summary:'来源 IP 为已知 Web 攻击型 C2，多源高分一致；任一源 ≥85 触发早退、取消其余查询。'},
+    tier1:{model:'sonnet-4-6',verdict:'confirmed_attack',crit:'critical 核心',rec:'escalate 升级',conf:84,
+      cmdb:'PDCVWEB07P · 核心 · 对外 Web · 交易平台事业部', muyun:'⚠ 牧云检出 Webshell 事件 ×1（近 24h）、高危漏洞 ×2',
+      reasons:['对外 Web 服务出现 .aspx 上传写入','牧云同主机命中 Webshell 本地强信号','来源 IP 情报恶意分 92'],
+      summary:'核心对外资产命中 Webshell 本地强信号，判定确认攻击，必须升级二线。'},
+    hunter:{model:'sonnet-4-6 → opus-4-8',esc:true,grade:'P1',conf:93,lateral:'是 · 已探测内网 10.12.34.0/24',
+      chain:['上传 Webshell','命令执行','内网探测'],
+      attck:['T1190 利用面向公网应用','T1505.003 Web Shell','T1059 命令执行','T1046 网络服务发现'],
+      actions:['隔离主机 PDCVWEB07P','封禁 45.133.216.88','下线 /upload/shell.aspx','取证镜像留存'],
+      summary:'对外核心资产被植入 Webshell 并已横向探测，多源证据一致，定级 P1。基础档置信 68<70 触发 opus-4-8 复核。'},
+    cmd:{decision:'pending_approval',label:'转人工审批',notify:'飞书 + 电话'} },
+
+  { id:'MSS-354793', alert:'SSH 暴力破解尝试', host:'PDCVDB02P', ip:'10.12.30.8', crit:'critical',
+    env:'生产', device:'数据库', os:'Linux', owner:'数据平台部', services:['MySQL 主库'],
+    src:'103.74.19.55（公网）', ioc:['103.74.19.55'],
+    status:'pending_approval', grade:'P2', elapsed:'9.8s',
+    intel:{model:'haiku-4-5',esc:false,score:78,action:'block 封禁',conf:82,
+      srcs:[['腾讯 TIX',78],['AbuseIPDB','71 · 88 reports'],['VirusTotal','64 (18/70)']],
+      summary:'来源 IP 在多源标记为暴破/扫描源，恶意分 78。'},
+    tier1:{model:'sonnet-4-6',verdict:'suspicious',crit:'critical 核心',rec:'escalate 升级',conf:79,
+      cmdb:'PDCVDB02P · 核心 · 生产 MySQL 主库 · 数据平台部', muyun:'⚠ 牧云检出暴力破解事件 ×140（近 1h），暂无成功登录',
+      reasons:['核心数据库遭高频 SSH 暴破','牧云暴破事件计数 140','尚无成功登录记录'],
+      summary:'核心库遭暴破但未见成功登录，需二线定级。'},
+    hunter:{model:'sonnet-4-6',esc:false,grade:'P2',conf:85,lateral:'否',
+      chain:['外部暴破','高频登录尝试'],
+      attck:['T1110 暴力破解','T1021.004 SSH 远程服务'],
+      actions:['封禁 103.74.19.55','锁定被试账户','强制改密 + 启用登录限速'],
+      summary:'强信号但尚无成功登录、未失陷，定级 P2，需尽快阻断。'},
+    cmd:{decision:'pending_approval',label:'转人工审批',notify:'飞书'} },
+
+  { id:'MSS-354792', alert:'主机外联可疑域名', host:'PDCVOA03P', ip:'10.15.8.40', crit:'high',
+    env:'生产', device:'应用服务器', os:'Windows', owner:'集团信息部', services:['OA 办公系统'],
+    src:'cdn-update-check[.]top（外联域名）', ioc:['cdn-update-check.top'],
+    status:'completed', grade:'P3', elapsed:'12.5s',
+    intel:{model:'haiku-4-5 → sonnet-4-6',esc:true,score:55,action:'monitor 监控',conf:60,
+      srcs:[['腾讯 TIX',48],['VirusTotal','55 (8/89)']],
+      summary:'域名风险中等、引擎命中分散，无高置信定性。haiku 置信 52<55 触发 sonnet 复核。'},
+    tier1:{model:'sonnet-4-6',verdict:'suspicious',crit:'high 重要',rec:'observe 观察',conf:66,
+      cmdb:'PDCVOA03P · 重要 · OA 办公系统 · 集团信息部', muyun:'✓ 牧云无强信号',
+      reasons:['外联域名情报中等风险（55）','无 Webshell/暴破/异常登录等本地强信号','资产重要但非核心、无横向迹象'],
+      summary:'情报中等 + 无本地强信号 → 可疑，建议观察。'},
+    hunter:{model:'sonnet-4-6 → opus-4-8',esc:true,grade:'P3',conf:72,lateral:'否',
+      chain:['可疑外联','无后续横向'],
+      attck:['T1071.001 应用层协议 · Web','T1568 动态解析'],
+      actions:['加入监控名单','DNS sinkhole 观察','暂不封禁'],
+      summary:'存在风险但证据不足以定 P1/P2，无横向移动，定级 P3 持续观察。'},
+    cmd:{decision:'completed',label:'自动完成',notify:'—'} },
+
+  { id:'MSS-354690', alert:'SQL 注入探测', host:'PDCVWEB03P', ip:'10.12.34.30', crit:'high',
+    env:'生产', device:'Web 服务器', os:'Linux', owner:'电商平台部', services:['商品中心 API'],
+    src:'89.248.165.74（公网）', ioc:['89.248.165.74'],
+    status:'completed', grade:'P3', elapsed:'10.1s',
+    intel:{model:'haiku-4-5',esc:false,score:66,action:'monitor 监控',conf:72,
+      srcs:[['腾讯 TIX',66],['AbuseIPDB','58 · 41 reports'],['VirusTotal','52 (12/70)']],
+      summary:'来源为已知扫描器/探测源，恶意分 66。'},
+    tier1:{model:'sonnet-4-6',verdict:'suspicious',crit:'high 重要',rec:'observe 观察',conf:68,
+      cmdb:'PDCVWEB03P · 重要 · 对外 Web · 电商平台部', muyun:'✓ 牧云无强信号，WAF 已拦截',
+      reasons:['对外 Web 出现 SQL 注入特征探测','WAF 已拦截、无落地','来源为批量扫描源'],
+      summary:'探测被 WAF 拦截，无失陷，建议观察并加固。'},
+    hunter:{model:'sonnet-4-6 → opus-4-8',esc:true,grade:'P3',conf:75,lateral:'否',
+      chain:['注入探测','被 WAF 拦截'],
+      attck:['T1190 利用面向公网应用','T1595 主动扫描'],
+      actions:['WAF 规则加固','加入监控','暂不封禁'],
+      summary:'探测未得手，存在持续风险，定级 P3。'},
+    cmd:{decision:'completed',label:'自动完成',notify:'—'} },
+
+  { id:'MSS-354712', alert:'出站流量异常', host:'PDCVPRX01P', ip:'10.14.2.9', crit:'low',
+    env:'生产', device:'代理服务器', os:'Linux', owner:'网络运维组', services:['正向代理'],
+    src:'内网（无公网 IOC）', ioc:['无公网 IOC'],
+    status:'completed', grade:'P4', elapsed:'6.3s',
+    intel:{model:'skip',esc:false,score:0,action:'—',conf:0,srcs:[],
+      summary:'无外部 IP/域名/hash 可查 → INTEL 跳过，节省情报 API 配额。'},
+    tier1:{model:'sonnet-4-6',verdict:'suspicious',crit:'low 一般',rec:'observe 观察',conf:74,
+      cmdb:'PDCVPRX01P · 一般 · 代理服务器 · 网络运维组', muyun:'✓ 牧云无强信号',
+      reasons:['代理出站流量短时升高','属业务高峰期正常波动范围','无情报、无本地强信号'],
+      summary:'低风险噪音，建议观察。'},
+    hunter:{model:'sonnet-4-6',esc:false,grade:'P4',conf:88,lateral:'否',
+      chain:['出站波动','无异常目的地'],
+      attck:['T1071 应用层协议'],
+      actions:['加入基线白名单','无需处置'],
+      summary:'低风险噪音，定级 P4，自动完成。'},
+    cmd:{decision:'completed',label:'自动完成',notify:'—'} },
+
+  { id:'MSS-354737', alert:'异常端口扫描行为', host:'PDCVAPP12T', ip:'10.20.5.66', crit:'low',
+    env:'测试', device:'应用服务器', os:'Linux', owner:'平台测试组', services:['测试应用'],
+    src:'10.20.0.9（内网漏扫器）', ioc:['无公网 IOC'],
+    status:'closed_false_positive', grade:null, elapsed:'3.1s',
+    intel:{model:'skip',esc:false,score:0,action:'—',conf:0,srcs:[],
+      summary:'无公网 IOC → INTEL 跳过，一线串行执行。'},
+    tier1:{model:'sonnet-4-6',verdict:'false_positive',crit:'low 一般',rec:'close 关闭',conf:81,
+      cmdb:'PDCVAPP12T · 一般 · 测试环境', muyun:'✓ 牧云无安全事件、无强信号',
+      reasons:['来源 10.20.0.9 属已登记内网漏扫子网 10.20.0.0/24','为周期性合规扫描，非攻击行为','目标为测试环境、低重要性'],
+      summary:'来源为已知漏扫器，判定误报，命中规则自动关闭条件。'},
+    hunter:{skip:true},
+    cmd:{decision:'auto',label:'AI 自动闭环',notify:'—',autoclose:true} },
+
+  { id:'MSS-354778', alert:'可疑 PowerShell 执行', host:'PDCVAPP05P', ip:'10.13.6.22', crit:'high',
+    env:'生产', device:'应用服务器', os:'Windows', owner:'电商平台部', services:['订单服务'],
+    src:'内网', ioc:['encoded-command'],
+    status:'processing', grade:null, progress:60, stage:'tier1',
+    intel:{model:'skip',esc:false,score:0,action:'—',conf:0,srcs:[],summary:'无公网 IOC → INTEL 跳过。'},
+    tier1:{model:'sonnet-4-6',verdict:'suspicious',crit:'high 重要',rec:'escalate 升级',conf:0,
+      cmdb:'PDCVAPP05P · 重要 · 订单服务 · 电商平台部', muyun:'研判中…',
+      reasons:['编码 PowerShell 命令执行特征','一线研判进行中…'],
+      summary:'一线研判进行中。'},
+    hunter:null, cmd:null },
+
+  { id:'MSS-354655', alert:'异常登录 · 异地', host:'PDCVVPN01P', ip:'10.11.1.5', crit:'critical',
+    env:'生产', device:'VPN 网关', os:'Linux', owner:'信息安全部', services:['SSL VPN'],
+    src:'196.251.88.20（境外）', ioc:['196.251.88.20'],
+    status:'processing', grade:null, progress:30, stage:'intel',
+    intel:{model:'haiku-4-5',esc:false,score:0,action:'查询中',conf:0,srcs:[],summary:'情报查询进行中…'},
+    tier1:null, hunter:null, cmd:null },
+];
+const byId = id => TICKETS.find(t=>t.id===id);
+
+/* 列表展示用元数据：受理时间、耗时秒、AI 与 MSSP 研判分歧标记 */
+const TS = {
+  'MSS-354807':'2026-06-22 09:41:12','MSS-354793':'2026-06-22 09:08:55',
+  'MSS-354792':'2026-06-22 08:52:30','MSS-354690':'2026-06-22 08:30:17',
+  'MSS-354712':'2026-06-22 07:58:44','MSS-354737':'2026-06-22 07:40:09',
+  'MSS-354778':'2026-06-22 09:45:02','MSS-354655':'2026-06-22 09:46:20',
+};
+const DIVERGENT = new Set(['MSS-354712','MSS-354690']);  // AI 定级与 MSSP 原始处置不一致
+TICKETS.forEach(t=>{ t.secs = Math.round(parseFloat(t.elapsed)||0); t.ts = TS[t.id]||'2026-06-22 09:00:00'; t.divergent = DIVERGENT.has(t.id); });
+function fmtDur(s){ if(!s) return '—'; return Math.floor(s/60)+'分'+(s%60)+'秒'; }
+
+/* ---------------- 视图状态与导航 ---------------- */
+let view = {screen:'list', id:null};
+let SPEED = 1, playTimers = [];
+let gradeFilter = '全部', scopeFilter = null, SEARCH = '';
+function clearPlay(){playTimers.forEach(clearTimeout);playTimers=[]}
+
+/* 分类色 / 顶部色调 / sparkline 柱高（统计卡片用） */
+const CATCOLOR={pending:'#3B82F6',resolved:'#10B981',P1:'#EF4444',P2:'#F59E0B',P3:'#EAB308',P4:'#10B981'};
+const CATTINT={pending:'rgba(59,130,246,.16)',resolved:'rgba(16,185,129,.16)',P1:'rgba(239,68,68,.16)',P2:'rgba(245,158,11,.16)',P3:'rgba(234,179,8,.16)',P4:'rgba(16,185,129,.16)'};
+const SPARKBASE=[34,52,40,58,46,68,50,78,56,50,70,58,86,74,100,88];
+const DOT={completed:'#10B981',pending_approval:'#F59E0B',processing:'#3B82F6',closed_false_positive:'#64748B'};
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+function nav(screen,id){
+  if(screen==='cmdb'||screen==='intel'||screen==='notif'){ toast('演示版聚焦核心研判流程，该模块从略'); return; }
+  view={screen,id:id||null};
+  clearPlay();
+  document.querySelectorAll('.nav').forEach(n=>n.classList.toggle('active', n.dataset.nav===screen));
+  const nd=$('#nav-detail'); nd.classList.toggle('disabled', screen!=='detail');
+  if(screen==='list') renderList();
+  else if(screen==='detail') renderDetail(id);
+  else if(screen==='config') renderConfig();
+  $('#screen').scrollTop=0;
+}
+
+/* ===================== SOC Hub 列表 ===================== */
+function renderList(){
+  const counts = {pending:0,resolved:0,P1:0,P2:0,P3:0,P4:0};
+  TICKETS.forEach(t=>{
+    if(t.status==='pending_approval'||t.status==='processing') counts.pending++;
+    else counts.resolved++;
+    if(t.grade) counts[t.grade]++;
+  });
+  $('#nav-ct').textContent = counts.pending;   // 侧边栏 SOC Hub 计数 = 待处理数
+
+  $('#topbar').innerHTML = `
+    <div class="crumb">运营 / <b>SOC Hub</b></div>
+    <div class="spacer"></div>
+    <div class="sync" style="margin-right:4px"><span class="pulse"></span> MSSP 同步 · 上次同步 5 分钟前
+      <span class="pin">8<span class="tip">顶栏 MSSP 同步指示器：后端按 60s 轮询 mssp.tophant.com 拉新工单并回写结论，绿点=在线、黄=延迟（Primitives.jsx TopBar）。</span></span>
+    </div>
+    ${ctrlHTML()}
+    <button class="btn sm">导出 CSV</button>
+    <button class="btn sm primary">+ 手动建单</button>`;
+  bindCtrl();
+
+  const shown = TICKETS.filter(passFilter);
+  const rows = shown.map(t=>{
+    const c=CRIT[t.crit];
+    const gradeCell = t.grade
+      ? `<span class="pbadge" style="background:${GRADE[t.grade].bg};color:${GRADE[t.grade].fg}"><span class="dot" style="background:${GRADE[t.grade].c}"></span>${GRADE[t.grade].label}</span>`
+      : `<span class="stat-pill skip">待定级</span>`;
+    return `<tr class="trow" onclick="nav('detail','${t.id}')">
+      <td class="selcol" onclick="event.stopPropagation()"><input type="checkbox"></td>
+      <td><div class="mssrow"><span class="sdot" style="background:${DOT[t.status]||'#64748B'}"></span><span class="mss">${t.id}</span></div><div class="tstamp">${t.ts}</div></td>
+      <td class="alertcell">${esc(t.alert)}${t.divergent?'<br><span class="divbadge">⇄ 分歧</span>':''}</td>
+      <td class="hostcell"><div class="h">${t.host}</div><div class="ip">${t.ip}</div></td>
+      <td><span class="critbadge" style="background:${c.bg};color:${c.c}">${c.t}</span></td>
+      <td class="agcol">${agentCell(t)}</td>
+      <td>${gradeCell}</td>
+      <td class="mono muted">${fmtDur(t.secs)}</td>
+      <td class="arrowcell">→</td>
+    </tr>`;
+  }).join('');
+
+  $('#screen').innerHTML = `
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <h1 style="font-size:22px;font-weight:800;margin:0">SOC Hub</h1>
+      <span class="demoPill">交互演示</span>
+    </div>
+    <div class="notes-banner">📌 <b>讲解模式</b> —— 蓝点 ①②③ 悬停看功能说明。点任意工单行进入「事件详情」，看四 Agent 完整研判过程与「重新 AI 分析」回放。</div>
+
+    <div class="searchbar">
+      <div class="searchbox"><span class="mg">🔍</span>
+        <input id="searchInput" placeholder="搜索 MSS号 / 工单ID / IP / 主机名…" value="${esc(SEARCH)}" oninput="onSearch(this.value)">
+        <span class="kbd">Ctrl+K</span>
+      </div>
+      <div class="seg">${['全部','P1','P2','P3','P4'].map(g=>`<button class="${gradeFilter===g?'on':''}" onclick="setGrade('${g}')">${g}</button>`).join('')}</div>
+      <div class="dd" onclick="cycleDD('status')">状态 <b>${FILT.status}</b><span class="ar">▾</span></div>
+      <div class="dd" onclick="cycleDD('time')">时间 <b>${FILT.time}</b><span class="ar">▾</span></div>
+      <div class="dd" onclick="cycleDD('crit')">重要性 <b>${FILT.crit}</b><span class="ar">▾</span></div>
+      <div class="sla">SLA —</div>
+      <div class="listcnt">共 <b>${shown.length}</b> 条 · 已选 0</div>
+    </div>
+
+    <div class="stats">
+      ${statCard('pending','PENDING','待处理',counts.pending,'<span class="pin">2<span class="tip">统计卡片点选即快速筛选（AlertList.jsx）。「待处理」=待审批+处理中；点 CRITICAL/HIGH/MEDIUM/LOW 按 P1–P4 定级过滤。</span></span>')}
+      ${statCard('resolved','RESOLVED','已处理',counts.resolved)}
+      ${statCard('P1','CRITICAL','P1 严重',counts.P1)}
+      ${statCard('P2','HIGH','P2 高危',counts.P2)}
+      ${statCard('P3','MEDIUM','P3 中危',counts.P3)}
+      ${statCard('P4','LOW','P4 低危',counts.P4)}
+    </div>
+
+    <div class="panel">
+      <table class="tickets">
+        <thead><tr>
+          <th class="selcol"><input type="checkbox" disabled></th>
+          <th>MSS 编号</th><th>告警名称</th><th>目标资产</th><th>重要性</th>
+          <th>Agent 处理<span class="pin">3<span class="tip">「Agent 处理」列实时反映工单在四 Agent 流水线中的进度：处理中(带百分比) / 待审批 / 完成 / 误报关闭，由 WebSocket 实时推送。</span></span></th>
+          <th>最终定级</th><th>耗时</th><th></th>
+        </tr></thead>
+        <tbody>${rows||'<tr><td colspan=9 class="muted" style="padding:24px;text-align:center">无匹配工单</td></tr>'}</tbody>
+      </table>
+    </div>`;
+  bindStatCards();
+  const si=$('#searchInput'); if(si && SEARCH){ si.focus(); si.setSelectionRange(SEARCH.length,SEARCH.length); }
+}
+
+/* 「Agent 处理」列：状态文案 + 百分比 + 进度条 */
+function agentCell(t){
+  if(t.status==='processing') return `<div class="lbl"><span class="run">处理中</span><span class="pct">${t.progress}%</span></div><div class="progress"><i style="width:${t.progress}%;background:linear-gradient(90deg,#3B82F6,#60A5FA)"></i></div>`;
+  if(t.status==='pending_approval') return `<div class="lbl"><span class="warn">待审批</span><span class="pct">100%</span></div><div class="progress"><i style="width:100%;background:linear-gradient(90deg,#F59E0B,#FCD34D)"></i></div>`;
+  if(t.status==='closed_false_positive') return `<div class="lbl"><span class="skipc">误报关闭</span><span class="pct">100%</span></div><div class="progress"><i style="width:100%;background:#3a4452"></i></div>`;
+  return `<div class="lbl"><span class="done">完成</span><span class="pct">100%</span></div><div class="progress"><i style="width:100%;background:linear-gradient(90deg,#10B981,#34D399)"></i></div>`;
+}
+
+let FILT = {status:'全部',time:'近7天',crit:'全部'};
+const DDOPTS={status:['全部','处理中','已完成'],time:['今天','近3天','近7天','全部'],crit:['全部','核心','重要','一般']};
+function passFilter(t){
+  if(gradeFilter!=='全部' && t.grade!==gradeFilter) return false;
+  if(scopeFilter==='pending' && !(t.status==='pending_approval'||t.status==='processing')) return false;
+  if(scopeFilter==='resolved' && (t.status==='pending_approval'||t.status==='processing')) return false;
+  if(FILT.status==='处理中' && t.status!=='processing') return false;
+  if(FILT.status==='已完成' && !(t.status==='completed'||t.status==='closed_false_positive')) return false;
+  if(FILT.crit!=='全部' && CRIT[t.crit].t!==FILT.crit) return false;
+  if(SEARCH){ const q=SEARCH.toLowerCase(); if(!(t.id+' '+t.alert+' '+t.host+' '+t.ip).toLowerCase().includes(q)) return false; }
+  return true;
+}
+function sparkBars(){return SPARKBASE.map((h,i)=>`<i class="${i>=SPARKBASE.length-4?'hot':''}" style="height:${h}%"></i>`).join('')}
+function statActive(key){ return ['P1','P2','P3','P4'].includes(key) ? gradeFilter===key : scopeFilter===key; }
+function statCard(key,en,cn,num,pin){
+  return `<div class="stat-card${statActive(key)?' active':''}" data-stat="${key}" style="--cat:${CATCOLOR[key]}">
+    <div class="sc-head" style="background:linear-gradient(180deg,${CATTINT[key]},transparent)"><span class="sc-en">${en}${pin||''}</span><span class="sc-num">${num}</span></div>
+    <div class="sc-body"><div class="sc-cn">${cn}</div><div class="spark">${sparkBars()}</div></div>
+  </div>`;
+}
+window.setGrade=(g)=>{gradeFilter=g;renderList()};
+window.cycleDD=(g)=>{const o=DDOPTS[g];FILT[g]=o[(o.indexOf(FILT[g])+1)%o.length];renderList()};
+window.onSearch=(v)=>{SEARCH=v;renderList()};
+function bindStatCards(){
+  document.querySelectorAll('.stat-card').forEach(c=>c.addEventListener('click',()=>{
+    const k=c.dataset.stat;
+    if(['P1','P2','P3','P4'].includes(k)) gradeFilter = gradeFilter===k?'全部':k;
+    else scopeFilter = scopeFilter===k?null:k;
+    renderList();
+  }));
+}
+
+/* ===================== 事件详情 ===================== */
+function renderDetail(id){
+  const t = byId(id); if(!t){nav('list');return}
+  const c=CRIT[t.crit], st=STATUS[t.status];
+  const gradeBadge = t.grade
+    ? `<span class="pbadge" style="background:${GRADE[t.grade].bg};color:${GRADE[t.grade].fg}"><span class="dot" style="background:${GRADE[t.grade].c}"></span>${GRADE[t.grade].label}</span>`
+    : `<span class="stat-pill skip">待定级</span>`;
+
+  $('#topbar').innerHTML = `
+    <div class="crumb">运营 / <b style="cursor:pointer" onclick="nav('list')">SOC Hub</b> / <span class="mono">${t.id}</span></div>
+    <div class="spacer"></div>
+    <div class="sync" style="margin-right:4px"><span class="pulse"></span> MSSP 同步 · 在线</div>
+    ${ctrlHTML()}
+    <button class="btn sm" onclick="nav('list')">← 返回列表</button>`;
+  bindCtrl();
+
+  $('#screen').innerHTML = `
+    <div class="notes-banner">📌 事件详情是产品的核心工作台：左=资产与情报，中=四 Agent 研判流水线（可点开各节点的「完整输出·RAW」），右=人工处置决策。点右上「重新 AI 分析」可回放整条流水线。</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <div>
+        <div class="eyebrow">事件详情 · ${t.id}</div>
+        <div style="font-size:19px;font-weight:800;margin-top:2px">${esc(t.alert)}</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        ${gradeBadge}
+        <span class="stat-pill ${st.cls}" style="font-size:11.5px;padding:4px 11px">${st.t}</span>
+        <button class="btn sm primary" id="reAnalyze">↻ 重新 AI 分析
+          <span class="pin">7<span class="tip">真实功能：触发后端 reprocess，工单重走 intel→tier1→hunter 流水线并实时回写。本演示会逐节点回放研判过程与 WebSocket 事件。</span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="detail-grid">
+      <!-- 左栏：资产档案 + 情报矩阵 -->
+      <div>
+        <div class="card">
+          <h3>CMDB 资产档案<span class="pin">4<span class="tip">一线 ANALYST-α 通过 CMDB 按 IP/主机名核对资产：重要性、环境、归属、设备类型、服务清单——决定升级与否的关键依据。</span></span></h3>
+          <div class="kv"><span class="k">主机名</span><span class="v">${t.host}</span></div>
+          <div class="kv"><span class="k">IP</span><span class="v">${t.ip}</span></div>
+          <div class="kv"><span class="k">重要性</span><span class="v"><span class="critbadge" style="background:${c.bg};color:${c.c}">${c.t}</span></span></div>
+          <div class="kv"><span class="k">环境 / 设备</span><span class="v">${t.env} · ${t.device}</span></div>
+          <div class="kv"><span class="k">操作系统</span><span class="v">${t.os}</span></div>
+          <div class="kv"><span class="k">业务归属</span><span class="v">${esc(t.owner)}</span></div>
+          <div class="kv"><span class="k">服务</span><span class="v">${t.services.map(esc).join(' / ')}</span></div>
+        </div>
+        <div class="card" id="intelMatrix">${intelMatrixHTML(t)}</div>
+      </div>
+
+      <!-- 中栏：研判流水线时间线 -->
+      <div>
+        <div class="card" style="margin-bottom:0">
+          <h3>处理流水线 · 研判时间线<span class="pin">5<span class="tip">四节点：INTEL-β(情报)→ANALYST-α(一线)→HUNTER-γ(二线定级)→COMMANDER-Ω(人工)。每个节点可展开「完整输出·RAW」查看原始模型输出，含模型档位与升级标记。</span></span></h3>
+          <div class="tl" id="timeline">
+            ${nodeHTML('intel','hex','β','INTEL-β','情报专家',t)}
+            ${nodeHTML('tier1','tri','α','ANALYST-α','一线分析师',t)}
+            ${nodeHTML('hunter','dia','γ','HUNTER-γ','二线猎手 · 研判指挥',t)}
+            ${nodeHTML('cmd','sq','Ω','COMMANDER-Ω','事件指挥官 · 人工决策',t)}
+          </div>
+          <div class="wsmini" id="wsmini"><div class="wsline muted">// WebSocket 事件流 —— 点「重新 AI 分析」回放</div></div>
+        </div>
+      </div>
+
+      <!-- 右栏：处置决策面板 -->
+      <div>
+        <div class="card">
+          <h3>处置决策面板<span class="pin">6<span class="tip">COMMANDER-Ω 人工节点：P1/P2 在此二次确认后执行处置；P3/P4 自动完成；误报自动关闭。对应 AlertDetail.jsx 的确认闭环/标记误报/调整定级。</span></span></h3>
+          ${dispositionHTML(t)}
+        </div>
+      </div>
+    </div>`;
+
+  // 初次进入：已完成/待审批工单直接展示终态；处理中工单展示到当前阶段
+  paintFinal(t);
+  bindCtrl();
+  $('#reAnalyze')?.addEventListener('click', ()=>playPipeline(t));
+}
+
+function intelMatrixHTML(t){
+  const i=t.intel;
+  if(!i || i.model==='skip'){
+    return `<h3>情报矩阵 · INTEL-β</h3>
+      <div class="out-summary">本工单无公网 IOC，INTEL-β 已跳过（不消耗情报 API 配额）。</div>`;
+  }
+  const srcs = i.srcs.length? i.srcs.map(s=>`<div class="srcrow"><span class="nm">${s[0]}</span><span class="sc" style="color:${scoreColor(parseInt(s[1]))}">${s[1]}</span></div>`).join('')
+    : '<div class="muted" style="font-size:12px">查询中…</div>';
+  return `<h3>情报矩阵 · INTEL-β<span class="pin">9<span class="tip">INTEL-β 并发查腾讯 TIX / VirusTotal / AbuseIPDB，恶意评分取各源最大值（不叠加）；≥85 触发早退。</span></span></h3>
+    ${srcs}
+    <div class="scorebox">
+      <div style="display:flex;justify-content:space-between"><span class="muted" style="font-size:11px">恶意评分（取最大）</span><span class="mono" style="font-weight:700;color:${scoreColor(i.score)}">${i.score}/100</span></div>
+      <div class="bar"><i id="intelbar" data-w="${i.score}" style="background:${scoreColor(i.score)}"></i></div>
+      <div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11.5px"><span class="muted">建议动作</span><span style="color:${scoreColor(i.score)}">${esc(i.action)}</span></div>
+    </div>`;
+}
+
+function nodeHTML(key,shape,glyph,code,name,t){
+  const data = t[key];
+  const skip = (key==='intel' && (!data||data.model==='skip')) || (key==='hunter' && data && data.skip);
+  return `<div class="node" id="nd-${key}" data-key="${key}">
+    <div class="glyph ${shape}"><span>${glyph}</span></div>
+    <div class="acard">
+      <div class="ahead">
+        <span class="code">${code}</span><span class="aname">${name}</span>
+        <div class="right" id="right-${key}"></div>
+      </div>
+      <div class="ameta" id="ameta-${key}"></div>
+      <div class="abody" id="abody-${key}"></div>
+    </div>
+  </div>`;
+}
+
+/* 渲染各 Agent 节点正文 */
+function bodyIntel(t){
+  const i=t.intel;
+  if(!i||i.model==='skip') return {meta:'无公网 IOC · 已跳过',html:`<div class="out-summary">${esc(i?i.summary:'已跳过')}</div>`,model:'skip',esc:false,stat:'已跳过',statCls:'skip'};
+  return {model:i.model,esc:i.esc,stat:'完成',statCls:'ok',meta:(i.esc?'已升级 · ':'')+'恶意评分 '+i.score+' · 建议 '+i.action,
+    html:`<div class="out-summary">${esc(i.summary)}</div>${rawBlock('intel',{malicious_score:i.score,recommended_action:i.action.split(' ')[0],confidence:i.conf,sources:i.srcs.map(s=>({name:s[0],score:s[1]}))})}`};
+}
+function bodyTier1(t){
+  const d=t.tier1; if(!d) return {model:'sonnet-4-6',esc:false,stat:'排队',statCls:'skip',meta:'等待执行',html:''};
+  const v=VERDICT[d.verdict];
+  const running = d.conf===0;
+  return {model:d.model,esc:false,stat:running?'研判中':'完成',statCls:running?'run':'ok',meta:running?'读取 CMDB + 牧云…':('判定 '+v.t+' · 置信 '+d.conf),
+    html:`<div class="fields">
+      <div class="field"><div class="lab">判定</div><div class="val"><span class="verdict" style="background:${v.bg};color:${v.c}">${v.t}</span></div></div>
+      <div class="field"><div class="lab">资产 / 建议</div><div class="val" style="font-size:12px">${esc(d.crit)} · ${esc(d.rec)}</div></div>
+      <div class="field full"><div class="lab">CMDB</div><div class="val" style="font-weight:400;font-size:12px">${esc(d.cmdb)}</div></div>
+      <div class="field full"><div class="lab">牧云 MuYun 信号</div><div class="val" style="font-weight:400;font-size:12px">${esc(d.muyun)}</div></div>
+    </div>
+    <div class="out-summary" style="margin-top:9px">${d.reasons.map(r=>'· '+esc(r)).join('<br>')}</div>
+    ${running?'':rawBlock('tier1',{verdict:d.verdict,asset_criticality:d.crit.split(' ')[0],recommendation:d.rec.split(' ')[0],confidence:d.conf,escalation_needed:d.rec.startsWith('escalate')})}`};
+}
+function bodyHunter(t){
+  const d=t.hunter;
+  if(!d) return {model:'sonnet-4-6',esc:false,stat:'排队',statCls:'skip',meta:'等待一线结论',html:''};
+  if(d.skip) return {model:'—',esc:false,stat:'已跳过',statCls:'skip',meta:'规则 FP 自动关闭 · 二线不介入',html:`<div class="out-summary">命中「一线=误报 + 无恶意情报 + 无本地强信号」→ 自动关闭，HUNTER 不介入。</div>`};
+  const g=GRADE[d.grade];
+  return {model:d.model,esc:d.esc,stat:'完成',statCls:'ok',meta:(d.esc?'已升级 opus-4-8 · ':'')+'定级 '+d.grade+' · 置信 '+d.conf,
+    html:`<div class="fields">
+      <div class="field"><div class="lab">最终定级</div><div class="val"><span class="pbadge" style="background:${g.bg};color:${g.fg}"><span class="dot" style="background:${g.c}"></span>${g.label}</span></div></div>
+      <div class="field"><div class="lab">置信 / 横向移动</div><div class="val" style="font-size:12px">${d.conf} · ${esc(d.lateral)}</div></div>
+    </div>
+    <div class="field full" style="margin-top:9px"><div class="lab">攻击链</div><div class="chain">${d.chain.map((c,i)=>(i?'<span class="arr">→</span>':'')+'<span>'+esc(c)+'</span>').join('')}</div></div>
+    <div class="field full" style="margin-top:9px"><div class="lab">MITRE ATT&CK</div><div class="tags">${d.attck.map(a=>'<span class="tag">'+esc(a)+'</span>').join('')}</div></div>
+    <div class="field full" style="margin-top:9px"><div class="lab">处置动作</div><div class="acts">${d.actions.map(a=>'<span class="act">'+esc(a)+'</span>').join('')}</div></div>
+    <div class="out-summary" style="margin-top:9px">${esc(d.summary)}</div>
+    ${rawBlock('hunter',{grade:d.grade,confidence:d.conf,lateral_movement:d.lateral.startsWith('是'),attck_tactics:d.attck.map(a=>a.split(' ')[0]),containment_actions:d.actions})}`};
+}
+function bodyCmd(t){
+  const d=t.cmd;
+  if(!d) return {stat:'等待',statCls:'skip',meta:'等待研判完成',html:''};
+  if(d.autoclose) return {stat:'AUTO-CLOSE',statCls:'skip',meta:'AI 自动闭环 · 0 Token',
+    html:`<div class="out-summary">三类自动关闭之一（校准FP / 规则FP / CMDB无映射且情报干净）。状态置为 <span class="mono">closed_false_positive</span>，人工不介入。</div>`};
+  const txt = d.decision==='pending_approval'?'转人工审批 · 通知 '+d.notify : '自动完成（P3/P4 无需人工）';
+  return {stat:d.decision==='pending_approval'?'待审批':'已决策',statCls:d.decision==='pending_approval'?'warn':'ok',meta:txt,
+    html:`<div class="out-summary">${esc(d.label)} —— ${d.decision==='pending_approval'?'P1/P2 转人工审批并推送 '+esc(d.notify):'P3/P4 自动闭环为 completed'}。</div>`};
+}
+
+/* 生成「完整输出 · RAW」折叠块（伪 JSON，带语法着色） */
+function rawBlock(agent,obj){
+  const json = JSON.stringify(obj,null,2)
+    .replace(/"([^"]+)":/g,'<span class="ky">"$1"</span>:')
+    .replace(/: "([^"]*)"/g,': <span class="st">"$1"</span>')
+    .replace(/: (\d+|true|false)/g,': <span class="nu">$1</span>');
+  return `<details class="raw"><summary>完整输出 · RAW</summary><pre>${json}</pre></details>`;
+}
+
+/* 把节点画成终态（或处理中工单的当前阶段） */
+function paintNode(key,t,forceState){
+  const node=$('#nd-'+key); if(!node) return;
+  const map={intel:bodyIntel,tier1:bodyTier1,hunter:bodyHunter,cmd:bodyCmd};
+  const b=map[key](t);
+  node.className='node';
+  let state = forceState || (b.statCls==='run'?'run': (b.html||b.stat==='已跳过'||b.stat==='AUTO-CLOSE')?(b.statCls==='skip'?'skip':'done'):'');
+  if(state) node.classList.add(state);
+  $('#right-'+key).innerHTML = (b.model&&b.model!=='—'&&b.model!=='skip'?`<span class="model-tag${b.esc?' esc':''}">${b.model}</span>`:'')
+    + (key==='cmd'?`<span class="model-tag" style="background:#1a1622;border-color:#2e2640;color:#b9a7d6">人工 · 0 Token</span>`:'')
+    + `<span class="stat-pill ${b.statCls}">${b.stat}</span>`;
+  $('#ameta-'+key).textContent = b.meta||'';
+  $('#abody-'+key).innerHTML = b.html||'';
+  // 触发评分条动画
+  requestAnimationFrame(()=>document.querySelectorAll('#nd-'+key+' .bar > i').forEach(i=>{if(i.dataset.w)i.style.width=i.dataset.w+'%'}));
+}
+function paintFinal(t){
+  ['intel','tier1','hunter','cmd'].forEach(k=>{
+    // 处理中工单：未到的阶段保持「排队」灰态
+    if(t.status==='processing'){
+      const order={intel:0,tier1:1,hunter:2,cmd:3};
+      const cur=order[t.stage];
+      if(order[k]<cur) paintNode(k,t,'done');
+      else if(order[k]===cur) paintNode(k,t,'run');
+      else { const node=$('#nd-'+k); node.className='node';
+        $('#right-'+k).innerHTML=`<span class="stat-pill skip">排队</span>`; $('#ameta-'+k).textContent='等待执行'; }
+      return;
+    }
+    paintNode(k,t);
+  });
+  const ib=$('#intelbar'); if(ib&&ib.dataset.w) requestAnimationFrame(()=>ib.style.width=ib.dataset.w+'%');
+}
+
+/* 处置面板 */
+function dispositionHTML(t){
+  if(t.status==='pending_approval'){
+    const acts=(t.hunter&&t.hunter.actions)||[];
+    return `<div class="disp-warn">⚠ ${GRADE[t.grade].label} · 二次确认</div>
+      <div class="eyebrow">处置建议摘要</div>
+      <div class="out-summary" style="margin:6px 0 12px">${esc((t.hunter&&t.hunter.summary)||'')}</div>
+      <div class="eyebrow">执行确认</div>
+      ${acts.map(a=>`<label class="check"><input type="checkbox"> ${esc(a)}</label>`).join('')}
+      <div class="eyebrow" style="margin-top:10px">决策依据 <span class="muted">（必填 ≥10 字）</span></div>
+      <textarea class="basis" placeholder="记录研判与处置依据…"></textarea>
+      <div class="dispbtns">
+        <button class="btn full primary" onclick="toast('已确认闭环并下发处置（演示）')">确认执行</button>
+        <button class="btn full danger ghost" onclick="toast('已标记为误报并关闭（演示）')">标记为误报并关闭</button>
+        <button class="btn full ghost" onclick="toast('打开「调整事件最终定级」（演示）')">调整事件最终定级</button>
+      </div>
+      <div class="muted" style="font-size:10.5px;margin-top:10px">通知渠道：${esc(t.cmd.notify)}</div>`;
+  }
+  if(t.status==='completed'){
+    return `<div class="out-summary" style="border-color:rgba(16,185,129,.3)">✓ 已自动完成 · ${t.grade?GRADE[t.grade].label:''}<br><span class="muted" style="font-size:11.5px">P3/P4 由 AI 自动闭环，无需人工审批，转入持续监控。</span></div>
+      <div class="dispbtns">
+        <button class="btn full ghost" onclick="toast('打开「调整事件最终定级」（演示）')">调整事件最终定级</button>
+        <button class="btn full ghost" onclick="toast('已重开工单转人工复核（演示）')">转人工复核</button>
+      </div>`;
+  }
+  if(t.status==='closed_false_positive'){
+    return `<div class="out-summary">⊘ 已误报关闭 · AI 自动闭环<br><span class="muted" style="font-size:11.5px">命中规则误报条件，二线与人工均未介入。</span></div>
+      <div class="dispbtns"><button class="btn full ghost" onclick="toast('已恢复工单转人工复核（演示）')">恢复并转人工</button></div>`;
+  }
+  return `<div class="out-summary">研判进行中 · 进度 ${t.progress}%<br><span class="muted" style="font-size:11.5px">当前阶段：${t.stage==='intel'?'情报富化':t.stage==='tier1'?'一线初筛':'二线定级'}。完成后将出现处置选项。</span>
+    <div class="progress" style="margin-top:8px"><i style="width:${t.progress}%"></i></div></div>`;
+}
+
+/* ===================== 「重新 AI 分析」回放 ===================== */
+let wsk=0;
+function wslog(ev,kv,cls){
+  if($('#wsmini .muted')) $('#wsmini').innerHTML='';
+  wsk+=1;
+  const line=document.createElement('div'); line.className='wsline';
+  const ss=('0'+Math.min(59,Math.floor(wsk*1.7))).slice(-2);
+  line.innerHTML=`<span class="t">10:24:${ss}</span> <span class="ev ${cls||''}">${ev}</span> <span class="muted">${esc(kv||'')}</span>`;
+  $('#wsmini').appendChild(line); $('#wsmini').scrollTop=$('#wsmini').scrollHeight;
+}
+function P(fn,d){const id=setTimeout(fn,d*SPEED);playTimers.push(id)}
+function setRunning(key){
+  const node=$('#nd-'+key); node.className='node run';
+  $('#right-'+key).innerHTML=`<span class="stat-pill run">执行中…</span>`;
+  $('#ameta-'+key).textContent='模型推理中…'; $('#abody-'+key).innerHTML='';
+}
+function setQueued(key){
+  const node=$('#nd-'+key); node.className='node';
+  $('#right-'+key).innerHTML=`<span class="stat-pill skip">排队</span>`; $('#ameta-'+key).textContent='等待执行'; $('#abody-'+key).innerHTML='';
+}
+function playPipeline(t){
+  clearPlay(); wsk=0;
+  $('#wsmini').innerHTML=''; ['intel','tier1','hunter','cmd'].forEach(setQueued);
+  const btn=$('#reAnalyze'); if(btn){btn.disabled=true;}
+  const skipIntel = !t.intel || t.intel.model==='skip';
+  const skipHunter = t.hunter && t.hunter.skip;
+  let tm=200;
+  P(()=>wslog('ticket_start','ticket_id='+t.id,'s'),tm); tm+=700;
+  // Intel
+  if(skipIntel){ P(()=>{paintNode('intel',t,'skip');wslog('agent_skip','agent=threat-intel · 无公网 IOC');},tm); tm+=700; }
+  else { P(()=>{setRunning('intel');wslog('agent_start','agent=threat-intel','s')},tm); tm+=1500;
+         P(()=>{paintNode('intel',t,'done');wslog('agent_complete','agent=threat-intel'+(t.intel.esc?' · escalated':''),'c')},tm); tm+=600; }
+  // Tier1
+  P(()=>{setRunning('tier1');wslog('agent_start','agent=tier1-soc','s')},tm); tm+=1600;
+  P(()=>{paintNode('tier1',t,'done');wslog('agent_complete','agent=tier1-soc','c')},tm); tm+=700;
+  // Hunter
+  if(skipHunter){ P(()=>{paintNode('hunter',t,'skip');wslog('agent_skip','agent=tier2-hunter · 规则 FP 自动关闭')},tm); tm+=700; }
+  else { P(()=>{setRunning('hunter');wslog('agent_start','agent=tier2-hunter','s')},tm); tm+=1900;
+         if(t.hunter&&t.hunter.esc){ P(()=>{$('#ameta-hunter').textContent='置信 <70 · 升级 opus-4-8 复核…'},tm-700); }
+         P(()=>{paintNode('hunter',t,'done');wslog('agent_complete','agent=tier2-hunter'+(t.hunter&&t.hunter.esc?' · escalated=opus-4-8':''),'c')},tm); tm+=700; }
+  // Commander
+  P(()=>{paintNode('cmd',t, t.cmd&&t.cmd.autoclose?'skip':'done');
+    const status = t.cmd&&t.cmd.autoclose?'closed_false_positive':(t.status==='pending_approval'?'pending_approval':'completed');
+    wslog('ticket_complete','status='+status+(t.grade?' grade='+t.grade:''),'c');
+    if(btn) btn.disabled=false;
+  },tm);
+}
+
+/* ===================== Agent 配置中心 ===================== */
+function renderConfig(){
+  $('#topbar').innerHTML=`<div class="crumb">运营 / <b>Agent 配置</b></div><div class="spacer"></div>${ctrlHTML()}<button class="btn sm">导出 YAML</button>`;
+  bindCtrl();
+  const agents=[
+    {code:'INTEL-β',role:'情报专家 · 外部威胁情报富化',model:'claude-haiku-4-5',esc:'claude-sonnet-4-6（置信<55）',tok:'~3.5k/单',calls:'1,284'},
+    {code:'ANALYST-α',role:'一线分析师 · 初筛与资产核对',model:'claude-sonnet-4-6',esc:'—',tok:'~5.0k/单',calls:'1,902'},
+    {code:'HUNTER-γ',role:'二线猎手 · 唯一定级入口',model:'claude-sonnet-4-6',esc:'claude-opus-4-8（置信<70）',tok:'~11k/单',calls:'873'},
+  ];
+  $('#screen').innerHTML=`
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <h1 style="font-size:22px;font-weight:800;margin:0">Agent 配置中心</h1>
+      <span class="demoPill">交互演示</span>
+    </div>
+    <div class="notes-banner">📌 Agent 配置中心：每个 Agent 的模型档位、升级策略、Token 与调用统计，以及人工节点的 SOP 规则（告警类型→处置策略映射）。</div>
+    <div class="cfg-grid">
+      <div>
+        <div class="card">
+          <h3>研判 Agent 编排<span class="pin">10<span class="tip">三 Agent 串/并联 + 校准层。基础档省成本，置信不足时自动升级到更强模型（intel→sonnet，hunter→opus-4-8）。</span></span></h3>
+          ${agents.map(a=>`<div class="agcard">
+            <div class="logo" style="width:30px;height:30px;font-size:13px;border-radius:8px">${a.code.split('-')[1]}</div>
+            <div class="info"><div class="nm">${a.code} <span class="muted" style="font-weight:400;font-size:11.5px">${esc(a.role)}</span></div>
+              <div class="mt">模型 ${a.model} · 升级 ${esc(a.esc)}</div>
+              <div class="mt muted">Token ${a.tok} · 累计调用 ${a.calls}</div></div>
+            <div class="online"><span class="pulse"></span> 在线</div>
+          </div>`).join('')}
+          <div class="agcard">
+            <div class="logo" style="width:30px;height:30px;font-size:13px;border-radius:8px;background:linear-gradient(135deg,#6d5b8e,#3d2a4e)">Ω</div>
+            <div class="info"><div class="nm">COMMANDER-Ω <span class="muted" style="font-weight:400;font-size:11.5px">事件指挥官 · 人工决策</span></div>
+              <div class="mt">人工审批 · 不消耗 Token</div>
+              <div class="mt muted">触发定级 P1/P2 · 自动闭环 P3/P4 · P1 通知飞书+电话、P2 飞书</div></div>
+            <div class="online" style="color:#b9a7d6"><span style="width:7px;height:7px;border-radius:50%;background:#b9a7d6;display:inline-block"></span> 人工</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>SOP · 告警类型 → 处置策略映射</h3>
+          <table class="sop">
+            <thead><tr><th>告警类别</th><th>升级阈值</th><th>默认优先级</th><th>自动处置</th></tr></thead>
+            <tbody>
+              <tr><td>Web Shell / 命令执行</td><td>本地强信号即升级</td><td>P1</td><td>转人工 · 飞书+电话</td></tr>
+              <tr><td>暴力破解</td><td>成功登录 / 计数≥阈值</td><td>P2</td><td>转人工 · 飞书</td></tr>
+              <tr><td>可疑外联 / 注入探测</td><td>情报≥70 或失陷证据</td><td>P3</td><td>自动完成 · 监控</td></tr>
+              <tr><td>扫描 / 噪音（已登记源）</td><td>—</td><td>P4 / 误报</td><td>AI 自动闭环</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="eyebrow">模型参数</div><div class="ptitle">运行时配置</div>
+          <div class="kv" style="margin-top:8px"><span class="k">Max Tokens</span><span class="v">4096 / 16384(升级)</span></div>
+          <div class="kv"><span class="k">超时</span><span class="v">60s</span></div>
+          <div class="kv"><span class="k">升级模型</span><span class="v">opus-4-8</span></div>
+          <div class="kv"><span class="k">累计调用</span><span class="v">4,059</span></div>
+          <div class="kv"><span class="k">平均耗时</span><span class="v">7.4s</span></div>
+          <div class="kv"><span class="k">超时次数</span><span class="v">3</span></div>
+        </div>
+        <div class="card">
+          <div class="eyebrow">API · 情报源</div><div class="ptitle">外部接入凭据</div>
+          ${[['腾讯 TIX','缓存 312','在线'],['VirusTotal','缓存 268','在线'],['AbuseIPDB','缓存 145','在线'],['牧云 MuYun · JSON-RPC','缓存 1,568','在线']].map(s=>
+            `<div class="kv"><span class="k">${s[0]}</span><span class="v" style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><span class="muted" style="font-size:11px">${s[1]}</span><span class="online"><span class="pulse"></span>${s[2]}</span></span></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ===================== 公共控件 ===================== */
+function ctrlHTML(){
+  return `<div class="toggle" id="notesToggle" title="显示功能讲解注释"><span>讲解</span><span class="switch"></span></div>
+    <label class="muted" style="font-size:11.5px;margin:0 4px">速度
+      <select class="speed" id="speed">
+        <option value="1.6">0.6×</option><option value="1" selected>1×</option><option value="0.5">2×</option><option value="0.25">4×</option>
+      </select></label>`;
+}
+function bindCtrl(){
+  const tg=$('#notesToggle');
+  if(tg){ if(document.body.classList.contains('notes-on')) tg.classList.add('on');
+    tg.addEventListener('click',()=>{document.body.classList.toggle('notes-on');tg.classList.toggle('on')}); }
+  const sp=$('#speed'); if(sp){ sp.value=String(SPEED); sp.addEventListener('change',e=>SPEED=parseFloat(e.target.value)); }
+}
+
+let toastTimer;
+function toast(msg){
+  const el=$('#toast'); el.textContent=msg; el.classList.add('show');
+  clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2200);
+}
+
+/* 侧边栏导航绑定 */
+document.querySelectorAll('.nav').forEach(n=>n.addEventListener('click',()=>{
+  if(n.classList.contains('disabled')) return;
+  nav(n.dataset.nav);
+}));
+$('#nav-ct').textContent = TICKETS.length;
+
+/* 初始化 */
+renderList();
+</script>
+</body>
+</html>
