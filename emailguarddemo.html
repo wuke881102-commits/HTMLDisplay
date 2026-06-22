@@ -286,12 +286,93 @@ button{font-family:var(--font);cursor:pointer}
 .soc-toast.show{display:flex}
 
 @media(max-width:1080px){.taskpane.open{width:340px}}
+
+/* ════ NEW OUTLOOK (web) CHROME ════ */
+.titlebar,.rib-tabs,#readRibbon,.switcher{display:none!important}
+.win{background:#faf9f8}
+.owa-top{height:48px;flex-shrink:0;display:flex;align-items:center;gap:12px;padding:0 12px;background:#fff;border-bottom:1px solid var(--stroke-div)}
+.owa-waffle{width:38px;height:38px;display:grid;place-items:center;border-radius:4px;color:#5b5b5b;cursor:pointer}
+.owa-waffle:hover{background:var(--hover)}
+.owa-brand{display:flex;align-items:center;gap:8px;font-size:16px;font-weight:600;color:#0F6CBD}
+.owa-search{flex:1;max-width:700px;margin:0 auto;height:32px;background:var(--subtle);border-radius:4px;display:flex;align-items:center;gap:9px;padding:0 12px;color:var(--fg3);font-size:13px;cursor:text}
+.owa-search:hover{background:#ededed}
+.owa-topr{display:flex;align-items:center;gap:2px}
+.owa-tic{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;color:#5b5b5b;cursor:pointer}
+.owa-tic:hover{background:var(--hover)}
+.owa-avatar{width:30px;height:30px;border-radius:50%;background:#5B2D8E;color:#fff;display:grid;place-items:center;font-size:12px;font-weight:700;margin-left:6px}
+.owa-rail{width:48px;flex-shrink:0;background:#faf9f8;display:flex;flex-direction:column;align-items:center;padding-top:6px;gap:3px;border-right:1px solid var(--stroke-div)}
+.owa-rnav{width:40px;height:40px;display:grid;place-items:center;border-radius:6px;color:#5b5b5b;cursor:pointer;position:relative}
+.owa-rnav:hover{background:var(--hover)}
+.owa-rnav.on{color:var(--accent)}
+.owa-rnav.on::before{content:"";position:absolute;left:-4px;top:9px;bottom:9px;width:3px;border-radius:2px;background:var(--accent)}
+.owa-fold{width:212px;flex-shrink:0;background:#faf9f8;border-right:1px solid var(--stroke-div);padding:10px 8px;overflow:auto}
+.owa-new{display:flex;align-items:center;justify-content:center;gap:7px;height:34px;background:var(--accent);color:#fff;border:none;border-radius:5px;font-size:13px;font-weight:600;width:100%;cursor:pointer;margin-bottom:10px}
+.owa-fgrp{font-size:11px;font-weight:700;color:var(--fg3);letter-spacing:.03em;padding:10px 8px 4px}
+.owa-fitem{display:flex;align-items:center;gap:9px;height:30px;padding:0 8px;border-radius:4px;font-size:13px;color:var(--fg);cursor:pointer}
+.owa-fitem:hover{background:var(--hover)}
+.owa-fitem.on{background:var(--selected);font-weight:600}
+.owa-fitem .fi{width:16px;flex-shrink:0;color:var(--fg2);display:grid;place-items:center}
+.owa-fitem.on .fi{color:var(--accent)}
+.owa-fitem .fn{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owa-fitem .fc{font-size:12px;color:var(--fg3)}
+.owa-fitem.on .fc{color:var(--accent)}
+.owa-list{width:340px;flex-shrink:0;background:#fff;border-right:1px solid var(--stroke-div);display:flex;flex-direction:column;min-height:0}
+.owa-lhead{flex-shrink:0;display:flex;align-items:flex-start;justify-content:space-between;padding:12px 16px 8px}
+.owa-lhead .lt{font-size:17px;font-weight:600}
+.owa-lhead .lc{font-size:11.5px;color:var(--fg3);margin-top:2px}
+.owa-lfilter{font-size:12px;color:var(--accent-h);cursor:pointer;white-space:nowrap}
+.owa-lscroll{flex:1;overflow:auto}
+.owa-lgrp{font-size:12px;font-weight:600;color:var(--fg2);padding:10px 16px 4px}
+.owa-msg{display:flex;gap:10px;padding:8px 14px 9px 18px;cursor:pointer;border-left:3px solid transparent;position:relative}
+.owa-msg:hover{background:var(--hover)}
+.owa-msg.on{background:var(--selected);border-left-color:var(--accent)}
+.owa-unreaddot{position:absolute;left:7px;top:50%;margin-top:-4px;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.owa-msg .mav{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;margin-top:2px}
+.owa-msg .mbody{flex:1;min-width:0}
+.owa-msg .mrow1{display:flex;align-items:center;gap:6px}
+.owa-msg .mfrom{font-size:13px;color:var(--fg);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owa-msg.unread .mfrom{font-weight:700}
+.owa-msg .mtime{font-size:11.5px;color:var(--fg3);flex-shrink:0}
+.owa-msg .msubj{font-size:12.5px;color:var(--fg);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owa-msg.unread .msubj{font-weight:600}
+.owa-msg .msnip{font-size:12px;color:var(--fg3);margin-top:1px;display:flex;align-items:center;gap:6px}
+.owa-msg .msnip .sx{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.owa-ext{font-size:10.5px;color:var(--warning-s);background:var(--warning-bg);border-radius:3px;padding:0 5px;flex-shrink:0}
+.owa-rtabs{flex-shrink:0;display:flex;align-items:center;gap:2px;height:34px;padding:0 16px;border-bottom:1px solid var(--stroke-div);font-size:13px}
+.owa-rtab{padding:5px 9px;color:var(--fg2);border-radius:4px;cursor:pointer}
+.owa-rtab.on{color:var(--accent-h);font-weight:600;border-bottom:2px solid var(--accent);border-radius:0}
+.owa-rtabs .spacer{flex:1}
+.owa-rtabs .home{color:var(--fg3);font-size:12px}
+.owa-ribbon{flex-shrink:0;display:flex;align-items:center;gap:1px;padding:6px 12px;border-bottom:1px solid var(--stroke-div);overflow-x:auto}
+.owa-cmd{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:46px;padding:4px 8px;border-radius:4px;color:var(--fg);background:none;border:none;cursor:pointer;font-size:11px;white-space:nowrap}
+.owa-cmd:hover{background:var(--hover)}
+.owa-cmd .ci{height:18px;display:grid;place-items:center}
+.owa-sep{width:1px;height:32px;background:var(--stroke-div);margin:0 6px;flex-shrink:0}
+.owa-cmd.report{border:1px solid var(--accent);background:var(--tint);color:var(--accent-h);position:relative}
+.owa-cmd.report .badge{position:absolute;top:0;right:7px;min-width:13px;height:13px;border-radius:7px;background:#C50F1F;color:#fff;font-size:9px;line-height:13px;text-align:center;font-weight:700;padding:0 2px}
+.read-from .ract{display:flex;align-items:center;gap:2px;margin-left:6px}
+.read-from .ract span{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;color:var(--fg2);cursor:pointer;font-size:15px}
+.read-from .ract span:hover{background:var(--hover)}
+.rdetail{color:var(--accent-h);cursor:pointer}
 </style>
 </head>
 <body>
 <div class="win">
 
-  <!-- ═══ TITLE BAR ═══ -->
+  <!-- ═══ NEW OUTLOOK TOP BAR ═══ -->
+  <div class="owa-top">
+    <div class="owa-waffle"><svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><rect x="1" y="1" width="4" height="4" rx="1"/><rect x="7" y="1" width="4" height="4" rx="1"/><rect x="13" y="1" width="4" height="4" rx="1"/><rect x="1" y="7" width="4" height="4" rx="1"/><rect x="7" y="7" width="4" height="4" rx="1"/><rect x="13" y="7" width="4" height="4" rx="1"/><rect x="1" y="13" width="4" height="4" rx="1"/><rect x="7" y="13" width="4" height="4" rx="1"/><rect x="13" y="13" width="4" height="4" rx="1"/></g></svg></div>
+    <div class="owa-brand"><svg viewBox="0 0 28 24" width="22" height="19" xmlns="http://www.w3.org/2000/svg"><rect x="11" y="4.5" width="16" height="15" rx="1.6" fill="#36A3EB"/><path d="M12 7.5l7 5 7-5" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="6" width="14" height="12" rx="1.8" fill="#0F6CBD"/><ellipse cx="8" cy="12" rx="4.3" ry="3.6" fill="none" stroke="#fff" stroke-width="2"/></svg>Outlook</div>
+    <div class="owa-search"><svg width="16" height="16" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="8.5" cy="8.5" r="5" fill="none" stroke="#605E5C" stroke-width="1.6"/><path d="M12.5 12.5l4.5 4.5" stroke="#605E5C" stroke-width="1.6" stroke-linecap="round"/></svg>搜索邮件 · Search</div>
+    <div class="owa-topr">
+      <span class="owa-tic" title="日历"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4.5" width="14" height="12.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 8h14M6.5 3v3M13.5 3v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      <span class="owa-tic" title="联系人"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4 16.5v-1A4.5 4.5 0 0 1 8.5 11h3a4.5 4.5 0 0 1 4.5 4.5v1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      <span class="owa-tic" title="帮助"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9.2v4.3M10 6.4v.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+      <span class="owa-avatar">LZ</span>
+    </div>
+  </div>
+
+  <!-- ═══ TITLE BAR (hidden) ═══ -->
   <div class="titlebar">
     <div class="tb-oicon"><svg viewBox="0 0 28 24" width="23" height="20" xmlns="http://www.w3.org/2000/svg"><rect x="11" y="4.5" width="16" height="15" rx="1.6" fill="#36A3EB"/><path d="M12 7.5l7 5 7-5" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="1" y="6" width="14" height="12" rx="1.8" fill="#0F6CBD"/><ellipse cx="8" cy="12" rx="4.3" ry="3.6" fill="none" stroke="#fff" stroke-width="2"/></svg></div>
     <div class="tb-qab"><span class="q">↻</span><span class="q">↶</span><span class="q">⌄</span></div>
@@ -412,7 +493,49 @@ button{font-family:var(--font);cursor:pointer}
 
   <!-- ═══ BODY: reading | taskpane ═══ -->
   <div class="win-body">
+    <!-- left icon rail -->
+    <div class="owa-rail">
+      <div class="owa-rnav on" title="邮件"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="4.5" width="15" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M3 5.5l7 5 7-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+      <div class="owa-rnav" title="日历"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4.5" width="14" height="12.5" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3 8h14M6.5 3v3M13.5 3v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="owa-rnav" title="联系人"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4 16.5v-1A4.5 4.5 0 0 1 8.5 11h3a4.5 4.5 0 0 1 4.5 4.5v1" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></div>
+      <div class="owa-rnav" title="文件夹"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 5.5a1 1 0 0 1 1-1h3.5l1.5 1.8H16.5a1 1 0 0 1 1 1v7.2a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></div>
+      <div class="owa-rnav" title="更多"><svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="4" cy="10" r="1.4" fill="currentColor"/><circle cx="10" cy="10" r="1.4" fill="currentColor"/><circle cx="16" cy="10" r="1.4" fill="currentColor"/></svg></div>
+    </div>
+    <!-- folder pane -->
+    <div class="owa-fold">
+      <button class="owa-new"><svg width="14" height="14" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M8 3v10M3 8h10" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/></svg>新建邮件 · New mail</button>
+      <div class="owa-fgrp">收藏夹 · FAVORITES</div>
+      <div class="owa-fitem on"><span class="fi"><svg width="15" height="15" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M2.5 10.5V5a1 1 0 0 1 1-1h11a1 1 0 0 1 1 1v5.5M2.5 10.5h3l1 2h5l1-2h3M2.5 10.5V13a1 1 0 0 0 1 1h11a1 1 0 0 0 1-1v-2.5" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></span><span class="fn">收件箱 Inbox</span><span class="fc">12</span></div>
+      <div class="owa-fitem"><span class="fi"><svg width="15" height="15" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M9 2.5l1.9 3.9 4.3.6-3.1 3 .7 4.3L9 12.3 5.2 14.3l.7-4.3-3.1-3 4.3-.6z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></span><span class="fn">已加星标 Starred</span></div>
+      <div class="owa-fitem"><span class="fi"><svg width="15" height="15" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M12.5 3.5l2 2-7.5 7.5-2.7.7.7-2.7z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></span><span class="fn">草稿 Drafts</span><span class="fc">2</span></div>
+      <div class="owa-fitem"><span class="fi"><svg width="15" height="15" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M3 9l12-5-5 12-2-4z" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg></span><span class="fn">已发送 Sent</span></div>
+      <div class="owa-fitem"><span class="fi"><svg width="15" height="15" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 5h11M7 5V3.5h4V5M5 5l.7 9.5a1 1 0 0 0 1 .9h4.6a1 1 0 0 0 1-.9L13 5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="fn">已删除 Deleted</span></div>
+      <div class="owa-fgrp">文件夹 · FOLDERS</div>
+      <div class="owa-fitem"><span class="fi"><svg width="15" height="15" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><circle cx="9" cy="9" r="6.5" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M4.6 4.6l8.8 8.8" stroke="currentColor" stroke-width="1.3"/></svg></span><span class="fn">垃圾邮件 Junk Email</span><span class="fc">1</span></div>
+      <div class="owa-fitem"><span class="fi"><svg width="15" height="15" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="3.5" width="13" height="3.2" rx="0.6" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M3.8 6.7h10.4v7a1 1 0 0 1-1 1H4.8a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M7.3 9.3h3.4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></span><span class="fn">存档 Archive</span></div>
+    </div>
+    <!-- message list -->
+    <div class="owa-list" id="msgList"></div>
     <div class="reading">
+      <div class="owa-rtabs">
+        <span class="owa-rtab on">主页</span><span class="owa-rtab">视图</span><span class="owa-rtab">帮助</span><span class="owa-rtab">邮件</span>
+        <span class="spacer"></span><span class="home">主页 · Home</span>
+      </div>
+      <div class="owa-ribbon">
+        <button class="owa-cmd"><span class="ci"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M3.5 5.5h13M7 5.5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1.5M5.2 5.5l.8 10.2a1.2 1.2 0 0 0 1.2 1.1h5.6a1.2 1.2 0 0 0 1.2-1.1l.8-10.2" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>删除</button>
+        <button class="owa-cmd"><span class="ci"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><rect x="2.5" y="3.5" width="15" height="3.8" rx="0.8" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M4 7.3h12v8.4a1.1 1.1 0 0 1-1.1 1.1H5.1A1.1 1.1 0 0 1 4 15.7z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><path d="M8 10.5h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>存档</button>
+        <span class="owa-sep"></span>
+        <button class="owa-cmd"><span class="ci"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 5L3 9l4.5 4M3.5 9H11a5.5 5.5 0 0 1 5.5 5.5V16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>回复</button>
+        <button class="owa-cmd"><span class="ci"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5.5 4.5L1.5 8l4 3.5" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 5L5 8.5l4 3.5M5.5 8.5H12a5 5 0 0 1 5 5V15" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>全部回复</button>
+        <button class="owa-cmd"><span class="ci"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M9.5 5l4.5 4-4.5 4M13.5 9H6a5.5 5.5 0 0 0-5.5 5.5V16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>转发</button>
+        <span class="owa-sep"></span>
+        <button class="owa-cmd"><span class="ci"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 2.5v15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M5 3.5h10.5l-2.2 3.3 2.2 3.3H5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg></span>标记</button>
+        <button class="owa-cmd"><span class="ci"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 5.5a1 1 0 0 1 1-1h3.6l1.5 1.8H17a1 1 0 0 1 1 1v7.2a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg></span>移至 ⌄</button>
+        <span class="owa-sep"></span>
+        <button class="owa-cmd report" id="reportBtn"><span class="ci"><svg width="20" height="20" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="egl-bg2" x1="3" y1="6" x2="26" y2="26" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#0F6CBD"/><stop offset="1" stop-color="#0A4F8A"/></linearGradient></defs><rect x="3" y="7" width="22" height="15" rx="2" fill="url(#egl-bg2)"/><path d="M3.4 8 L14 16 L24.6 8" fill="none" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/><circle cx="22" cy="20" r="6.4" fill="#fff"/><circle cx="22" cy="20" r="6.4" fill="none" stroke="#0A4F8A" stroke-width="1.8"/><circle cx="22" cy="20" r="2.6" fill="#1A8CFF"/><line x1="26.6" y1="24.6" x2="30" y2="28" stroke="#0A4F8A" stroke-width="2.6" stroke-linecap="round"/></svg></span>邮件分析 Lite</button>
+        <span class="owa-sep"></span>
+        <button class="owa-cmd"><span class="ci"><svg width="18" height="18" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="4.5" cy="10" r="1.5" fill="currentColor"/><circle cx="10" cy="10" r="1.5" fill="currentColor"/><circle cx="15.5" cy="10" r="1.5" fill="currentColor"/></svg></span>更多</button>
+      </div>
       <div class="read-scroll" id="readView"></div>
       <div class="switcher">
         <span class="sl">预选邮件：</span>
@@ -621,13 +744,38 @@ function renderRead(){
       <div class="rav" style="background:${s.avc}">${esc(s.av)}</div>
       <div class="rwho">
         <div class="rn">${esc(s.from.name)} <span style="font-weight:400;color:var(--fg3);font-size:12.5px">&lt;${esc(s.from.address)}&gt;</span></div>
-        <div class="rto">收件人 To: ${s.to.map(t=>esc(t.name)).join(', ')}</div>
+        <div class="rto">收件人 To: ${s.to.map(t=>esc(t.name)).join(', ')} · 抄送 Cc: all-staff · <span class="rdetail">查看详情</span></div>
       </div>
       <div class="rmeta">${esc(s.date)}</div>
+      <div class="ract"><span title="回复"><svg width="16" height="16" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 5L3 9l4.5 4M3.5 9H11a5.5 5.5 0 0 1 5.5 5.5V16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span title="更多">⋯</span></div>
     </div>
     ${s.external?'<div class="extban">⚠️ <span><b>[外部发件人]</b> · External sender · 该邮件来自您组织外部，点击链接或打开附件前请确认发件人。</span></div>':''}
     <div class="read-body">${s.bodyHtml}</div>
     ${att?`<div class="read-att"><div style="font-size:12px;font-weight:600;color:var(--fg2);margin-bottom:9px">📎 ${s.attachments.length} 个附件 · ${s.attachments.length} attachments</div><div style="display:flex;gap:10px;flex-wrap:wrap">${att}</div></div>`:''}`;
+}
+
+/* ═══════ message list (inbox) ═══════ */
+function shortTime(d){if(/昨天|周|今天|早些/.test(d))return d.split(' ')[0];const m=d.match(/(\d{1,2}:\d{2})/);return m?m[1]:d;}
+function snip(s){const t=(s.body||'').replace(/\s+/g,' ').trim();return t.length>40?t.slice(0,40)+'…':t;}
+function renderList(){
+  const today=[],earlier=[];
+  SAMPLES.forEach((s,i)=>{(/^2026-06-22/.test(s.date)?today:earlier).push(i);});
+  const row=i=>{const s=SAMPLES[i];const unread=i!==cur&&!s._read;
+    return `<div class="owa-msg ${i===cur?'on':''} ${unread?'unread':''}" data-s="${i}">
+      ${unread?'<span class="owa-unreaddot"></span>':''}
+      <div class="mav" style="background:${s.avc}">${esc(s.av)}</div>
+      <div class="mbody">
+        <div class="mrow1"><span class="mfrom">${esc(s.from.name)}</span><span class="mtime">${esc(shortTime(s.date))}</span></div>
+        <div class="msubj">${esc(s.subject)}</div>
+        <div class="msnip"><span class="sx">${esc(snip(s))}</span>${s.attachments.length?'<span style="flex-shrink:0">📎</span>':''}${s.external?'<span class="owa-ext">外部</span>':''}</div>
+      </div></div>`;};
+  let h='';
+  if(today.length)h+=`<div class="owa-lgrp">今天 · Today</div>`+today.map(row).join('');
+  if(earlier.length)h+=`<div class="owa-lgrp">本周早些时候 · Earlier this week</div>`+earlier.map(row).join('');
+  $('#msgList').innerHTML=`
+    <div class="owa-lhead"><div><div class="lt">收件箱</div><div class="lc">Inbox · 12 unread</div></div><span class="owa-lfilter">筛选 · Filter ⌄</span></div>
+    <div class="owa-lscroll">${h}</div>`;
+  $('#msgList').querySelectorAll('.owa-msg').forEach(r=>r.onclick=()=>{cur=+r.dataset.s;SAMPLES[cur]._read=true;renderRead();renderList();if(paneOpen)renderTab();});
 }
 
 /* ═══════ task pane routing ═══════ */
@@ -927,6 +1075,7 @@ function closeSoc(){$('#scrim').classList.remove('show');$('#compose').classList
 function openPane(){paneOpen=true;$('#taskpane').classList.add('open');$('#addinBtn').classList.remove('pulse');renderTab();}
 function closePane(){paneOpen=false;$('#taskpane').classList.remove('open');}
 $('#addinBtn').onclick=()=>paneOpen?closePane():openPane();
+$('#reportBtn').onclick=()=>paneOpen?closePane():openPane();
 $('#tpClose').onclick=closePane;
 $('#cmpClose').onclick=closeSoc;$('#scrim').onclick=closeSoc;
 
@@ -964,9 +1113,7 @@ $('#taskpane').addEventListener('change',e=>{
 SAMPLES.forEach(ensureVerdict);
 
 /* init */
-renderRead();renderGuard();
-// reveal the right end of the ribbon (Read Aloud … EmailGuard Lite) like the real wide window
-setTimeout(()=>{const rb=$('#readRibbon');if(rb)rb.scrollLeft=rb.scrollWidth;},60);
+renderList();renderRead();renderGuard();
 </script>
 </body>
 </html>
