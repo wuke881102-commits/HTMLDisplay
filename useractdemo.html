@@ -1,0 +1,1431 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>UserAct 账号活动搜寻台 · 带注释的交互式演示</title>
+<style>
+/* ============================================================
+   UserAct — 企业用户账号活动搜寻台
+   交互式演示页（设计令牌取自 useract.css · GLP 绿设计系统）
+   ============================================================ */
+:root{
+  --canvas:#F9FAFC; --surface:#FFFFFF; --surface-2:#FCFDFE; --surface-sunken:#F0F1F3;
+  --border:#DDE3EA; --border-strong:#C5CCD3; --hairline:#E8ECF0;
+  --ink-900:#34383C; --ink-800:#42464A; --ink-700:#555B61; --ink-600:#656B71;
+  --ink-500:#737A82; --ink-400:#9CA3AF; --ink-300:#BCC2C9;
+  --primary:#117A56; --primary-700:#0E6346; --primary-600:#15885F;
+  --primary-soft:#E6F2EC; --primary-soft-2:#F0F8F4; --primary-ink:#0B5238;
+  --ai:#4A90D9; --ai-700:#2F6FB8; --ai-soft:#E4EEFB; --ai-soft-2:#F1F7FE; --ai-ink:#235B9C;
+  --ev-direct:#10B050; --ev-direct-soft:rgba(16,176,80,.12);
+  --ev-strong:#0095D4; --ev-strong-soft:rgba(0,149,212,.12);
+  --ev-weak:#C77F00; --ev-weak-soft:rgba(240,168,0,.16);
+  --risk-high:#C83A3A; --risk-high-soft:rgba(200,58,58,.12); --risk-high-ink:#9e2a2a;
+  --risk-med:#C77F00; --risk-med-soft:rgba(240,168,0,.15); --risk-med-ink:#8a5a00;
+  --risk-low:#737A82; --risk-low-soft:#F0F1F3;
+  --ok:#10B050; --ok-soft:rgba(16,176,80,.12); --warn:#C77F00; --warn-soft:rgba(240,168,0,.15);
+  --fail:#C83A3A; --fail-soft:rgba(200,58,58,.12); --idle:#737A82; --idle-soft:#F0F1F3;
+  --src-entra:#0095D4; --src-entra-soft:#E1F2FB; --src-audit:#9070F0; --src-audit-soft:#EFEAFD;
+  --src-es:#1F9587; --src-es-soft:#E0F2EF; --src-vlog:#DB7126; --src-vlog-soft:#FBEEE1;
+  --src-profile:#737A82; --src-profile-soft:#F0F1F3;
+  --font-sans:"HarmonyOS Sans SC","MiSans","Source Han Sans SC","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+  --font-mono:"JetBrains Mono","SF Mono",Menlo,Monaco,Consolas,monospace;
+  --r-sm:4px; --r-md:6px; --r-lg:8px; --r-xl:12px; --r-2xl:16px;
+  --shadow-xs:0 1px 2px rgba(16,24,40,.04);
+  --shadow-sm:0 1px 3px rgba(0,0,0,.08),0 0 0 1px rgba(0,0,0,.03);
+  --shadow-md:0 4px 12px rgba(0,0,0,.10),0 0 0 1px rgba(0,0,0,.04);
+  --shadow-lg:0 8px 24px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.05);
+  --maxw:1320px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;color:var(--ink-800);font-family:var(--font-sans);font-size:14px;line-height:1.55;
+  -webkit-font-smoothing:antialiased;}
+body{background:linear-gradient(180deg,#F7FAF6 0%,#F2F6F1 100%);}
+button{font-family:inherit;cursor:pointer;}
+input{font-family:inherit;}
+.mono{font-family:var(--font-mono);font-feature-settings:"tnum" 1;}
+::selection{background:var(--primary-soft);}
+@keyframes ua-fade{from{opacity:0}to{opacity:1}}
+@keyframes ua-fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes ua-spin{to{transform:rotate(360deg)}}
+@keyframes ua-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes ua-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes anno-ping{0%{box-shadow:0 0 0 0 rgba(17,122,86,.5)}70%{box-shadow:0 0 0 8px rgba(17,122,86,0)}100%{box-shadow:0 0 0 0 rgba(17,122,86,0)}}
+.spin{animation:ua-spin .9s linear infinite;}
+svg{flex:none;}
+
+/* ---------- demo chrome (脚手架，区别于产品本体) ---------- */
+.demo-bar{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:18px;
+  padding:10px 20px;background:#0c1f18;color:#dcefe3;border-bottom:1px solid #163b2c;}
+.demo-bar .brandwrap{display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;letter-spacing:.01em;color:#fff;}
+.demo-bar .brandwrap .badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;
+  background:rgba(34,171,118,.2);color:#9ff0c8;font-size:10.5px;font-weight:700;letter-spacing:.06em;}
+.stepper{display:flex;align-items:center;gap:6px;margin:0 auto;}
+.stepper button{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:transparent;
+  color:#88b6a2;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;transition:all .14s;}
+.stepper button .num{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;
+  background:rgba(255,255,255,.08);color:#9ff0c8;}
+.stepper button.on{background:rgba(34,171,118,.16);color:#eafff4;border-color:rgba(34,171,118,.4);}
+.stepper button.on .num{background:var(--primary);color:#fff;}
+.stepper .arrow{color:#3c5f4f;font-size:13px;}
+.demo-actions{display:flex;align-items:center;gap:10px;}
+.demo-actions .toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid #2a5443;background:rgba(255,255,255,.04);
+  color:#cdeeda;font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:999px;}
+.demo-actions .toggle.on{background:var(--primary);border-color:var(--primary-600);color:#fff;}
+.demo-actions .toggle .sw{width:30px;height:16px;border-radius:999px;background:#28473a;position:relative;transition:background .15s;}
+.demo-actions .toggle.on .sw{background:#0c3b27;}
+.demo-actions .toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;
+  background:#9bbcae;transition:all .16s;}
+.demo-actions .toggle.on .sw::after{left:16px;background:#fff;}
+.demo-actions .ghost{border:1px solid #2a5443;background:transparent;color:#a9d2c0;font-size:12.5px;font-weight:600;
+  padding:7px 13px;border-radius:999px;}
+.demo-actions .ghost:hover{background:rgba(255,255,255,.05);color:#fff;}
+
+/* ---------- shared product bits ---------- */
+.chip{display:inline-flex;align-items:center;gap:5px;height:22px;padding:0 8px;border-radius:100px;
+  font-size:11.5px;font-weight:500;line-height:1;white-space:nowrap;}
+.tag{display:inline-flex;align-items:center;gap:5px;height:21px;padding:0 9px;border-radius:999px;
+  font-size:11px;font-weight:500;line-height:1;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);}
+
+/* topnav */
+.ua-topnav{position:relative;z-index:20;background:var(--surface);border-bottom:1px solid var(--border);}
+.ua-topnav .inner{width:fit-content;max-width:calc(100% - 48px);margin:0 auto;padding:12px 24px;display:flex;align-items:center;gap:22px;min-height:64px;}
+.brandmark{display:flex;align-items:center;gap:11px;cursor:pointer;}
+.brandmark .glyph{width:42px;height:42px;border-radius:12px;flex:none;
+  background:linear-gradient(155deg,var(--primary) 0%,var(--primary-700) 100%);display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px -3px var(--primary);}
+.brandmark .glyph svg{display:block;}
+.brandmark .txt{display:flex;flex-direction:column;justify-content:center;}
+.brandmark .t1{font-weight:900;font-size:18px;color:var(--ink-900);line-height:1.1;}
+.brandmark .t2{font-size:10.5px;color:var(--ink-500);font-weight:600;line-height:1.25;margin-top:1px;}
+.ua-topnav nav{display:flex;align-items:center;gap:8px;}
+.ua-topnav nav button{border:none;background:transparent;color:var(--ink-600);font-weight:500;font-size:14px;
+  padding:7px 14px;border-radius:999px;white-space:nowrap;}
+.ua-topnav nav button.on{background:var(--primary-soft);color:var(--primary-ink);font-weight:600;}
+.userblock{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.userblock .nm{font-size:13px;font-weight:700;color:var(--ink-900);text-align:right;line-height:1.2;}
+.userblock .em{font-size:11px;color:var(--ink-500);text-align:right;}
+.role-pill{display:inline-flex;align-items:center;gap:5px;height:26px;padding:0 11px;border-radius:999px;
+  background:var(--primary-soft);color:var(--primary-ink);font-size:12px;font-weight:600;}
+.btn-primary{display:inline-flex;align-items:center;gap:7px;border:none;background:var(--primary);color:#fff;
+  padding:9px 18px;border-radius:999px;font-weight:600;font-size:14px;white-space:nowrap;box-shadow:0 2px 8px -3px var(--primary);}
+.btn-ghost{border:1px solid var(--border-strong);background:var(--surface);color:var(--ink-700);
+  padding:9px 18px;border-radius:999px;font-weight:600;font-size:14px;}
+
+/* ---------- search home ---------- */
+.ua-home{min-height:calc(100vh - 49px);display:flex;flex-direction:column;
+  background:radial-gradient(circle at 10% 18%,rgba(34,163,113,.14),transparent 26%),
+    radial-gradient(circle at 79% 30%,rgba(74,144,217,.10),transparent 22%),
+    linear-gradient(180deg,#F8FBF7 0%,#F0F6F1 100%);}
+.ua-home-main{width:100%;max-width:1120px;margin:0 auto;display:grid;
+  grid-template-columns:minmax(0,520px) minmax(330px,430px);align-items:start;align-content:center;
+  justify-content:space-between;gap:clamp(24px,4vw,52px);padding:34px 42px 90px;flex:1;}
+.ua-home-copy{max-width:520px;}
+.ua-home-kicker{display:inline-flex;align-items:center;height:26px;padding:0 12px;margin-bottom:14px;
+  border-radius:999px;background:rgba(17,122,86,.08);color:#087353;font-size:11px;font-weight:800;}
+.ua-home-copy h1{margin:0 0 14px;color:#10241b;font-size:clamp(34px,3.6vw,46px);line-height:1.02;font-weight:900;text-align:left;}
+.ua-home-copy h1 .first{color:var(--primary);}
+.ua-home-copy p.lede{max-width:500px;margin:0 0 22px;color:#58665f;font-size:14.5px;font-weight:500;line-height:1.7;}
+.ua-home-searchbox{max-width:520px;display:flex;align-items:center;gap:10px;background:var(--surface);
+  border:1.5px solid var(--border-strong);border-radius:14px;padding:6px 6px 6px 16px;box-shadow:var(--shadow-sm);
+  transition:box-shadow .15s,border-color .15s;}
+.ua-home-searchbox.focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft),var(--shadow-md);}
+.ua-home-searchbox input{flex:1;border:none;outline:none;font-size:15.5px;color:var(--ink-900);background:transparent;padding:8px 0;}
+.ua-home-searchbox button{display:inline-flex;align-items:center;gap:7px;border:none;background:var(--primary);color:#fff;
+  padding:11px 20px;border-radius:999px;font-weight:600;font-size:14px;box-shadow:0 2px 8px -2px var(--primary);}
+.ua-home-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;}
+.ua-home-tags span{font-size:12px;color:var(--ink-500);background:var(--surface);border:1px solid var(--border);
+  padding:4px 10px;border-radius:100px;}
+.ua-home-controls{display:flex;gap:12px;margin-top:24px;flex-wrap:wrap;}
+.fieldlabel{display:block;font-size:12px;font-weight:600;color:var(--ink-600);margin-bottom:7px;}
+.rangeseg{display:flex;gap:6px;background:var(--surface-sunken);padding:4px;border-radius:10px;}
+.rangeseg button{flex:1;border:none;border-radius:7px;padding:8px 4px;font-size:12.5px;font-weight:600;
+  background:transparent;color:var(--ink-500);white-space:nowrap;}
+.rangeseg button.on{background:var(--surface);color:var(--primary);box-shadow:var(--shadow-xs);}
+.reason-input{width:100%;border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;font-size:13.5px;
+  color:var(--ink-900);background:var(--surface);}
+/* evidence tiers */
+.ua-evidence-card{width:100%;max-width:430px;margin-top:54px;padding:22px;border:1px solid rgba(17,122,86,.10);
+  border-radius:var(--r-xl);background:rgba(255,255,255,.92);box-shadow:0 28px 58px -34px rgba(16,35,27,.52);}
+.ua-evidence-head{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-bottom:14px;}
+.ua-evidence-head span{color:#172820;font-weight:900;font-size:14px;}
+.ua-evidence-head b{color:#8b948f;font-size:10px;letter-spacing:.08em;}
+.ua-evidence-list{display:grid;gap:9px;}
+.ua-evidence-tier{min-height:62px;display:grid;grid-template-columns:minmax(0,1fr) 38px;align-items:center;gap:8px;
+  padding:11px 0 11px 14px;border-radius:var(--r-lg);border-left:5px solid var(--primary);}
+.ua-evidence-tier strong{display:block;color:#0b6a4c;font-size:14px;line-height:1.2;margin-bottom:3px;}
+.ua-evidence-tier p{margin:0;color:#69736e;font-size:11.5px;line-height:1.4;}
+.ua-evidence-tier .no{color:rgba(34,39,36,.25);font-size:18px;font-weight:900;text-align:center;}
+.ua-evidence-tier.profile{background:#E4F2EA;border-left-color:#22AB76;}
+.ua-evidence-tier.signin{background:#FBF0CC;border-left-color:#DFA313;}
+.ua-evidence-tier.signin strong{color:#A46C00;}
+.ua-evidence-tier.audit{background:#F7E4D8;border-left-color:#DD6D30;}
+.ua-evidence-tier.audit strong{color:#C84F22;}
+.ua-evidence-tier.geo{background:#F3DAD7;border-left-color:#D64A3C;}
+.ua-evidence-tier.geo strong{color:#B9342C;}
+.home-foot{padding:16px 28px;text-align:center;color:var(--ink-400);font-size:12px;}
+
+/* ---------- candidates ---------- */
+.cand-wrap{max-width:760px;margin:0 auto;padding:44px 24px;}
+.cand-card{display:flex;align-items:center;gap:16px;text-align:left;width:100%;background:var(--surface);padding:16px;
+  border:1.5px solid var(--border);border-radius:var(--r-lg);transition:all .14s;box-shadow:var(--shadow-xs);}
+.cand-card:hover{border-color:var(--border-strong);}
+.cand-card.sel{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-soft),var(--shadow-sm);}
+.avatar{border-radius:50%;flex:none;display:grid;place-items:center;color:#fff;font-weight:600;box-shadow:var(--shadow-xs);}
+.matchtag{font-size:10.5px;font-weight:600;color:var(--primary);background:var(--primary-soft);padding:2px 7px;border-radius:5px;}
+.tenant-chip{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:600;padding:1px 8px;border-radius:5px;
+  background:var(--primary-soft);color:var(--primary-ink);}
+.statuspill{font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:5px;}
+.radio{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--border-strong);}
+.radio.on{border-color:var(--primary);background:var(--primary);}
+
+/* ---------- results ---------- */
+.appbar{position:sticky;top:49px;z-index:30;}
+.targetbar{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow-xs);}
+.targetbar .inner{max-width:var(--maxw);margin:0 auto;padding:10px 24px;display:flex;align-items:center;gap:14px;}
+.target-btn{display:flex;align-items:center;gap:9px;background:var(--surface-sunken);border:1px solid var(--border);
+  border-radius:999px;padding:6px 6px 6px 14px;color:var(--ink-600);}
+.progress{max-width:var(--maxw);margin:0 auto;padding:14px 24px 0;}
+.progress .box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 14px;
+  display:flex;align-items:center;gap:16px;box-shadow:var(--shadow-xs);flex-wrap:wrap;}
+.statusdot{width:8px;height:8px;border-radius:50%;flex:none;}
+.results-body{max-width:var(--maxw);margin:0 auto;padding:20px 24px 60px;display:flex;flex-direction:column;gap:22px;}
+.overview{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;}
+.ovtile{text-align:left;border:1px solid var(--border);border-radius:var(--r-md);padding:14px;background:var(--surface);
+  box-shadow:var(--shadow-xs);transition:all .12s;}
+.ovtile:hover{border-color:var(--border-strong);box-shadow:var(--shadow-sm);transform:translateY(-1px);}
+.ovtile .ico{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;background:var(--surface-sunken);}
+.ovtile .v{font-size:23px;font-weight:600;color:var(--ink-900);line-height:1;letter-spacing:-.02em;}
+.ovtile .k{font-size:11.5px;color:var(--ink-500);margin-top:5px;}
+.results-grid{display:grid;grid-template-columns:340px 1fr;gap:24px;align-items:start;}
+.rail{display:flex;flex-direction:column;gap:14px;position:sticky;top:108px;max-height:calc(100vh - 120px);overflow-y:auto;}
+.railLabel{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--ink-500);
+  text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;}
+.tinytag{font-size:11px;color:var(--ink-500);background:var(--surface-sunken);padding:2px 7px;border-radius:5px;}
+.maincol{display:flex;flex-direction:column;gap:22px;min-width:0;}
+.sectitle{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.sectitle .ico{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;flex:none;
+  background:var(--surface-sunken);color:var(--ink-600);}
+.sectitle .t{font-size:15px;font-weight:600;color:var(--ink-900);}
+.sectitle .s{font-size:12px;color:var(--ink-500);margin-top:1px;}
+
+/* AI story */
+.aistory{border:1px solid var(--ai-soft);border-radius:var(--r-xl);overflow:hidden;background:var(--surface);
+  box-shadow:0 1px 3px rgba(60,75,95,.08),0 8px 28px -16px rgba(60,75,95,.30);}
+.aistory .head{background:linear-gradient(120deg,var(--ai-soft-2),var(--ai-soft));padding:16px 22px;
+  display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--ai-soft);}
+.aistory .head .glyph{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;
+  background:linear-gradient(150deg,var(--ai),var(--ai-700));color:#fff;flex:none;box-shadow:0 3px 8px -2px var(--ai);}
+.modeseg{display:flex;gap:4px;background:#ffffffaa;border-radius:9px;padding:3px;border:1px solid var(--ai-soft);}
+.modeseg button{border:none;border-radius:6px;padding:6px 12px;font-size:12.5px;font-weight:600;background:transparent;color:var(--ai);}
+.modeseg button.on{background:var(--ai);color:#fff;}
+.cite{font-size:10px;font-weight:600;color:var(--ink-400);background:transparent;border:1px solid var(--border);
+  border-radius:5px;padding:0 4px;margin-left:4px;font-family:var(--font-mono);vertical-align:.06em;}
+.cite:hover{color:var(--primary);border-color:var(--primary);background:var(--primary-soft);}
+.story-callout{display:flex;gap:9px;align-items:flex-start;margin-top:6px;padding:12px 14px;background:var(--warn-soft);
+  border-radius:10px;border-left:3px solid var(--warn);color:var(--risk-med-ink);font-size:13.5px;line-height:1.6;}
+.datechip{font-size:11.5px;font-weight:600;color:var(--ai);background:var(--ai-soft);border-radius:6px;padding:2px 9px;
+  white-space:nowrap;font-family:var(--font-mono);}
+
+/* risks */
+.risk-item{border:1px solid var(--border);border-radius:var(--r-md);background:var(--surface);overflow:hidden;box-shadow:var(--shadow-xs);}
+.risk-item.open{box-shadow:var(--shadow-sm);}
+.risk-head{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:transparent;border:none;padding:13px 15px;}
+.risk-head .ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;flex:none;}
+.sevtag{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:700;}
+.evbadge{display:inline-flex;align-items:center;gap:5px;height:21px;padding:0 9px;border-radius:999px;font-size:11px;font-weight:600;}
+.evbadge .gem{width:6px;height:6px;border-radius:2px;}
+
+/* timeline */
+.tl-toolbar{position:sticky;top:104px;z-index:12;margin-bottom:14px;padding:10px 0;border-bottom:1px solid var(--hairline);
+  background:rgba(247,250,246,.94);backdrop-filter:blur(8px);}
+#sec-risk,#sec-timeline{scroll-margin-top:120px;}
+.pillbtn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);background:var(--surface);
+  color:var(--ink-600);padding:5px 12px;border-radius:999px;font-size:12.5px;font-weight:600;}
+.pillbtn.on{border-color:var(--primary);background:var(--primary-soft);color:var(--primary-ink);}
+.tl-node{display:flex;gap:14px;position:relative;}
+.tl-spine{display:flex;flex-direction:column;align-items:center;flex:none;width:30px;}
+.tl-dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;z-index:1;border:2px solid var(--surface);box-shadow:var(--shadow-xs);}
+.tl-line{flex:1;width:2px;background:var(--hairline);margin-top:2px;}
+.tl-row{flex:1;min-width:0;display:flex;gap:12px;align-items:stretch;margin-bottom:12px;}
+.tl-card{flex:1;min-width:0;text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:12px 14px;transition:all .14s;box-shadow:var(--shadow-xs);}
+.tl-card:hover{border-color:var(--border-strong);}
+.tl-card.risk{border-color:var(--risk-high-soft);}
+.tl-ipcard{width:236px;flex:none;text-align:left;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-md);padding:11px 13px;box-shadow:var(--shadow-xs);display:flex;flex-direction:column;gap:7px;}
+.tl-ipcard.flag{border-color:var(--risk-high-soft);}
+.srcchip{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:100px;font-size:11px;font-weight:600;}
+
+/* drawers */
+.scrim{position:fixed;inset:0;background:rgba(20,28,24,.32);z-index:90;animation:ua-fade .15s ease;}
+.drawer{position:fixed;top:0;right:0;height:100vh;width:min(540px,94vw);background:var(--surface);z-index:91;
+  box-shadow:-12px 0 40px -12px rgba(0,0,0,.3);display:flex;flex-direction:column;animation:drawer-in .22s ease;}
+@keyframes drawer-in{from{transform:translateX(30px);opacity:0}to{transform:none;opacity:1}}
+.drawer .dhead{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:12px;}
+.drawer .dbody{padding:18px 22px;overflow-y:auto;flex:1;}
+.kv{display:grid;grid-template-columns:118px 1fr;gap:6px 12px;font-size:12.5px;}
+.kv .k{color:var(--ink-400);}
+.kv .v{color:var(--ink-800);font-weight:500;}
+.rawbox{margin-top:14px;background:#0e1c16;color:#cfe9dd;border-radius:8px;padding:13px 14px;font-family:var(--font-mono);
+  font-size:11.5px;line-height:1.65;white-space:pre-wrap;word-break:break-all;}
+.iconbtn{display:grid;place-items:center;width:34px;height:34px;border-radius:999px;border:1px solid var(--border);
+  background:var(--surface);color:var(--ink-600);}
+
+/* ---------- secondary pages (history / audit / sources) ---------- */
+.ua-page{max-width:var(--maxw);margin:0 auto;padding:32px 24px;}
+.ua-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--r-xl);overflow:hidden;}
+.ua-table th{background:var(--surface-sunken);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;
+  letter-spacing:.05em;color:var(--ink-500);text-align:left;padding:10px 14px;}
+.ua-table td{border-bottom:1px solid var(--hairline);padding:10px 14px;font-size:12.5px;color:var(--ink-700);}
+.ua-table tr:hover td{background:var(--surface-sunken);}
+.src-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);padding:16px;}
+
+/* ---------- annotation layer ---------- */
+.anno-pin{display:none;}
+body.anno-on .anno-pin{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;
+  background:var(--primary);color:#fff;font-size:11px;font-weight:800;vertical-align:middle;margin:0 2px;flex:none;
+  box-shadow:0 2px 6px -1px rgba(17,122,86,.6);animation:anno-ping 2.4s infinite;cursor:pointer;position:relative;z-index:5;}
+body.anno-on .anno-pin:hover{transform:scale(1.12);}
+/* floating-style pins anchored to a corner of a block */
+.anno-anchor{position:relative;}
+body.anno-on .anno-pin.corner{position:absolute;top:-9px;left:-9px;animation:anno-ping 2.4s infinite;}
+.anno-pop{position:fixed;z-index:95;width:330px;max-width:92vw;background:#0c1f18;color:#e7f6ee;border-radius:12px;
+  box-shadow:0 18px 50px -10px rgba(0,0,0,.5);padding:0;animation:ua-fade-up .18s ease;border:1px solid #1d4634;}
+.anno-pop .ah{display:flex;align-items:center;gap:9px;padding:13px 15px 9px;border-bottom:1px solid #163b2c;}
+.anno-pop .ah .n{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-weight:800;font-size:12px;
+  display:grid;place-items:center;flex:none;}
+.anno-pop .ah .ti{font-weight:800;font-size:14px;color:#fff;}
+.anno-pop .ab{padding:11px 15px 14px;font-size:12.8px;line-height:1.62;color:#c8e3d6;}
+.anno-pop .ab b{color:#9ff0c8;font-weight:700;}
+.anno-pop .src{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:600;color:#7fbfa3;
+  background:rgba(34,171,118,.12);padding:4px 9px;border-radius:6px;}
+.anno-pop .closep{margin-left:auto;border:none;background:transparent;color:#6f9685;}
+.anno-hint{display:none;}
+body.anno-on .anno-hint{display:flex;align-items:center;gap:8px;justify-content:center;padding:9px 16px;
+  background:var(--primary-soft);color:var(--primary-ink);font-size:12.5px;font-weight:600;border-bottom:1px solid rgba(17,122,86,.18);}
+
+/* intro modal */
+.intro-scrim{position:fixed;inset:0;background:rgba(12,31,24,.55);z-index:100;display:grid;place-items:center;padding:24px;animation:ua-fade .2s ease;}
+.intro{width:100%;max-width:560px;background:var(--surface);border-radius:18px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.intro .ih{padding:26px 28px 18px;background:linear-gradient(135deg,#0e6346,#117A56);color:#fff;}
+.intro .ih h2{margin:0 0 6px;font-size:21px;font-weight:900;}
+.intro .ih p{margin:0;font-size:13px;color:#cdeede;line-height:1.6;}
+.intro .ib{padding:22px 28px;}
+.intro .step{display:flex;gap:13px;padding:11px 0;border-bottom:1px solid var(--hairline);}
+.intro .step:last-child{border-bottom:none;}
+.intro .step .n{width:26px;height:26px;border-radius:50%;background:var(--primary-soft);color:var(--primary-ink);
+  font-weight:800;font-size:13px;display:grid;place-items:center;flex:none;}
+.intro .step .tt{font-weight:700;color:var(--ink-900);font-size:13.5px;}
+.intro .step .dd{font-size:12.5px;color:var(--ink-600);margin-top:2px;line-height:1.55;}
+.intro .if{padding:0 28px 26px;display:flex;gap:10px;justify-content:flex-end;}
+
+@media(max-width:1080px){.results-grid{grid-template-columns:1fr;}.rail{position:static;}.tl-toolbar{position:static;}}
+@media(max-width:960px){.ua-home-main{grid-template-columns:1fr;}.ua-evidence-card{margin-top:8px;max-width:680px;}
+  .overview{grid-template-columns:repeat(3,1fr);}.tl-ipcard{display:none;}}
+</style>
+</head>
+<body class="anno-on">
+
+<!-- ===================== demo chrome ===================== -->
+<div class="demo-bar">
+  <div class="brandwrap">UserAct <span class="badge">交互式演示</span></div>
+  <div class="stepper" id="stepper">
+    <button data-step="search"><span class="num">1</span>账号搜索</button>
+    <span class="arrow">›</span>
+    <button data-step="candidates"><span class="num">2</span>候选消歧</button>
+    <span class="arrow">›</span>
+    <button data-step="results"><span class="num">3</span>活动故事线</button>
+  </div>
+  <div class="demo-actions">
+    <button class="toggle on" id="annoToggle"><span class="sw"></span>注释模式</button>
+    <button class="ghost" id="introBtn">使用说明</button>
+    <button class="ghost" id="restartBtn">重新开始</button>
+  </div>
+</div>
+
+<div class="anno-hint" id="annoHint">
+  注释模式已开启 — 界面上闪烁的绿色数字 ❶❷❸ 可点击，查看每个区域的功能说明与对应数据源。
+</div>
+
+<!-- ===================== product frame ===================== -->
+<div id="app"></div>
+
+<!-- annotation popover + drawers get injected here -->
+<div id="overlay"></div>
+
+<script>
+/* ============================================================
+   图标集（取自 useract.css / ui.jsx 的 UA_ICONS）
+   ============================================================ */
+const ICONS = {
+  search:"M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3",
+  user:"M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0",
+  shield:"M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z",
+  shieldCheck:"M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z|M9 12l2 2 4-4",
+  alert:"M12 4 2.5 20h19L12 4Z|M12 10v4|M12 17.5v.5",
+  clock:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z|M12 7v5l3 2",
+  globe:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z|M3 12h18|M12 3c2.5 2.5 3.5 5.7 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.7-3.5-9s1-6.5 3.5-9Z",
+  server:"M4 5h16v5H4zM4 14h16v5H4z|M7.5 7.5h.01M7.5 16.5h.01",
+  key:"M14 7a4 4 0 1 0-3.4 6L4 19.6 5.5 21l1.5-1.5L8.5 21 10 19.5 8.5 18l2.5-2.5A4 4 0 0 0 14 7Z",
+  login:"M15 3h4a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1h-4|M10 17l5-5-5-5|M15 12H3",
+  logout:"M9 3H5a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h4|M16 17l5-5-5-5|M21 12H9",
+  fingerprint:"M12 11a2 2 0 0 0-2 2c0 2 .5 4-1 6|M12 7a6 6 0 0 0-6 6c0 1.5 0 3-1 4.5|M18 13a6 6 0 0 0-9-5.2|M21 13c0-5-4-8.5-9-8.5-1.8 0-3.4.5-4.8 1.3|M15 13c0-1.7-1.3-3-3-3|M12 15c0 3 0 4-1 6",
+  refresh:"M21 12a9 9 0 1 1-2.6-6.3M21 4v4h-4",
+  download:"M12 3v12m0 0 4-4m-4 4-4-4|M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2",
+  chevronD:"M6 9l6 6 6-6", chevronR:"M9 6l6 6-6 6", chevronL:"M15 6l-6 6 6 6",
+  x:"M6 6l12 12M18 6 6 18", check:"M5 12l5 5 9-11", dot:"M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z",
+  monitor:"M3 4h18v12H3zM8 20h8M12 16v4", lock:"M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3",
+  building:"M5 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M15 9h3a1 1 0 0 1 1 1v11M9 7h2M9 11h2M9 15h2",
+  pin:"M12 21s7-6 7-11a7 7 0 1 0-14 0c0 5 7 11 7 11Z|M12 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z",
+  sparkles:"M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6L12 4Z|M18 15l.7 2 2 .7-2 .7L18 21l-.7-2-2-.7 2-.7.7-2",
+  link:"M9 15l6-6|M11 7l1-1a3.5 3.5 0 0 1 5 5l-1 1|M13 17l-1 1a3.5 3.5 0 0 1-5-5l1-1",
+  layers:"M12 3l9 5-9 5-9-5 9-5Z|M3 13l9 5 9-5",
+  list:"M8 6h13M8 12h13M8 18h13|M3.5 6h.01M3.5 12h.01M3.5 18h.01",
+  arrowR:"M5 12h14M13 6l6 6-6 6", bolt:"M13 3 4 14h7l-1 7 9-11h-7l1-7Z",
+  history:"M3 12a9 9 0 1 1 3 6.7M3 12H1m2 0V9|M12 8v4l3 2",
+  group:"M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z|M3 20a6 6 0 0 1 12 0|M16 5.5a3 3 0 0 1 0 5.8|M17.5 14a6 6 0 0 1 3.5 6",
+};
+function icon(name,size=16,stroke=1.7,color){
+  const raw=ICONS[name]; if(!raw) return "";
+  const parts=raw.split("|").map(d=>`<path d="${d}"/>`).join("");
+  return `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color||'currentColor'}" stroke-width="${stroke}" stroke-linecap="round" stroke-linejoin="round">${parts}</svg>`;
+}
+
+/* ============================================================
+   演示数据（仿真 · 完全虚构的示例账号）
+   ============================================================ */
+const SRC_META={
+  entra_signin:{label:"Entra 登录",icon:"login",hue:"entra"},
+  entra_audit:{label:"Entra 审计",icon:"history",hue:"audit"},
+  entra_profile:{label:"Entra 画像",icon:"user",hue:"profile"},
+  prod_es:{label:"Ucenter",icon:"server",hue:"es"},
+  pdcvlog:{label:"LogInsight",icon:"layers",hue:"vlog"},
+};
+const CAT_ICON={signin:"login",mfa:"fingerprint",audit_change:"history",permission_change:"key",
+  business_access:"server",remote_access:"globe",windows_security:"monitor",risk:"alert"};
+const EV_META={direct:{label:"直接匹配",color:"var(--ev-direct)",soft:"var(--ev-direct-soft)",dash:false},
+  strong:{label:"强关联",color:"var(--ev-strong)",soft:"var(--ev-strong-soft)",dash:false},
+  weak:{label:"弱关联",color:"var(--ev-weak)",soft:"var(--ev-weak-soft)",dash:true}};
+const SEV_META={high:{label:"高",color:"var(--risk-high)",soft:"var(--risk-high-soft)",ink:"var(--risk-high-ink)"},
+  med:{label:"中",color:"var(--risk-med)",soft:"var(--risk-med-soft)",ink:"var(--risk-med-ink)"},
+  low:{label:"低",color:"var(--risk-low)",soft:"var(--risk-low-soft)",ink:"var(--risk-low)"}};
+const STATUS_META={success:{label:"成功",color:"var(--ok)"},partial:{label:"部分",color:"var(--warn)"},
+  querying:{label:"查询中",color:"var(--primary)"},no_data:{label:"无数据",color:"var(--idle)"},
+  failed:{label:"失败",color:"var(--fail)"},denied:{label:"权限不足",color:"var(--fail)"}};
+const RESULT_META={success:{label:"成功",color:"var(--ok)"},failure:{label:"失败",color:"var(--fail)"},
+  active:{label:"活动中",color:"var(--ev-strong)"},closed:{label:"已关闭",color:"var(--idle)"},unknown:{label:"未知",color:"var(--idle)"}};
+const LANE_META={user_action:{label:"用户操作",icon:"user",color:"var(--primary)",soft:"var(--primary-soft)"},
+  account_admin:{label:"账号管理",icon:"key",color:"var(--warn)",soft:"var(--warn-soft)"},
+  non_interactive:{label:"非交互",icon:"refresh",color:"var(--idle)",soft:"var(--idle-soft)"}};
+
+const CANDIDATES=[
+  {account_key:"k-simon",display_name:"Simon Wang",upn:"simon.wang@glprop.com",employee_id:"10004821",
+   department:"数字科技部",job_title:"高级系统工程师",status:"已启用",avatar_hue:158,
+   match_on:["email_prefix","display_name"],tenant_label:"glprop.com"},
+  {account_key:"k-simonw",display_name:"Simon Wong",upn:"simon.wong@glprop.com",employee_id:"10007732",
+   department:"投资管理部",job_title:"投资分析师",status:"已启用",avatar_hue:208,
+   match_on:["email_prefix"],tenant_label:"glprop.com"},
+  {account_key:"k-swang",display_name:"Simon Wang",upn:"swang@glp.com",employee_id:"G2-30188",
+   department:"Group IT",job_title:"DevOps Engineer",status:"已禁用",avatar_hue:24,
+   match_on:["display_name"],tenant_label:"glp.com"},
+];
+
+const ACCOUNT={
+  account_key:"k-simon",display_name:"Simon Wang",upn:"simon.wang@glprop.com",
+  email:"simon.wang@glprop.com",aliases:["s.wang@glprop.com","wangs@glprop.com"],
+  account_status:"已启用",user_type:"成员",employee_id:"10004821",
+  department:"数字科技部",job_title:"高级系统工程师",company:"普洛斯 GLP",region:"上海",
+  manager:{name:"周敏"},office_location:"上海 · 金桥总部 12F",
+  on_premises:{samAccountName:"GLP\\simonw"},created_at:"2021-03-15 10:22",
+  last_password_change_at:"2026-05-02 18:40",last_signin_at:"2026-06-21 09:06",
+  last_noninteractive_signin_at:"2026-06-21 08:55",
+  tenant_label:"glprop.com",profile_source:"Entra ID (Microsoft Graph)",profile_fetched_at:"2026-06-21 09:12",
+  mfa:{status:"registered",methods:["Microsoft Authenticator","短信"],default_method:"Authenticator",sspr_registered:true},
+  groups:[
+    {name:"IT-Infrastructure-Admins",key:true,security_enabled:true,kind:"特权组 · 6月19日新加入"},
+    {name:"VPN-ZPA-Users",key:true,security_enabled:true,kind:"特权组"},
+    {name:"DT-Engineering",security_enabled:true,kind:"安全组"},
+    {name:"Server-Operators-PDC",security_enabled:true,kind:"安全组"},
+    {name:"M365-E5-Licensed",security_enabled:true,kind:"安全组"},
+    {name:"Shanghai-Office",security_enabled:true,kind:"安全组"},
+    {name:"All-Staff-CN",security_enabled:false,kind:"通讯组"},
+    {name:"DT-Announcements",security_enabled:false,kind:"通讯组"},
+  ],
+  roles:[{name:"Helpdesk Administrator",privileged:false}],
+  licenses:["Microsoft 365 E5","EMS E5"],
+};
+
+const IPS={
+  "203.0.113.45":{ip:"203.0.113.45",type:"公网",is_internal:false,country:"新加坡",city:"Singapore",
+    owner:"DigitalOcean LLC · AS14061",geo_source:"GeoIP (BigDataCloud)",confidence:0.78,flag:true,
+    asn:"AS14061",isp:"DigitalOcean",last_resolved_at:"2026-06-21 09:10",
+    note:"该地点 30 天内首次出现，且与企业站点无关联，标记为异常。"},
+  "116.226.71.88":{ip:"116.226.71.88",type:"公网",is_internal:false,country:"中国",city:"上海",
+    owner:"China Telecom Shanghai · AS4812",geo_source:"GeoIP (BigDataCloud)",confidence:0.86,flag:false,
+    glp_office:"上海 · 金桥总部",glp_match_kind:"city",asn:"AS4812",isp:"中国电信",last_resolved_at:"2026-06-21 09:10"},
+  "10.18.32.40":{ip:"10.18.32.40",type:"内网",is_internal:true,site:"上海 · 数据中心",
+    owner:"企业子网表 · PDC 服务器段",geo_source:"企业子网表",confidence:0.95,flag:false,last_resolved_at:"2026-06-21 09:10"},
+  "172.20.5.12":{ip:"172.20.5.12",type:"内网",is_internal:true,site:"上海办公室 · 有线网段",
+    owner:"企业子网表 · 金桥总部 12F",geo_source:"企业子网表",confidence:0.93,flag:false,last_resolved_at:"2026-06-21 09:10"},
+  "100.64.20.7":{ip:"100.64.20.7",type:"内网",is_internal:true,site:"ZPA 出口 · 上海",
+    owner:"Zscaler ZPA 连接器",geo_source:"ZPA",confidence:0.9,flag:false,last_resolved_at:"2026-06-21 09:10"},
+};
+
+const SOURCES=[
+  {id:"entra_profile",short:"画像",label:"Entra ID 画像",note:"Graph /users · 实时读取",status:"success",count:1,ms:240},
+  {id:"entra_signin",short:"登录",label:"Entra ID 登录日志",note:"signIns · 交互 + 非交互",status:"success",count:44,ms:880},
+  {id:"entra_audit",short:"审计",label:"Entra ID 审计日志",note:"directoryAudits · 账号/组/角色变更",status:"success",count:10,ms:520},
+  {id:"prod_es",short:"Ucenter",label:"Ucenter / CAS 登录",note:"prod.es · uc_cas_login-2026.06",status:"success",count:27,ms:610},
+  {id:"pdcvlog",short:"LogInsight",label:"LogInsight (Aria/vRLI)",note:"ZPA 用户活动 + Windows 安全事件",status:"partial",count:33,ms:4180,
+   warnings:["长尾 Windows 事件已按主机/天聚合，仅保留信号事件","1 条 ZPA 连接因无匹配策略建立失败"]},
+];
+
+const OVERVIEW={login_success:38,login_fail:6,systems:5,changes:3,risks:4,ips:5,locations:3};
+
+const RISKS=[
+  {id:"r1",name:"异常登录地点",rule:"unusual_country / new_ip",severity:"high",level:"strong",source:"Entra 登录",ai:"summarize",
+   explain:"6 月 18 日 23:47 该账号自新加坡（203.0.113.45 · DigitalOcean 机房）登录成功。此前 30 天内所有交互登录均来自上海 / 北京企业网络，该地点与任何企业站点无映射关系，疑似异地或代理登录。",
+   evidence:["E-2041"]},
+  {id:"r2",name:"多次失败后成功",rule:"failure_burst_then_success",severity:"high",level:"strong",source:"Entra 登录",ai:"summarize",
+   explain:"同一来源 IP（203.0.113.45）在 23:40–23:46 连续 5 次登录失败（错误码 50126 · 密码错误），随后第 6 次于 23:47 成功并通过 MFA。失败后成功的模式是凭据爆破或撞库成功的典型信号。",
+   evidence:["E-2036","E-2041"]},
+  {id:"r3",name:"加入特权组",rule:"added_to_key_group",severity:"med",level:"direct",source:"Entra 审计",ai:"explain",
+   explain:"6 月 19 日 15:22，账号被管理员（周敏）加入安全组 “IT-Infrastructure-Admins”（特权组，授予生产服务器管理权限）。该变更发生在异常登录之后约 15 小时，建议确认是否为正常审批流程。",
+   evidence:["E-3007"]},
+  {id:"r4",name:"ZPA 连接建立失败",rule:"zpa_setup_failure",severity:"low",level:"weak",source:"LogInsight",ai:"explain",
+   explain:"6 月 20 日 11:10 一次 ZPA 私有应用连接因无匹配访问策略（BRK_MT_SETUP_FAIL_NO_POLICY_FOUND）失败。多为策略配置问题，作为搜寻线索保留。",
+   evidence:["E-5012"]},
+];
+
+/* 事件按时间倒序；run=N 表示折叠的相同事件组 */
+const EVENTS=[
+  {id:"E-2052",time:"2026-06-21 09:06:12",source:"entra_signin",category:"signin",action:"Entra ID 交互登录",result:"success",
+   summary:"通过 Microsoft Authenticator 完成 MFA，条件访问“合规设备”通过。",ip:"116.226.71.88",target:"Microsoft 365",
+   session:"corr-9f21a",evidence:"direct",risk:false,lane:"user_action"},
+  {id:"E-5012",time:"2026-06-20 11:10:48",source:"pdcvlog",category:"remote_access",action:"ZPA 连接建立失败",result:"failure",
+   summary:"BRK_MT_SETUP_FAIL_NO_POLICY_FOUND · 目标 pdcscm01p.glp.com:8530 无匹配访问策略。",ip:"100.64.20.7",
+   target:"pdcscm01p.glp.com:8530",session:"zpa-7731",evidence:"weak",risk:true,lane:"user_action"},
+  {id:"E-5009",time:"2026-06-20 10:55:30",source:"pdcvlog",category:"remote_access",action:"ZPA 私有应用连接",result:"active",
+   summary:"OPEN_OR_ACTIVE_CONNECTION · 自上海经 ZPA 连接器访问 pdcfile01p.glp.com。",ip:"100.64.20.7",
+   target:"pdcfile01p.glp.com:445",session:"zpa-7720",evidence:"strong",risk:false,lane:"user_action"},
+  {id:"E-3007",time:"2026-06-19 15:22:10",source:"entra_audit",category:"permission_change",action:"加入安全组 IT-Infrastructure-Admins",result:"success",
+   summary:"操作者 周敏（zhou.min@glprop.com）将目标账号加入特权安全组。",target:"组 · IT-Infrastructure-Admins",
+   session:"corr-3a02c",evidence:"direct",risk:true,lane:"account_admin"},
+  {id:"E-6001",time:"2026-06-19 09:31:55",source:"pdcvlog",category:"windows_security",action:"Windows 账号登录 · 4624",result:"success",
+   summary:"远程交互登录（Logon Type 10 · RDP）到 LCMDC04P.glp.com，Logon ID 0x3E7A91。",ip:"10.18.32.40",
+   target:"LCMDC04P.glp.com",session:"logon-3E7A91",evidence:"strong",risk:false,lane:"user_action"},
+  {id:"E-4015",time:"2026-06-18 09:05:41",source:"prod_es",category:"business_access",action:"Ucenter 登录 · DT_OPS",result:"success",
+   summary:"loginType=aadLogin · 经 CAS 进入运维门户 DT_OPS。",ip:"172.20.5.12",target:"DT_OPS",
+   session:"cas-88f0",evidence:"direct",risk:false,lane:"user_action"},
+  {id:"E-2041",time:"2026-06-18 23:47:55",source:"entra_signin",category:"signin",action:"Entra ID 交互登录",result:"success",
+   summary:"自新加坡（203.0.113.45）登录成功并通过 MFA，5 次失败后第 6 次成功。",ip:"203.0.113.45",target:"Microsoft 365",
+   session:"corr-77ac1",evidence:"strong",risk:true,lane:"user_action"},
+  {id:"E-2036",time:"2026-06-18 23:44:02",source:"entra_signin",category:"signin",action:"Entra ID 登录失败",result:"failure",
+   summary:"错误码 50126 · 密码错误。来源 203.0.113.45（新加坡）。",ip:"203.0.113.45",target:"Microsoft 365",
+   session:"corr-77a90",evidence:"strong",risk:true,lane:"user_action",run:5},
+  {id:"E-1008",time:"2026-06-18 18:20:11",source:"entra_audit",category:"mfa",action:"MFA 方式注册",result:"success",
+   summary:"新增认证方式：短信（+86 *** **** 21）。",target:"MFA · 短信",session:"corr-5521b",evidence:"direct",risk:false,lane:"account_admin"},
+  {id:"E-7000",time:"2026-06-18 08:55:00",source:"entra_signin",category:"signin",action:"非交互令牌刷新",result:"success",
+   summary:"Outlook / Teams 后台令牌刷新，无人值守。",ip:"116.226.71.88",target:"Exchange Online",
+   session:"corr-bg-22",evidence:"strong",risk:false,lane:"non_interactive",run:8},
+  {id:"E-4002",time:"2026-06-17 14:30:22",source:"prod_es",category:"business_access",action:"Ucenter 登录 · DIA-CMDB",result:"success",
+   summary:"经 CAS 进入资产管理系统 DIA-CMDB，来源金桥总部网段。",ip:"172.20.5.12",target:"DIA-CMDB",
+   session:"cas-7a31",evidence:"direct",risk:false,lane:"user_action"},
+  {id:"E-6002",time:"2026-06-17 12:02:08",source:"pdcvlog",category:"windows_security",action:"Windows 账号注销 · 4634",result:"closed",
+   summary:"会话注销，Logon ID 0x3E6B02，对应当日 09:31 的登录。",ip:"10.18.32.40",target:"LCMDC04P.glp.com",
+   session:"logon-3E6B02",evidence:"strong",risk:false,lane:"non_interactive"},
+];
+
+/* AI 故事线（free / controlled 两种模式） */
+const STORY={
+  free:{label:"AI 自由叙述",generated_by:"qwen3.7-max",
+    tone:"自由叙述模式：模型综合全部证据生成可读故事线，关键结论均绑定证据 ID，证据不足时显式标注“无法确认”。",
+    blocks:[
+      {p:["本次搜寻覆盖 ",{b:"最近 7 天"},"，目标账号 ",{b:"Simon Wang (simon.wang@glprop.com)"},
+        " 共有 38 次成功登录、6 次失败登录，访问 5 个内部系统，发生 3 项变更事件，触发 ",{b:"4 条风险提示"},
+        "。整体活动以上海企业网络为主，但其中存在一段值得关注的异常序列。"]},
+      {p:["6 月 18 日 23:40–23:46，账号自新加坡 IP ",{cite:["E-2036"]},
+        " 连续 5 次登录失败（密码错误），随后 23:47 第 6 次登录成功并通过 MFA ",{cite:["E-2041"]},
+        "。该来源地点在过去 30 天内从未出现，与任何企业站点无映射关系。"]},
+      {p:["次日（6 月 19 日）15:22，管理员周敏将该账号加入特权安全组 “IT-Infrastructure-Admins” ",{cite:["E-3007"]},
+        "。随后账号经 ZPA 访问生产文件服务器 ",{cite:["E-5009"]},"，并有一次连接因策略缺失失败 ",{cite:["E-5012"]},"。"]},
+      {callout:"异地成功登录与紧随其后的特权组授予在时间上高度接近，建议向账号本人及审批人周敏核实：这次新加坡登录是否为本人操作（如出差 / VPN），以及特权组授予是否为正常审批。"},
+    ]},
+  controlled:{label:"受控模式",generated_by:"rule_engine + qwen3.7-plus",
+    tone:"受控模式：规则引擎先产出事实摘要与证据绑定，LLM 仅将已确认事实改写为自然语言，不添加任何推断。建议用于敏感账号与对外报告。",
+    blocks:[
+      {date:"2026-06-18",items:[
+        ["新加坡 IP ",{b:"203.0.113.45"}," 连续 5 次登录失败（错误码 50126）",{cite:["E-2036"]}],
+        ["同一 IP 第 6 次登录成功并通过 MFA ",{cite:["E-2041"]}],
+      ]},
+      {date:"2026-06-19",items:[
+        ["账号被加入特权组 IT-Infrastructure-Admins，操作者 周敏 ",{cite:["E-3007"]}],
+        ["远程交互登录（RDP）到 LCMDC04P.glp.com ",{cite:["E-6001"]}],
+      ]},
+      {date:"2026-06-20",items:[
+        ["经 ZPA 访问生产文件服务器 pdcfile01p ",{cite:["E-5009"]}],
+        ["一次 ZPA 连接因无匹配策略失败 ",{cite:["E-5012"]}],
+      ]},
+    ]},
+};
+
+/* ============================================================
+   注释内容（key -> {n, title, body, src}）
+   ============================================================ */
+const ANNOS={
+  "a-search":{n:1,title:"账号搜索与解析",src:"PRD §5 · Entra ID 画像",
+    body:"搜索框支持 <b>UPN、邮箱、邮箱前缀、用户名、工号、显示名</b> 六类输入。系统先做精确匹配（UPN/邮箱/工号），再对前缀做模糊匹配；显示名等存在歧义时进入候选消歧。解析成功后会读取 Entra ID 画像并生成唯一的 <b>account_key</b>。"},
+  "a-tiers":{n:2,title:"四层证据，一眼看懂",src:"PRD §10 · 统一事件模型",
+    body:"产品把账号活动归纳为四层证据：<b>账号画像 → 登录与访问 → 活动时间线 → IP 与位置</b>。每一层都对应可下钻的原始日志与证据等级，避免把“结论”和“原始事实”混为一谈。"},
+  "a-controls":{n:3,title:"时间范围 + 查询原因",src:"PRD §6 / §17 · 审计追踪",
+    body:"默认查询 <b>最近 7 天</b>，可选 24 小时 / 30 天 / 自定义；30 天以上会自动转为异步任务。<b>查询原因</b> 是必要的合规字段——它和操作者、目标账号、数据源一起 <b>写入查询审计</b>。"},
+  "a-cand":{n:4,title:"候选消歧",src:"PRD §5.2 · 解析逻辑",
+    body:"输入有歧义时（同名 / 同前缀）列出全部候选，并标注 <b>命中字段、账号状态、所属租户</b>。多租户接入下，同名账号会分别打上 🏢 glprop.com / 🏢 glp.com 标签。<b>必须选定唯一目标</b> 才会开始活动查询。"},
+  "a-target":{n:5,title:"搜寻目标栏 + 导出",src:"PRD §14 / §19",
+    body:"顶部固定显示当前搜寻目标，可一键 <b>切换账号</b> 或调整时间范围。右上角 <b>导出报告</b> 支持 CSV/JSON 结构化导出与 PDF/HTML 报告，导出动作同样记入审计。"},
+  "a-progress":{n:6,title:"并行查询进度",src:"PRD §20 · 渐进式结果",
+    body:"四类数据源 <b>并行查询、独立返回</b>：Entra 与 Ucenter 通常秒级返回，LogInsight 可能慢几秒到几分钟。<b>单源失败不影响整体</b>，数据缺口会在结果中显式标注。"},
+  "a-overview":{n:7,title:"活动概览",src:"PRD §14.1",
+    body:"六个关键指标：登录成功 / 失败、访问系统数、变更事件、风险提示、独立 IP 与地点。每张卡片可点击——<b>跳转到对应区块并自动筛选时间线</b>。"},
+  "a-profile":{n:8,title:"账号画像",src:"PRD §5.3 / §5.4",
+    body:"来自 Entra ID 的完整画像：部门、经理、工号、账号状态、创建 / 改密时间、邮箱别名、<b>MFA 注册情况</b>。组成员区分 <b>特权组（红）/ 安全组 / 通讯组</b>——直接决定该账号的权限足迹。"},
+  "a-sources":{n:9,title:"数据源状态",src:"PRD §21 / §22 · 可观测性",
+    body:"每个源显示 <b>实时探测状态</b>（成功 / 部分 / 失败 / 权限不足）、返回条数与耗时。带 ⚠ 的源可展开查看告警，例如本例 LogInsight 把长尾 Windows 事件按主机 / 天聚合、并提示 1 条 ZPA 失败。"},
+  "a-ai":{n:10,title:"AI 活动故事线",src:"PRD §14.2 / §14.3 · AI 边界",
+    body:"由 <b>企业审批 LLM</b>（Qwen / DashScope）生成。<b>自由叙述</b> 综合证据成文；<b>受控模式</b> 仅把规则引擎确认的事实改写为自然语言、不做额外推断。关键结论后的灰色小标签是 <b>可点击的证据 ID</b>，点开即看原始事件。"},
+  "a-risk":{n:11,title:"风险提示",src:"PRD §15 · 仅为搜寻线索",
+    body:"规则命中的风险线索，<b>非最终结论</b>。每条都带 <b>严重度、证据 ID、数据源、证据等级</b>，并标明 AI 是仅提供解释还是参与了摘要。点开可看完整说明与证据。"},
+  "a-timeline":{n:12,title:"详细时间线",src:"PRD §10 / §12 · 证据等级",
+    body:"全部规范化事件按日期归并。<b>车道</b> 区分“用户操作 / 账号管理 / 非交互”；<b>来源筛选</b> 按 Entra / Ucenter / LogInsight 过滤。右侧 <b>并列 IP 卡片</b> 把每个事件的来源 IP 画像直接贴在旁边；连续相同事件会折叠（×N）可展开。"},
+  "a-ev":{n:13,title:"证据等级",src:"PRD §12 · 实体关系",
+    body:"<b>直接匹配</b>（日志含本账号标识）/ <b>强关联</b>（共享 Logon ID、会话、关联 ID 等确定性键）/ <b>弱关联</b>（仅共享 IP / 时间窗，虚线菱形）。弱关联必须显式标注置信度，绝不冒充直接证据。"},
+  "a-history":{n:14,title:"查询历史",src:"PRD §13 · 查询流程",
+    body:"<b>本浏览器</b>记录的最近搜寻，点击可 <b>秒开上次结果快照</b>（缓存于 IndexedDB，含原始日志）或重新查询。这是个人便捷入口；<b>完整的合规留痕</b>在「审计追踪」里——两者用途不同。"},
+  "a-audit":{n:15,title:"审计追踪",src:"PRD §17 · 查询/导出审计",
+    body:"<b>每一次查询与导出都留痕</b>：操作者、角色、搜寻输入、目标账号、范围、查询原因、数据源、风险数、状态、时间。受 <b>RBAC 控制</b>——仅审计员 / 管理员可查看。导出审计还记录格式、是否含原始日志 / 敏感字段、IP 脱敏策略与报告 ID。"},
+  "a-srcpage":{n:16,title:"数据源与保留策略",src:"PRD §22 / §18",
+    body:"每 <b>10 分钟</b>探测一次各源真实 API：可达=<b>LIVE</b>，配了凭据但探测失败=<b>DOWN</b>，未配凭据=<b>DEMO</b>（演示回退）。每张卡注明 LIVE 判定依据。下方是 <b>数据保留策略</b>——本系统只保留生成故事线 / 证据 / 审计所需的数据，上游系统仍为权威源。"},
+};
+
+/* ============================================================
+   工具函数
+   ============================================================ */
+const $=(s,r=document)=>r.querySelector(s);
+const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function pin(key,corner){return `<span class="anno-pin${corner?' corner':''}" data-anno="${key}">${ANNOS[key].n}</span>`;}
+function avatar(name,hue,size){const i=(name||'?').trim().charAt(0);
+  return `<div class="avatar" style="width:${size}px;height:${size}px;font-size:${size*0.42}px;
+    background:linear-gradient(150deg,hsl(${hue} 62% 56%),hsl(${hue+24} 58% 46%))">${i}</div>`;}
+function srcchip(id){const m=SRC_META[id]||{label:id,icon:"dot",hue:"profile"};
+  return `<span class="srcchip" style="background:var(--src-${m.hue}-soft);color:var(--src-${m.hue})">${icon(m.icon,12,2)}${m.label}</span>`;}
+function evbadge(level){const m=EV_META[level]||EV_META.weak;
+  return `<span class="evbadge" style="background:${m.soft};color:${m.color};border:${m.dash?'1px dashed '+m.color:'1px solid transparent'}">
+    <span class="gem" style="background:${m.color};transform:${m.dash?'none':'rotate(45deg)'}"></span></span>`;}
+function statusdot(status,pulse){const m=STATUS_META[status]||STATUS_META.no_data;
+  return `<span class="statusdot" style="background:${m.color};box-shadow:0 0 0 3px ${m.color}22;${pulse?'animation:ua-pulse 1.1s ease-in-out infinite':''}"></span>`;}
+
+/* ============================================================
+   状态
+   ============================================================ */
+let STATE={page:"investigate",screen:"search",range:"7d",aiMode:"free",filter:"all",lane:"user_action",openRisk:"r1",selCand:null,auditTab:"queries"};
+
+/* ============================================================
+   渲染：顶部导航
+   ============================================================ */
+function topnav(active,right){
+  const items=[["investigate","搜寻台"],["history","查询历史"],["audit","审计追踪"],["sources","数据源"]];
+  return `<div class="ua-topnav"><div class="inner">
+    <div class="brandmark" data-go="search">
+      <div class="glyph">${icon("search",22,2.2,"#fff")}</div>
+      <div class="txt"><div class="t1">UserAct</div><div class="t2">账号活动搜寻台</div></div>
+    </div>
+    <nav>${items.map(([id,l])=>`<button data-nav="${id}" class="${active===id?'on':''}">${l}</button>`).join("")}</nav>
+    ${right?`<div style="margin-left:auto;display:flex;align-items:center;gap:14px">${right}</div>`:''}
+  </div></div>`;
+}
+const RANGE_LABEL={"24h":"最近 24 小时","3d":"最近 3 天","7d":"最近 7 天","30d":"最近 30 天","custom":"自定义"};
+const rangeLabel=r=>RANGE_LABEL[r]||r;
+
+/* ============================================================
+   渲染：搜索页
+   ============================================================ */
+function renderSearch(){
+  const ranges=[["24h","最近 24 小时"],["3d","最近 3 天"],["7d","最近 7 天"],["30d","最近 30 天"],["custom","自定义"]];
+  const inputs=["UPN","邮箱","邮箱前缀","用户名","工号","显示名"];
+  const tiers=[
+    ["profile","账号画像","UPN、邮箱、部门、岗位、经理、角色、组与 MFA 状态","01"],
+    ["signin","登录与访问","Entra Sign-in、CAS 登录、应用访问与终端轨迹","02"],
+    ["audit","活动时间线","审计变更、权限操作与全部规范化事件，按日期 / 车道归并","03"],
+    ["geo","IP 与位置","公网 / 内网 IP、城市、ASN、企业网段与地理证据","04"],
+  ];
+  $("#app").innerHTML=`
+  ${topnav("investigate")}
+  <div class="ua-home">
+    <div class="ua-home-main">
+      <div class="ua-home-copy">
+        <div class="ua-home-kicker">企业账号活动 · ACCOUNT STORYLINE</div>
+        <h1><span class="first">你</span>想查哪个账号？${pin("a-search")}</h1>
+        <p class="lede">输入 UPN、邮箱、邮箱前缀、用户名、工号或显示名，系统会读取账号画像、聚合 Entra ID、Ucenter 与 LogInsight 日志，并生成带证据的活动故事线。</p>
+        <div class="ua-home-searchbox" id="searchbox">
+          ${icon("search",20,1.7,"var(--ink-400)")}
+          <input id="searchInput" placeholder="UPN / 邮箱 / 邮箱前缀 / 用户名 / 工号 / 显示名" value="Simon Wang" />
+          <button id="searchBtn">开始账号搜寻 ${icon("arrowR",16,2,"#fff")}</button>
+        </div>
+        <div class="ua-home-tags">${inputs.map(t=>`<span>${t}</span>`).join("")}</div>
+        <div class="ua-home-controls">
+          <div style="flex:1 1 240px">
+            <label class="fieldlabel">查询时间范围${pin("a-controls")}</label>
+            <div class="rangeseg" id="rangeseg">${ranges.map(([id,l])=>`<button data-r="${id}" class="${STATE.range===id?'on':''}">${l}</button>`).join("")}</div>
+          </div>
+          <div style="flex:1 1 240px">
+            <label class="fieldlabel">查询原因 <span style="color:var(--ink-400);font-weight:400">· 写入审计</span></label>
+            <input class="reason-input" placeholder="例如：安全告警跟进 / 离职审计 / 工单 #4821" value="安全告警跟进 · 工单 #4821" />
+          </div>
+        </div>
+      </div>
+      <aside class="ua-evidence-card anno-anchor">
+        ${pin("a-tiers","corner")}
+        <div class="ua-evidence-head"><span>四层证据，一眼看懂</span><b>FOUR EVIDENCE TIERS</b></div>
+        <div class="ua-evidence-list">
+          ${tiers.map(([tone,t,d,no])=>`<div class="ua-evidence-tier ${tone}">
+            <div><strong>${t}</strong><p>${d}</p></div><div class="no">${no}</div></div>`).join("")}
+        </div>
+      </aside>
+    </div>
+    <div class="home-foot">风险提示为搜寻线索，非最终安全 / 合规 / 处分结论 · 所有查询与导出均记入审计</div>
+  </div>`;
+
+  const box=$("#searchbox"),inp=$("#searchInput");
+  inp.addEventListener("focus",()=>box.classList.add("focus"));
+  inp.addEventListener("blur",()=>box.classList.remove("focus"));
+  inp.addEventListener("keydown",e=>{if(e.key==="Enter")go("candidates");});
+  $("#searchBtn").addEventListener("click",()=>go("candidates"));
+  $("#rangeseg").addEventListener("click",e=>{const b=e.target.closest("[data-r]");if(b){STATE.range=b.dataset.r;
+    $$("#rangeseg button").forEach(x=>x.classList.toggle("on",x.dataset.r===STATE.range));}});
+  bindNav();
+}
+
+/* ============================================================
+   渲染：候选消歧
+   ============================================================ */
+function renderCandidates(){
+  $("#app").innerHTML=`
+  ${topnav("investigate")}
+  <div class="cand-wrap">
+    <div style="display:flex;align-items:center;gap:8px;color:var(--ink-500);font-size:13px;margin-bottom:8px">
+      ${icon("search",15)} 解析 <span class="mono" style="color:var(--ink-800);background:var(--surface-sunken);padding:1px 7px;border-radius:5px">Simon Wang</span>
+    </div>
+    <h2 style="font-size:22px;font-weight:700;color:var(--ink-900);margin:0 0 4px">找到 ${CANDIDATES.length} 个候选账号${pin("a-cand")}</h2>
+    <p style="color:var(--ink-500);margin:0 0 24px;font-size:13.5px">输入存在歧义，请选择要搜寻的目标账号。仅选定一个后才会开始活动查询。</p>
+    <div style="display:flex;flex-direction:column;gap:12px" id="candList">
+      ${CANDIDATES.map(c=>{const disabled=c.status==="已禁用";return `
+      <button class="cand-card${STATE.selCand===c.account_key?' sel':''}" data-key="${c.account_key}">
+        ${avatar(c.display_name,c.avatar_hue,46)}
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:9px;margin-bottom:3px;flex-wrap:wrap">
+            <span style="font-weight:600;font-size:16px;color:var(--ink-900)">${c.display_name}</span>
+            <span class="statuspill" style="background:${disabled?'var(--fail-soft)':'var(--ok-soft)'};color:${disabled?'var(--fail)':'var(--ok)'}">${c.status}</span>
+            <span class="tenant-chip">${icon("building",12)}${c.tenant_label}</span>
+          </div>
+          <div class="mono" style="font-size:12.5px;color:var(--ink-600)">${c.upn}</div>
+          <div style="display:flex;gap:14px;margin-top:6px;font-size:12px;color:var(--ink-500);flex-wrap:wrap">
+            <span class="mono">${c.employee_id}</span><span>${c.department}</span><span>${c.job_title}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+          <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end">
+            ${c.match_on.map(m=>`<span class="matchtag">匹配 ${m==='email_prefix'?'邮箱前缀':m==='display_name'?'显示名':m}</span>`).join("")}
+          </div>
+          <span class="radio${STATE.selCand===c.account_key?' on':''}">${STATE.selCand===c.account_key?icon("check",12,3,"#fff"):""}</span>
+        </div>
+      </button>`;}).join("")}
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:24px;gap:10px">
+      <button class="btn-ghost" data-go="search">取消</button>
+      <button class="btn-primary" id="pickBtn" style="opacity:${STATE.selCand?1:.45};cursor:${STATE.selCand?'pointer':'not-allowed'}">开始活动搜寻 ${icon("arrowR",16,2,"#fff")}</button>
+    </div>
+  </div>`;
+
+  $("#candList").addEventListener("click",e=>{const b=e.target.closest("[data-key]");if(b){STATE.selCand=b.dataset.key;renderCandidates();syncStepper();}});
+  $("#pickBtn").addEventListener("click",()=>{if(STATE.selCand)go("results");});
+  bindNav();
+}
+
+/* ============================================================
+   渲染：结果页
+   ============================================================ */
+function renderResults(){
+  const a=ACCOUNT;
+  $("#app").innerHTML=`
+  ${topnav("investigate",`<button class="btn-primary" id="exportBtn">${icon("download",15,2,"#fff")}导出报告</button>`)}
+  <div class="appbar">
+    <div class="targetbar"><div class="inner">
+      <span style="font-size:12.5px;color:var(--ink-500);font-weight:600">搜寻目标</span>
+      <button class="target-btn" data-go="search">
+        ${icon("user",14,1.7,"var(--primary)")}
+        <span style="font-size:13px;font-weight:600;color:var(--ink-900)">${a.display_name}</span>
+        <span class="mono" style="font-size:12px;color:var(--ink-500)">${a.upn}</span>
+        <span style="display:inline-flex;align-items:center;gap:4px;margin-left:4px;background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:3px 10px;font-size:11.5px;color:var(--ink-500)">${icon("search",12)}切换账号</span>
+      </button>
+      ${pin("a-target")}
+      <span style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--ink-600);background:var(--surface-sunken);border-radius:999px;padding:6px 13px;font-weight:600">${icon("clock",14,1.7,"var(--primary)")}最近 7 天</span>
+    </div></div>
+  </div>
+
+  <div class="progress"><div class="box">
+    <span style="display:inline-flex;align-items:center;gap:8px;font-size:12.5px;font-weight:600;color:var(--ok)">${icon("check",15,2.5)}查询完成${pin("a-progress")}</span>
+    <div style="flex:1;display:flex;gap:16px;flex-wrap:wrap">
+      ${SOURCES.map(s=>`<span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-600)">
+        ${statusdot(s.status)}${s.short}<span class="mono" style="color:var(--ink-400);font-size:11px">${s.count}</span></span>`).join("")}
+    </div>
+    <span style="font-size:11.5px;color:var(--ink-400)">单源失败不影响整体 · 数据缺口已在下方标注</span>
+  </div></div>
+
+  <div class="results-body">
+    <div class="overview anno-anchor">${pin("a-overview","corner")}
+      ${overviewTiles()}
+    </div>
+    <div class="results-grid">
+      <div class="rail">
+        ${profileRail()}
+        ${dataSources()}
+      </div>
+      <div class="maincol">
+        <div id="storyHost">${aiStoryCard()}</div>
+        <section id="sec-risk">
+          <div class="sectitle">
+            <div class="ico" style="background:var(--warn-soft);color:var(--warn)">${icon("alert",16)}</div>
+            <div style="flex:1"><div class="t">风险提示${pin("a-risk")}</div><div class="s">搜寻线索，非最终结论</div></div>
+            <span style="font-size:12px;color:var(--risk-high);font-weight:600;background:var(--risk-high-soft);padding:3px 10px;border-radius:100px">${RISKS.length} 条</span>
+          </div>
+          <div id="riskHost">${risksPanel()}</div>
+        </section>
+        <section id="sec-timeline">
+          <div class="sectitle">
+            <div class="ico">${icon("list",16)}</div>
+            <div style="flex:1"><div class="t">详细时间线${pin("a-timeline")}</div>
+              <div class="s">${EVENTS.length} 类规范化事件 · 右侧并列显示来源 IP 画像与地理富化 · 点击查看证据</div></div>
+            ${evLegend()}
+          </div>
+          ${timelineToolbar()}
+          <div id="timelineHost">${timelineList()}</div>
+          <div style="text-align:center;font-size:12px;color:var(--ink-400);padding:10px 0;border-top:1px solid var(--hairline);margin-top:6px">
+            数据缺口：LogInsight 部分 Windows 事件已聚合 · AI 输出不隐藏数据源失败
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>`;
+
+  bindResults();
+  bindNav();
+}
+
+function overviewTiles(){
+  const o=OVERVIEW;
+  const tiles=[
+    ["登录成功",o.login_success,"login","var(--ev-direct)","sec-timeline","entra_signin"],
+    ["登录失败",o.login_fail,"logout","var(--risk-med)","sec-timeline","entra_signin"],
+    ["访问系统",o.systems,"server","var(--src-es)","sec-timeline","all"],
+    ["变更事件",o.changes,"history","var(--src-audit)","sec-timeline","entra_audit"],
+    ["风险提示",o.risks,"alert","var(--warn)","sec-risk",null,true],
+    ["独立 IP / 地点",`${o.ips} / ${o.locations}`,"globe","var(--src-entra)","sec-timeline","all"],
+  ];
+  return tiles.map(([k,v,ic,col,target,filter,strong])=>`
+    <button class="ovtile" data-target="${target}" data-filter="${filter||''}"
+      style="${strong?'border-color:var(--warn-soft);background:linear-gradient(180deg,var(--warn-soft) -40%,var(--surface) 60%)':''}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <span class="ico" style="${strong?'background:var(--warn-soft)':''};color:${col}">${icon(ic,15,2)}</span>
+        ${icon("chevronR",14,1.7,"var(--ink-300)")}
+      </div>
+      <div class="v mono">${v}</div><div class="k">${k}</div>
+    </button>`).join("");
+}
+
+function profileRail(){
+  const a=ACCOUNT;
+  const fields=[["工号",a.employee_id,1],["部门",a.department],["职位",a.job_title],
+    ["公司 / 地区",`${a.company} · ${a.region}`],["经理",a.manager.name],["办公室",a.office_location],
+    ["账号类型",a.user_type],["本地账号",a.on_premises.samAccountName,1],
+    ["创建时间",a.created_at,1],["上次改密",a.last_password_change_at,1]];
+  const emails=[a.email,...a.aliases];
+  const groups=[...a.groups].sort((g1,g2)=>(g2.key?1:0)-(g1.key?1:0)||(g2.security_enabled?1:0)-(g1.security_enabled?1:0));
+  const secCount=groups.filter(g=>g.security_enabled).length, keyCount=groups.filter(g=>g.key).length;
+  return `<div class="card" style="overflow:hidden;padding:0">
+    <div style="padding:18px 18px 16px;background:linear-gradient(180deg,var(--surface-2),var(--surface))">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span style="font-weight:700;font-size:18px;color:var(--ink-900)">${a.display_name}</span>${pin("a-profile")}
+        <span class="statuspill" style="background:var(--ok-soft);color:var(--ok)">${a.account_status}</span>
+        <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;background:var(--ok-soft);color:var(--ok)">MFA 已注册</span>
+        <span class="tenant-chip">${icon("building",12)}${a.tenant_label}</span>
+      </div>
+      <div class="mono" style="font-size:12.5px;color:var(--ink-600);margin-top:3px">${a.upn}</div>
+    </div>
+    <div style="padding:4px 18px 16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px 14px">
+        ${fields.map(([k,v,mono])=>`<div style="min-width:0"><div style="font-size:11px;color:var(--ink-400);margin-bottom:2px">${k}</div>
+          <div class="${mono?'mono':''}" style="font-size:12.5px;color:var(--ink-800);font-weight:500;overflow:hidden;text-overflow:ellipsis">${v||'—'}</div></div>`).join("")}
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--hairline)">
+        <div class="railLabel">${icon("user",13)}邮箱与别名 (${emails.length})</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${emails.map((e,i)=>`<span class="mono tinytag" style="font-size:11.5px;${i===0?'background:var(--primary-soft);color:var(--primary-ink)':''}">${i===0?'<b style="margin-right:4px">主</b>':''}${e}</span>`).join("")}
+        </div>
+      </div>
+      <div style="margin-top:13px">
+        <div class="railLabel">${icon("shieldCheck",13)}MFA / 认证方式</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+          ${a.mfa.methods.map(m=>`<span class="tinytag" style="background:var(--ev-strong-soft);color:var(--ev-strong)">${m}</span>`).join("")}
+          <span style="font-size:11px;color:var(--ink-500)">默认 ${a.mfa.default_method} · SSPR 已注册</span>
+        </div>
+      </div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--hairline)">
+        <div class="railLabel" style="margin-bottom:4px">${icon("group",13)}组成员 (${groups.length})</div>
+        <div style="font-size:11px;color:var(--ink-400);margin-bottom:8px;line-height:1.5">
+          决定该账号的访问权限足迹 · <span style="color:var(--ink-600)">${secCount} 安全组</span> · <span style="color:var(--risk-high);font-weight:600">${keyCount} 特权组</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${groups.map(g=>{const st=g.key?'background:var(--risk-high-soft);color:var(--risk-high-ink);font-weight:600;border:1px solid var(--risk-high)':
+            g.security_enabled?'background:var(--surface-sunken);color:var(--ink-700);border:1px solid var(--border)':
+            'background:transparent;color:var(--ink-400);border:1px dashed var(--border)';
+            return `<span class="tag" title="${g.kind}" style="${st}">${g.key?icon("key",11,2):''}${g.name}</span>`;}).join("")}
+        </div>
+      </div>
+      <div style="margin-top:13px">
+        <div class="railLabel">${icon("shield",13)}目录角色 (${a.roles.length})</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          ${a.roles.map(r=>`<span class="tag" style="background:var(--risk-med-soft);color:var(--risk-med-ink);font-weight:600;border:1px solid var(--risk-med)">${icon("shieldCheck",11,2)}${r.name}</span>`).join("")}
+        </div>
+      </div>
+      <div style="margin-top:13px">
+        <div class="railLabel">${icon("layers",13)}许可证 (${a.licenses.length})</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">${a.licenses.map(l=>`<span class="tinytag">${l}</span>`).join("")}</div>
+      </div>
+    </div>
+    <div style="padding:11px 18px;border-top:1px solid var(--hairline);background:var(--surface-2);display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-400)">
+      ${icon("refresh",12)}画像源 ${a.profile_source} · 刷新于 <span class="mono">${a.profile_fetched_at}</span>
+    </div>
+  </div>`;
+}
+
+function dataSources(){
+  return `<div class="card" style="padding:18px">
+    <div class="railLabel" style="margin-bottom:12px">${icon("layers",13)}数据源状态${pin("a-sources")}</div>
+    <div style="display:flex;flex-direction:column;gap:2px" id="srcList">
+      ${SOURCES.map(s=>{const m=STATUS_META[s.status];const hasW=s.warnings&&s.warnings.length;return `
+      <div>
+        <button class="srcrow" data-src="${s.id}" style="display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:transparent;border:none;padding:8px 6px;border-radius:8px;cursor:${hasW?'pointer':'default'}">
+          ${statusdot(s.status)}
+          <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:500;color:var(--ink-800)">${s.label}</div>
+            <div style="font-size:11px;color:var(--ink-400)">${s.note}</div></div>
+          <div style="text-align:right;flex:none"><div style="font-size:11.5px;font-weight:600;color:${m.color}">${m.label}</div>
+            <div class="mono" style="font-size:10.5px;color:var(--ink-400)">${s.count} 条 · ${s.ms}ms</div></div>
+          ${hasW?icon("alert",14,1.7,"var(--warn)"):'<span style="width:14px"></span>'}
+        </button>
+        ${hasW?`<div class="srcwarn" data-for="${s.id}" style="display:none;margin:0 6px 8px 26px;padding:9px 11px;background:var(--warn-soft);border-radius:8px">
+          ${s.warnings.map(w=>`<div style="font-size:11.5px;color:var(--risk-med-ink);display:flex;gap:6px;margin-bottom:4px"><span style="color:var(--warn)">•</span>${w}</div>`).join("")}
+        </div>`:''}
+      </div>`;}).join("")}
+    </div>
+  </div>`;
+}
+
+function evLegend(){
+  return `<div style="display:flex;gap:10px;align-items:center">
+    ${[["direct","直接匹配"],["strong","强关联"],["weak","弱关联"]].map(([lv,l])=>{const m=EV_META[lv];
+      return `<span style="display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-500)">
+        <span style="width:7px;height:7px;border-radius:2px;background:${m.color};transform:${m.dash?'none':'rotate(45deg)'};border:${m.dash?'1px dashed '+m.color:'none'}"></span>${l}</span>`;}).join("")}
+    ${pin("a-ev")}</div>`;
+}
+
+/* ---- AI story ---- */
+function renderSeg(seg){
+  if(typeof seg==="string") return seg;
+  if(seg.b) return `<strong style="color:var(--ink-900);font-weight:600">${seg.b}</strong>`;
+  if(seg.cite) return seg.cite.map(id=>`<button class="cite" data-ev="${id}">${id}</button>`).join("");
+  return "";
+}
+function aiStoryCard(){
+  const d=STORY[STATE.aiMode];
+  let body="";
+  if(STATE.aiMode==="free"){
+    body=d.blocks.map(blk=>{
+      if(blk.callout) return `<div class="story-callout">${icon("alert",15,2,"var(--warn)")}
+        <span><strong style="font-weight:700">需人工确认 — </strong>${blk.callout}</span></div>`;
+      return `<p style="margin:0;font-size:14.5px;line-height:1.82;color:var(--ink-700)">${blk.p.map(renderSeg).join("")}</p>`;
+    }).join("");
+  }else{
+    body=d.blocks.map(blk=>`<div>
+      <div style="margin-bottom:8px"><span class="datechip">${blk.date}</span></div>
+      <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px">
+        ${blk.items.map(it=>`<li style="display:flex;gap:8px;align-items:baseline;padding-left:2px">
+          <span style="flex:none;color:var(--ai);font-weight:700">•</span>
+          <span style="font-size:14px;line-height:1.7;color:var(--ink-700)">${it.map(renderSeg).join("")}</span></li>`).join("")}
+      </ul></div>`).join("");
+  }
+  return `<div class="aistory">
+    <div class="head">
+      <span class="glyph">${icon("sparkles",18,1.8,"#fff")}</span>
+      <div style="flex:1"><div style="font-weight:600;font-size:15px;color:var(--ai-ink)">AI 活动故事线${pin("a-ai")}</div>
+        <div style="font-size:11.5px;color:var(--ai)">企业审批 LLM · ${d.generated_by} · 关键结论均绑定证据 ID</div></div>
+      <div class="modeseg">
+        ${["free","controlled"].map(m=>`<button data-mode="${m}" class="${STATE.aiMode===m?'on':''}">${STORY[m].label}</button>`).join("")}
+      </div>
+    </div>
+    <div style="padding:20px 22px">
+      <div style="font-size:12.5px;color:var(--ink-500);margin-bottom:16px;display:flex;gap:7px;align-items:flex-start">
+        ${icon(STATE.aiMode==="controlled"?"lock":"bolt",14,1.7,"var(--ai)")}${d.tone}</div>
+      <div style="display:flex;flex-direction:column;gap:16px;max-width:720px">${body}</div>
+    </div>
+  </div>`;
+}
+
+/* ---- risks ---- */
+function risksPanel(){
+  return `<div style="display:flex;flex-direction:column;gap:9px">
+    ${RISKS.map(r=>{const m=SEV_META[r.severity];const open=STATE.openRisk===r.id;return `
+    <div class="risk-item${open?' open':''}" style="border-color:${open?m.color+'55':'var(--border)'}">
+      <button class="risk-head" data-risk="${r.id}">
+        <span class="ico" style="background:${m.soft};color:${m.color}">${icon("alert",16,2)}</span>
+        <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:14px;color:var(--ink-900)">${r.name}</div>
+          <div style="font-size:12px;color:var(--ink-500)" class="mono">${r.rule}</div></div>
+        <span class="sevtag" style="background:${m.soft};color:${m.ink}">${icon("alert",11,2.2)}${m.label}危</span>
+        ${evbadge(r.level)}
+        ${icon("chevronD",16,1.7,"var(--ink-400)")}
+      </button>
+      ${open?`<div style="padding:0 15px 15px 57px">
+        <p style="margin:0 0 11px;font-size:13.5px;line-height:1.65;color:var(--ink-700)">${r.explain}</p>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--ink-500)">
+          <span style="display:flex;align-items:center;gap:6px">证据 ${r.evidence.map(id=>`<button class="cite" data-ev="${id}" style="color:var(--primary);background:var(--primary-soft);border:none">${id}</button>`).join("")}</span>
+          <span style="display:flex;align-items:center;gap:5px">${icon("layers",13)}${r.source}</span>
+          <span style="display:flex;align-items:center;gap:5px">${icon("sparkles",13)}AI ${r.ai==="summarize"?"参与摘要 + 解释":"仅提供解释"}</span>
+        </div></div>`:''}
+    </div>`;}).join("")}
+  </div>`;
+}
+
+/* ---- timeline ---- */
+function timelineToolbar(){
+  const laneTabs=[["all","全部车道","layers"],["user_action","用户操作","user"],["account_admin","账号管理","key"],["non_interactive","非交互","refresh"]];
+  const filters=[["all","全部"],["risk","仅风险"],["entra_signin","登录"],["entra_audit","审计"],["prod_es","Ucenter"],["pdcvlog","LogInsight"]];
+  const laneCount=id=>id==="all"?EVENTS.length:EVENTS.filter(e=>e.lane===id).length;
+  return `<div class="tl-toolbar">
+    <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap">
+      ${laneTabs.map(([id,l,ic])=>{const on=STATE.lane===id;const m=LANE_META[id];const tint=m?m.color:'var(--primary)';const soft=m?m.soft:'var(--primary-soft)';
+        return `<button class="pillbtn" data-lane="${id}" style="${on?`border-color:${tint};background:${soft};color:${tint}`:''}">${icon(ic,13,2)}${l}<span class="mono" style="font-size:11px;font-weight:700;opacity:${on?1:.6}">${laneCount(id)}</span></button>`;}).join("")}
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      ${filters.map(([id,l])=>`<button class="pillbtn${STATE.filter===id?' on':''}" data-filter="${id}">${l}</button>`).join("")}
+    </div>
+  </div>`;
+}
+function passFilter(e){
+  if(STATE.lane!=="all"&&e.lane!==STATE.lane) return false;
+  if(STATE.filter==="risk") return !!e.risk;
+  if(STATE.filter!=="all"&&STATE.filter!=="risk") return e.source===STATE.filter;
+  return true;
+}
+function ipCard(rawIp){
+  if(!rawIp) return `<span style="width:236px;flex:none"></span>`;
+  const ip=IPS[rawIp];const enriched=!!ip;const flagged=enriched&&ip.flag;const internal=enriched&&ip.is_internal;
+  const loc=!enriched?"未富化":(ip.site||[ip.country,ip.city].filter(Boolean).join(" · ")||"—");
+  const owner=enriched?ip.owner:"";
+  return `<div class="tl-ipcard${flagged?' flag':''}" data-ip="${rawIp}" style="cursor:pointer">
+    <div style="display:flex;align-items:center;gap:9px">
+      <span style="width:28px;height:28px;border-radius:7px;display:grid;place-items:center;flex:none;background:${internal?'var(--surface-sunken)':'var(--src-entra-soft)'};color:${internal?'var(--ink-500)':'var(--src-entra)'}">${icon(internal?"building":"globe",15)}</span>
+      <div style="flex:1;min-width:0;display:flex;align-items:center;gap:6px">
+        <span class="mono" style="font-size:12.5px;font-weight:600;color:var(--ink-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${rawIp}</span>
+        ${enriched?`<span style="font-size:10px;font-weight:500;padding:1px 5px;border-radius:4px;flex:none;background:var(--surface-sunken);color:var(--ink-500)">${ip.type}</span>`:''}
+      </div>
+      ${icon("chevronR",13,1.7,"var(--ink-400)")}
+    </div>
+    <div style="font-size:11.5px;line-height:1.5;color:var(--ink-600)">${loc}
+      ${owner?`<div style="color:var(--ink-500);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${owner}</div>`:''}</div>
+    ${flagged?`<div><span style="display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:600;color:var(--risk-high);background:var(--risk-high-soft);padding:2px 7px;border-radius:5px">${icon("alert",10,2.2)}异常</span></div>`:''}
+    ${enriched&&ip.glp_office&&ip.glp_match_kind==='city'?`<div><span style="display:inline-flex;align-items:center;gap:4px;font-size:10.5px;font-weight:500;color:var(--ink-500);background:var(--surface-sunken);padding:2px 7px;border-radius:5px">${icon("pin",10,2)}同城 · ${ip.glp_office}</span></div>`:''}
+  </div>`;
+}
+function eventNode(e,last){
+  const cat=CAT_ICON[e.category]||"dot";const res=RESULT_META[e.result]||{label:e.result,color:"var(--idle)"};
+  const srcHue=(SRC_META[e.source]||{}).hue||"profile";const isRisk=!!e.risk;
+  const collapsed=e.run&&e.run>=3;
+  const dotBg=isRisk?"var(--risk-high-soft)":`var(--src-${srcHue}-soft)`,dotCol=isRisk?"var(--risk-high)":`var(--src-${srcHue})`;
+  const card=collapsed?`
+    <button class="tl-card" data-ev="${e.id}" style="background:var(--surface-sunken);border:1px dashed var(--border-strong)">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px;flex-wrap:wrap">
+        <span class="mono" style="font-size:12px;color:var(--ink-500)">${e.time.slice(11)}</span>${srcchip(e.source)}
+        <span style="font-size:11px;font-weight:700;color:var(--ink-700);background:var(--surface);border:1px solid var(--border);padding:1px 9px;border-radius:999px">×${e.run}</span>
+        ${isRisk?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--risk-high);background:var(--risk-high-soft);padding:2px 7px;border-radius:5px">${icon("alert",11,2.4)}风险</span>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+        <span style="font-weight:600;font-size:14px;color:var(--ink-900)">${e.action}</span>
+        <span style="font-size:11.5px;font-weight:600;color:${res.color};display:inline-flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:${res.color}"></span>${res.label}</span>
+      </div>
+      <div style="font-size:13px;color:var(--ink-600)">${e.run} 条相同事件已折叠 · <span style="color:var(--primary);font-weight:600">点击查看证据</span></div>
+    </button>`:`
+    <button class="tl-card${isRisk?' risk':''}" data-ev="${e.id}">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px;flex-wrap:wrap">
+        <span class="mono" style="font-size:11.5px;color:var(--ink-400)">${e.id}</span>
+        <span class="mono" style="font-size:12px;color:var(--ink-500)">${e.time.slice(11)}</span>${srcchip(e.source)}
+        <span style="margin-left:auto;display:flex;align-items:center;gap:8px">
+          ${isRisk?`<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--risk-high);background:var(--risk-high-soft);padding:2px 7px;border-radius:5px">${icon("alert",11,2.4)}风险</span>`:''}
+          ${evbadge(e.evidence)}
+        </span>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+        <span style="font-weight:600;font-size:14px;color:var(--ink-900)">${e.action}</span>
+        <span style="font-size:11.5px;font-weight:600;color:${res.color};display:inline-flex;align-items:center;gap:4px"><span style="width:5px;height:5px;border-radius:50%;background:${res.color}"></span>${res.label}</span>
+      </div>
+      <div style="font-size:13px;color:var(--ink-600);line-height:1.55">${e.summary}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:9px;font-size:11.5px;color:var(--ink-500);flex-wrap:wrap">
+        ${e.ip?`<span class="mono" style="display:inline-flex;align-items:center;gap:4px">${icon("globe",12)}${e.ip}</span>`:''}
+        ${e.target?`<span style="display:inline-flex;align-items:center;gap:4px;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${icon("arrowR",12)}${e.target}</span>`:''}
+        ${e.session?`<span class="mono" style="display:inline-flex;align-items:center;gap:4px;color:var(--ink-400)">${icon("link",12)}${e.session}</span>`:''}
+        <span style="margin-left:auto;color:var(--primary);font-weight:600;display:inline-flex;align-items:center;gap:3px">查看证据 ${icon("chevronR",12,2.4)}</span>
+      </div>
+    </button>`;
+  return `<div class="tl-node">
+    <div class="tl-spine"><span class="tl-dot" style="background:${dotBg};color:${dotCol};border-color:${isRisk?'var(--risk-high)':'var(--surface)'}">${icon(cat,15,2)}</span>${last?'':'<span class="tl-line"></span>'}</div>
+    <div class="tl-row">${card}${ipCard(e.ip)}</div>
+  </div>`;
+}
+function timelineList(){
+  const items=EVENTS.filter(passFilter);
+  if(!items.length) return `<div style="font-size:13px;color:var(--ink-500);padding:12px 0">该筛选条件下无事件。</div>`;
+  const groups=[];
+  items.forEach(e=>{const d=e.time.slice(0,10);let g=groups.find(x=>x.date===d);if(!g){g={date:d,items:[]};groups.push(g);}g.items.push(e);});
+  return groups.map(g=>`<div style="margin-bottom:6px">
+    <div style="display:flex;align-items:center;gap:10px;margin:4px 0 10px">
+      <span class="mono" style="font-size:12px;font-weight:600;color:var(--ink-600);background:var(--surface-sunken);padding:3px 10px;border-radius:6px">${g.date}</span>
+      <span style="flex:1;height:1px;background:var(--hairline)"></span>
+      <span style="font-size:11.5px;color:var(--ink-400)">${g.items.length} 条事件</span>
+    </div>
+    <div style="position:relative;padding-left:4px">
+      ${g.items.map((e,i)=>eventNode(e,i===g.items.length-1)).join("")}
+    </div>
+  </div>`).join("");
+}
+
+/* ============================================================
+   二级页面：查询历史 / 审计追踪 / 数据源
+   ============================================================ */
+const HISTORY=[
+  {name:"Simon Wang",q:"Simon Wang",range:"7d",at:"2026-06-21 09:12",snap:true},
+  {name:"Simon Wang",q:"simon.wang@glprop.com",range:"3d",at:"2026-06-20 16:48",snap:true},
+  {name:"周敏",q:"zhou.min@glprop.com",range:"7d",at:"2026-06-19 11:05",snap:false},
+  {name:"林若",q:"10006621",range:"24h",at:"2026-06-18 14:22",snap:false},
+];
+const AUDIT_Q=[
+  {operator:"admin@glprop.com",role:"管理员",input:"Simon Wang",upn:"simon.wang@glprop.com",range:"7d",reason:"安全告警跟进 · 工单 #4821",risk:4,status:"成功",at:"2026-06-21 09:12:30"},
+  {operator:"ruo.lin@glprop.com",role:"分析员",input:"zhou.min@glprop.com",upn:"zhou.min@glprop.com",range:"3d",reason:"离职审计",risk:1,status:"成功",at:"2026-06-20 16:48:02"},
+  {operator:"auditor@glprop.com",role:"审计员",input:"10006621",upn:"ruo.lin@glprop.com",range:"24h",reason:"合规抽查",risk:0,status:"成功",at:"2026-06-18 14:22:51"},
+];
+const AUDIT_E=[
+  {exporter:"admin@glprop.com",upn:"simon.wang@glprop.com",range:"7d",format:"pdf",raw:false,sensitive:false,ip:"完整 IP",report:"a1b2c3d4",at:"2026-06-21 09:15:10"},
+  {exporter:"ruo.lin@glprop.com",upn:"zhou.min@glprop.com",range:"3d",format:"csv",raw:true,sensitive:false,ip:"仅子网",report:"9f8e7d6c",at:"2026-06-20 16:52:44"},
+];
+const SOURCE_MODE={live:{text:"LIVE",dot:"success",bg:"var(--ok-soft)",fg:"var(--ok)"},
+  down:{text:"DOWN",dot:"failed",bg:"var(--fail-soft)",fg:"var(--fail)"},
+  demo:{text:"DEMO",dot:"no_data",bg:"var(--surface-sunken)",fg:"var(--ink-500)"}};
+const SRC_PAGE=[
+  {label:"Entra ID 画像 / Microsoft Graph",mode:"live",basis:"OAuth 客户端凭据令牌获取成功（login.microsoftonline.com · glprop.com / glp.com 双租户）"},
+  {label:"Entra ID 登录日志",mode:"live",basis:"同 Graph 凭据 · auditLogs/signIns 返回 200"},
+  {label:"Entra ID 审计日志",mode:"live",basis:"同 Graph 凭据 · auditLogs/directoryAudits 返回 200"},
+  {label:"Ucenter / CAS 登录 (prod.es)",mode:"live",basis:"对当月索引 POST size:0 _search 返回 200/404 即可达"},
+  {label:"LogInsight (Aria/vRLI · pdcvlog)",mode:"live",basis:"POST /api/v2/sessions 登录成功并返回 sessionId"},
+  {label:"CMDB / DIA",mode:"live",basis:"带 API Key 对探测路径 GET 返回 2xx"},
+  {label:"IP 富化 (ipinfo / BigDataCloud)",mode:"live",basis:"对已知公网 IP 在线富化成功 · 内网走企业子网表"},
+  {label:"AI 故事线 (Qwen / DashScope)",mode:"live",basis:"chat/completions 微调用返回非空内容"},
+];
+const RETENTION=[["原始日志片段",14],["规范化事件",90],["IP 画像缓存",90],["AI 故事线",365],["查询 / 导出审计",365],["导出文件",30]];
+
+function pageHead(ic,title,sub,pinKey,right){
+  return `<div class="sectitle">
+    <div class="ico">${icon(ic,16)}</div>
+    <div style="flex:1"><div class="t">${title}${pinKey?pin(pinKey):""}</div><div class="s">${sub}</div></div>
+    ${right||""}
+  </div>`;
+}
+
+function renderHistory(){
+  $("#app").innerHTML=`${topnav("history")}
+  <div class="ua-page">
+    ${pageHead("history","查询历史","本浏览器记录的最近搜寻 · 完整审计见「审计追踪」","a-history",
+      `<button class="btn-ghost" id="clearHist" style="padding:6px 12px;font-size:12.5px;display:inline-flex;align-items:center;gap:5px">${icon("x",13,2)}清空历史</button>`)}
+    <table class="ua-table">
+      <thead><tr><th>账号</th><th>搜寻输入</th><th>范围</th><th>时间</th><th></th></tr></thead>
+      <tbody>${HISTORY.map(r=>`<tr>
+        <td style="font-weight:600">${r.name}</td>
+        <td class="mono" style="color:var(--ink-500)">${r.q}</td>
+        <td>${rangeLabel(r.range)}</td>
+        <td class="mono" style="color:var(--ink-400)">${r.at}</td>
+        <td style="white-space:nowrap"><button class="hist-open" style="border:none;background:var(--primary-soft);color:var(--primary);font-weight:600;font-size:12px;padding:4px 10px;border-radius:6px;cursor:pointer">${r.snap?"秒开快照":"查看结果"}</button></td>
+      </tr>`).join("")}</tbody>
+    </table>
+  </div>`;
+  $$(".hist-open").forEach(b=>b.addEventListener("click",()=>go("results")));
+  $("#clearHist").addEventListener("click",()=>toast("演示模式：历史仅存于本地浏览器，不影响审计追踪。"));
+  bindNav();
+}
+
+function renderAudit(){
+  const isQ=STATE.auditTab==="queries";
+  const table=isQ?`
+    <table class="ua-table">
+      <thead><tr><th>操作者</th><th>角色</th><th>搜寻输入</th><th>账号</th><th>范围</th><th>原因</th><th>风险</th><th>状态</th><th>时间</th></tr></thead>
+      <tbody>${AUDIT_Q.map(r=>`<tr>
+        <td class="mono">${r.operator}</td><td>${r.role}</td><td class="mono">${r.input}</td><td class="mono">${r.upn}</td>
+        <td>${rangeLabel(r.range)}</td><td>${r.reason}</td><td>${r.risk}</td>
+        <td><span style="color:var(--ok);font-weight:600">${r.status}</span></td>
+        <td class="mono" style="color:var(--ink-400)">${r.at}</td></tr>`).join("")}</tbody>
+    </table>`:`
+    <table class="ua-table">
+      <thead><tr><th>导出者</th><th>账号</th><th>范围</th><th>格式</th><th>原始日志</th><th>敏感字段</th><th>IP 策略</th><th>报告 ID</th><th>时间</th></tr></thead>
+      <tbody>${AUDIT_E.map(r=>`<tr>
+        <td class="mono">${r.exporter}</td><td class="mono">${r.upn}</td><td>${rangeLabel(r.range)}</td>
+        <td style="text-transform:uppercase">${r.format}</td><td>${r.raw?"是":"否"}</td><td>${r.sensitive?"是":"否"}</td>
+        <td>${r.ip}</td><td class="mono" style="color:var(--ink-400)">${r.report}</td>
+        <td class="mono" style="color:var(--ink-400)">${r.at}</td></tr>`).join("")}</tbody>
+    </table>`;
+  $("#app").innerHTML=`${topnav("audit")}
+  <div class="ua-page">
+    ${pageHead("shield","审计追踪","每次查询与导出均留痕（操作者、账号、范围、原因、数据源、状态）· 仅审计员 / 管理员可查看","a-audit")}
+    <div style="display:flex;gap:6px;margin-bottom:16px">
+      ${[["queries","查询审计"],["exports","导出审计"]].map(([id,l])=>`<button class="pillbtn${STATE.auditTab===id?" on":""}" data-atab="${id}">${l}</button>`).join("")}
+    </div>
+    ${table}
+  </div>`;
+  $$("[data-atab]").forEach(b=>b.addEventListener("click",()=>{STATE.auditTab=b.dataset.atab;renderAudit();}));
+  bindNav();
+}
+
+function renderSources(){
+  $("#app").innerHTML=`${topnav("sources")}
+  <div class="ua-page">
+    ${pageHead("layers","数据源","每 10 分钟探测一次各源真实 API：可达=LIVE，配了凭据但探测失败=DOWN，未配凭据=DEMO（演示回退）","a-srcpage")}
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px">
+      ${SRC_PAGE.map(s=>{const mb=SOURCE_MODE[s.mode];return `<div class="src-card">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${statusdot(mb.dot)}
+          <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13.5px;color:var(--ink-900)">${s.label}</div></div>
+          <span style="font-size:11px;font-weight:600;padding:2px 9px;border-radius:6px;background:${mb.bg};color:${mb.fg}">${mb.text}</span>
+        </div>
+        <div style="margin-top:8px;font-size:11.5px;line-height:1.55;color:var(--ink-500)"><b style="color:var(--ink-600);font-weight:600">LIVE 条件：</b>${s.basis}</div>
+      </div>`;}).join("")}
+    </div>
+    <div class="sectitle"><div class="ico">${icon("clock",16)}</div>
+      <div style="flex:1"><div class="t">数据保留策略</div><div class="s">可配置 · 上游系统仍为权威数据源</div></div></div>
+    <table class="ua-table">
+      <thead><tr><th>数据类型</th><th>默认保留</th></tr></thead>
+      <tbody>${RETENTION.map(([k,v])=>`<tr><td>${k}</td><td class="mono">${v} 天</td></tr>`).join("")}</tbody>
+    </table>
+  </div>`;
+  bindNav();
+}
+
+/* ============================================================
+   结果页交互绑定
+   ============================================================ */
+function bindResults(){
+  // overview tiles
+  $$(".ovtile").forEach(t=>t.addEventListener("click",()=>{
+    const f=t.dataset.filter;if(f){STATE.filter=f;$("#timelineHost").innerHTML=timelineList();syncTimelineToolbar();}
+    const el=document.getElementById(t.dataset.target);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});
+  }));
+  // data source warnings
+  $("#srcList").addEventListener("click",e=>{const b=e.target.closest(".srcrow");if(!b)return;
+    const w=$(`.srcwarn[data-for="${b.dataset.src}"]`);if(w)w.style.display=w.style.display==="none"?"block":"none";});
+  // AI mode
+  $("#storyHost").addEventListener("click",e=>{
+    const m=e.target.closest("[data-mode]");if(m){STATE.aiMode=m.dataset.mode;$("#storyHost").innerHTML=aiStoryCard();return;}
+    const c=e.target.closest(".cite");if(c){openEventDrawer(c.dataset.ev);}
+  });
+  // risks
+  $("#riskHost").addEventListener("click",e=>{
+    const c=e.target.closest(".cite");if(c){openEventDrawer(c.dataset.ev);return;}
+    const h=e.target.closest("[data-risk]");if(h){STATE.openRisk=STATE.openRisk===h.dataset.risk?null:h.dataset.risk;$("#riskHost").innerHTML=risksPanel();}
+  });
+  // timeline toolbar + nodes
+  const tlSection=$("#sec-timeline");
+  tlSection.addEventListener("click",e=>{
+    const lb=e.target.closest("[data-lane]");if(lb){STATE.lane=lb.dataset.lane;$("#timelineHost").innerHTML=timelineList();syncTimelineToolbar();return;}
+    const fb=e.target.closest("[data-filter]");if(fb&&fb.classList.contains("pillbtn")){STATE.filter=fb.dataset.filter;$("#timelineHost").innerHTML=timelineList();syncTimelineToolbar();return;}
+    const ipb=e.target.closest("[data-ip]");if(ipb){openIPDrawer(ipb.dataset.ip);return;}
+    const ev=e.target.closest("[data-ev]");if(ev){openEventDrawer(ev.dataset.ev);return;}
+  });
+  $("#exportBtn").addEventListener("click",()=>toast("演示模式：报告已生成（CSV/JSON/PDF/HTML），导出动作已记入审计。"));
+}
+function syncTimelineToolbar(){const host=$(".tl-toolbar");if(host)host.outerHTML=timelineToolbar();}
+
+/* ============================================================
+   抽屉：事件证据 / IP 画像
+   ============================================================ */
+function rawLogFor(e){
+  if(e.source==="pdcvlog"&&e.category==="windows_security")
+    return `An account was successfully logged on.\nSubject:\n  Security ID:  GLP\\simonw\n  Account Name: simonw\nLogon Type:    10\nNew Logon:\n  Account Name: simonw\n  Logon ID:     0x3E7A91\nNetwork Information:\n  Source Network Address: ${e.ip}\n  Workstation Name: LCMDC04P\n[已脱敏：会话令牌、设备指纹]`;
+  if(e.source==="pdcvlog"&&e.category==="remote_access")
+    return `User Activity zpa-lss: ...,${e.result==='failure'?'BRK_MT_SETUP_FAIL_NO_POLICY_FOUND,failed':'OPEN_OR_ACTIVE_CONNECTION,active'},...,simon.wang,${e.target},${e.ip},100.64.20.7,31.2222,121.4581,CN,...,${e.target.split(':')[0]},...\n[已脱敏：ZPA token]`;
+  if(e.source==="entra_signin")
+    return `{\n  "source":"entra_signin",\n  "userPrincipalName":"simon.wang@glprop.com",\n  "ipAddress":"${e.ip}",\n  "appDisplayName":"${e.target}",\n "status":{"errorCode":${e.result==='failure'?50126:0}},\n  "mfaDetail":{"authMethod":"Authenticator"},\n  "correlationId":"${e.session}"\n}`;
+  if(e.source==="entra_audit")
+    return `{\n  "source":"entra_audit",\n  "activityDisplayName":"Add member to group",\n  "initiatedBy":{"user":{"userPrincipalName":"zhou.min@glprop.com"}},\n  "targetResources":[{"displayName":"${e.target}"}],\n  "result":"success",\n  "correlationId":"${e.session}"\n}`;
+  return `{\n  "source":"prod_es",\n  "name":"simon.wang",\n  "client":"${e.ip}",\n  "systemCode":"${e.target}",\n  "loginType":"aadLogin",\n  "result":"true"\n}`;
+}
+function openEventDrawer(id){
+  const e=EVENTS.find(x=>x.id===id);if(!e)return;
+  const res=RESULT_META[e.result]||{label:e.result,color:"var(--idle)"};
+  const rows=[["事件 ID",e.id],["时间",e.time],["数据源",(SRC_META[e.source]||{}).label],["类别",e.category],
+    ["动作",e.action],["结果",res.label],["目标",e.target||"—"],["来源 IP",e.ip||"—"],
+    ["会话 / 关联",e.session||"—"],["车道",(LANE_META[e.lane]||{}).label||"—"]];
+  openDrawer(`
+    <div class="dhead">
+      <span style="width:36px;height:36px;border-radius:9px;display:grid;place-items:center;flex:none;background:${e.risk?'var(--risk-high-soft)':'var(--surface-sunken)'};color:${e.risk?'var(--risk-high)':'var(--ink-600)'}">${icon(CAT_ICON[e.category]||"dot",18,2)}</span>
+      <div style="flex:1"><div style="font-weight:700;font-size:16px;color:var(--ink-900)">${e.action}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:5px">${srcchip(e.source)}${evbadge(e.evidence)}<span style="font-size:11.5px;color:${EV_META[e.evidence].color};font-weight:600">${EV_META[e.evidence].label}</span></div></div>
+      <button class="iconbtn" id="drawerClose">${icon("x",18)}</button>
+    </div>
+    <div class="dbody">
+      <div style="font-size:11px;font-weight:600;color:var(--ink-500);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px">规范化字段</div>
+      <div class="kv">${rows.map(([k,v])=>`<div class="k">${k}</div><div class="v ${/^(事件 ID|时间|来源 IP|会话)/.test(k)?'mono':''}">${v}</div>`).join("")}</div>
+      <div style="margin-top:18px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:11px;font-weight:600;color:var(--ink-500);text-transform:uppercase;letter-spacing:.03em">脱敏原始日志</div>
+        <span style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-500);background:var(--surface-sunken);padding:3px 9px;border-radius:5px">${icon("lock",11)}敏感字段已脱敏</span>
+      </div>
+      <div class="rawbox">${rawLogFor(e)}</div>
+      <button style="margin-top:12px;width:100%;border:1px dashed var(--border-strong);background:var(--surface);color:var(--ink-600);padding:10px;border-radius:8px;font-size:12.5px;font-weight:600" id="revealBtn">${icon("eye",14)} 申请查看完整原始日志（需权限 · 写入审计）</button>
+    </div>`);
+  $("#revealBtn").addEventListener("click",()=>toast("演示模式：完整原始日志的查看申请已记入审计追踪。"));
+}
+function openIPDrawer(rawIp){
+  const ip=IPS[rawIp];if(!ip)return;
+  const rows=[["IP 地址",ip.ip],["类型",ip.type],["内网",ip.is_internal?"是":"否"],["国家 / 地区",ip.country||"—"],
+    ["城市",ip.city||"—"],["企业站点",ip.site||"—"],["ASN",ip.asn||"—"],["ISP / 运营商",ip.isp||"—"],
+    ["网络所有者",ip.owner||"—"],["富化来源",ip.geo_source],["置信度",Math.round(ip.confidence*100)+"%"],["解析时间",ip.last_resolved_at]];
+  openDrawer(`
+    <div class="dhead">
+      <span style="width:36px;height:36px;border-radius:9px;display:grid;place-items:center;flex:none;background:${ip.is_internal?'var(--surface-sunken)':'var(--src-entra-soft)'};color:${ip.is_internal?'var(--ink-500)':'var(--src-entra)'}">${icon(ip.is_internal?"building":"globe",18)}</span>
+      <div style="flex:1"><div class="mono" style="font-weight:700;font-size:16px;color:var(--ink-900)">${ip.ip}</div>
+        <div style="font-size:12px;color:var(--ink-500);margin-top:3px">${ip.site||[ip.country,ip.city].filter(Boolean).join(" · ")}</div></div>
+      <button class="iconbtn" id="drawerClose">${icon("x",18)}</button>
+    </div>
+    <div class="dbody">
+      ${ip.flag?`<div style="display:flex;gap:9px;align-items:flex-start;padding:12px 14px;background:var(--risk-high-soft);border-radius:10px;border-left:3px solid var(--risk-high);color:var(--risk-high-ink);font-size:13px;line-height:1.6;margin-bottom:16px">
+        ${icon("alert",15,2,"var(--risk-high)")}<span><strong>异常地点 — </strong>${ip.note}</span></div>`:''}
+      <div style="font-size:11px;font-weight:600;color:var(--ink-500);text-transform:uppercase;letter-spacing:.03em;margin-bottom:10px">IP 画像与地理富化</div>
+      <div class="kv">${rows.map(([k,v])=>`<div class="k">${k}</div><div class="v ${/^(IP|ASN)/.test(k)?'mono':''}">${v}</div>`).join("")}</div>
+      <div style="margin-top:16px;font-size:12px;color:var(--ink-500);line-height:1.6;background:var(--surface-sunken);padding:11px 13px;border-radius:8px">
+        ${icon("shield",13)} 内网 IP 通过企业子网表解析为办公室 / 数据中心 / ZPA 出口；公网 IP 经 GeoIP 富化并标注置信度。位置来源冲突时显示来源与置信度，不隐藏分歧。</div>
+    </div>`);
+}
+function openDrawer(html){
+  $("#overlay").innerHTML=`<div class="scrim" id="scrim"></div><div class="drawer">${html}</div>`;
+  $("#scrim").addEventListener("click",closeDrawer);
+  const c=$("#drawerClose");if(c)c.addEventListener("click",closeDrawer);
+}
+function closeDrawer(){$("#overlay").innerHTML="";}
+
+/* ============================================================
+   注释系统
+   ============================================================ */
+let curAnno=null;
+function bindAnno(){
+  document.body.addEventListener("click",e=>{
+    const p=e.target.closest(".anno-pin");
+    if(p){e.stopPropagation();showAnno(p.dataset.anno,p);return;}
+    if(!e.target.closest(".anno-pop")) hideAnno();
+  });
+  window.addEventListener("scroll",hideAnno,true);
+}
+function showAnno(key,pinEl){
+  const a=ANNOS[key];if(!a)return;
+  hideAnno();
+  const pop=document.createElement("div");pop.className="anno-pop";
+  pop.innerHTML=`<div class="ah"><span class="n">${a.n}</span><span class="ti">${a.title}</span><button class="closep">${icon("x",16)}</button></div>
+    <div class="ab">${a.body}<div class="src">${icon("layers",12)}${a.src}</div></div>`;
+  document.body.appendChild(pop);
+  const r=pinEl.getBoundingClientRect();const pw=pop.offsetWidth,ph=pop.offsetHeight;
+  let left=r.left+r.width/2-pw/2;let top=r.bottom+10;
+  if(left<8)left=8;if(left+pw>window.innerWidth-8)left=window.innerWidth-pw-8;
+  if(top+ph>window.innerHeight-8)top=r.top-ph-10;
+  if(top<8)top=8;
+  pop.style.left=left+"px";pop.style.top=top+"px";
+  pop.querySelector(".closep").addEventListener("click",hideAnno);
+  curAnno=pop;
+}
+function hideAnno(){if(curAnno){curAnno.remove();curAnno=null;}}
+
+/* ============================================================
+   toast
+   ============================================================ */
+let toastT=null;
+function toast(msg){
+  let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";
+    t.style.cssText="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:99;background:#0c1f18;color:#e7f6ee;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:0 10px 30px -8px rgba(0,0,0,.4);max-width:90vw;text-align:center;display:flex;align-items:center;gap:9px";
+    document.body.appendChild(t);}
+  t.innerHTML=icon("check",16,2.4,"#9ff0c8")+msg;t.style.opacity="1";
+  clearTimeout(toastT);toastT=setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity="0";},2600);
+}
+
+/* ============================================================
+   导航 / 路由
+   ============================================================ */
+function go(screen){STATE.page="investigate";STATE.screen=screen;render();window.scrollTo(0,0);}
+function goNav(id){STATE.page=id;render();window.scrollTo(0,0);}
+function render(){
+  hideAnno();closeDrawer();
+  if(STATE.page==="history")renderHistory();
+  else if(STATE.page==="audit")renderAudit();
+  else if(STATE.page==="sources")renderSources();
+  else if(STATE.screen==="search")renderSearch();
+  else if(STATE.screen==="candidates"){if(!STATE.selCand)STATE.selCand="k-simon";renderCandidates();}
+  else renderResults();
+  syncStepper();
+}
+function bindNav(){
+  $$("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
+  $$("[data-nav]").forEach(b=>b.addEventListener("click",()=>goNav(b.dataset.nav)));
+}
+function syncStepper(){
+  $$("#stepper button").forEach(b=>b.classList.toggle("on",STATE.page==="investigate"&&b.dataset.step===STATE.screen));
+}
+
+/* ============================================================
+   demo chrome 绑定
+   ============================================================ */
+$("#stepper").addEventListener("click",e=>{const b=e.target.closest("[data-step]");if(b){
+  if(b.dataset.step==="results"&&!STATE.selCand)STATE.selCand="k-simon";go(b.dataset.step);}});
+$("#annoToggle").addEventListener("click",()=>{
+  const on=document.body.classList.toggle("anno-on");
+  $("#annoToggle").classList.toggle("on",on);
+  if(!on)hideAnno();
+});
+$("#restartBtn").addEventListener("click",()=>{STATE={page:"investigate",screen:"search",range:"7d",aiMode:"free",filter:"all",lane:"user_action",openRisk:"r1",selCand:null,auditTab:"queries"};go("search");});
+$("#introBtn").addEventListener("click",showIntro);
+
+function showIntro(){
+  $("#overlay").innerHTML=`<div class="intro-scrim" id="introScrim"><div class="intro">
+    <div class="ih"><h2>UserAct 交互式演示</h2><p>企业用户账号活动搜寻台 — 把分散在 Entra ID、Ucenter、LogInsight 的日志，聚合成一条带证据的账号活动故事线。</p></div>
+    <div class="ib">
+      <div class="step"><span class="n">1</span><div><div class="tt">账号搜索</div><div class="dd">用 UPN / 邮箱 / 工号 / 显示名搜索，设置时间范围与查询原因。点搜索按钮进入下一步。</div></div></div>
+      <div class="step"><span class="n">2</span><div><div class="tt">候选消歧</div><div class="dd">输入有歧义时选择唯一目标账号（注意多租户 🏢 标签），再开始活动查询。</div></div></div>
+      <div class="step"><span class="n">3</span><div><div class="tt">活动故事线</div><div class="dd">查看概览、账号画像、AI 故事线、风险提示与详细时间线；可切换 AI 模式、筛选时间线、点开事件 / IP 证据抽屉。</div></div></div>
+      <div class="step"><span class="n">▦</span><div><div class="tt">顶部四个板块</div><div class="dd">顶栏导航可切换 <b>搜寻台 / 查询历史 / 审计追踪 / 数据源</b>——后三者是历史快照、合规留痕与数据源探测状态，均可点击查看。</div></div></div>
+      <div class="step"><span class="n">★</span><div><div class="tt">注释模式</div><div class="dd">界面上闪烁的绿色数字 ❶❷❸ 可点击，查看每个区域的功能说明与对应数据源。随时可在右上角开关。</div></div></div>
+    </div>
+    <div class="if"><button class="btn-primary" id="introStart">开始体验 ${icon("arrowR",16,2,"#fff")}</button></div>
+  </div></div>`;
+  $("#introScrim").addEventListener("click",e=>{if(e.target.id==="introScrim")$("#overlay").innerHTML="";});
+  $("#introStart").addEventListener("click",()=>$("#overlay").innerHTML="");
+}
+
+/* ============================================================
+   启动
+   ============================================================ */
+bindAnno();
+render();
+showIntro();
+</script>
+</body>
+</html>
