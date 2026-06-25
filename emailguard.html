@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PhishGuard · 部署兼容性矩阵</title>
+<title>EmailGuard Lite · 部署兼容性矩阵</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -959,7 +959,7 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
   </div>
   <p class="section-desc">
     部分用户邮箱在 Exchange Online，部分在本地 Exchange 服务器。
-    由于 PhishGuard Standalone 所有处置动作均通过 <strong>Office.js 原生 API</strong> 完成，
+    由于 EmailGuard Standalone 所有处置动作均通过 <strong>Office.js 原生 API</strong> 完成，
     不依赖 Graph；外部服务统一走同一个 SWA Functions 代理，<strong>两类用户功能完全一致，无需按邮箱位置分流</strong>。
   </p>
 
@@ -1049,7 +1049,7 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
     <h2>部署要求</h2>
   </div>
   <p class="section-desc">
-    PhishGuard Standalone 由 <strong>Azure Static Web Apps 托管</strong>，前端为静态 SPA，
+    EmailGuard Standalone 由 <strong>Azure Static Web Apps 托管</strong>，前端为静态 SPA，
     所有外部 API 调用（DashScope / VirusTotal / Azure OpenAI）经 <strong>SWA Functions 代理</strong>转发，
     Functions 服务端持有 API key（<code>process.env.*</code>），key 不再进 bundle。
     依然零运维：Functions 是 serverless（consumption plan），无需管理实例。
@@ -1541,6 +1541,7 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
         <li>每次请求 4 秒 AbortController 超时</li>
         <li>每封邮件最多查询 <strong>6 个域名 / URL</strong>（VITE_INTEL_MAX_LOOKUPS 可调）</li>
         <li>重复域名去重，Promise.allSettled 并发查询</li>
+        <li><strong>Proofpoint URL Defense</strong>：入站链接被改写为 <code style="font-size:9px;">urldefense.com/v3/__真实URL__;…$</code>，查询前先解包还原真实地址再查；<code style="font-size:9px;">urldefense.com</code> 等 Proofpoint 自有域直接跳过不查（<code style="font-size:9px;">services/url-defense.js</code>）</li>
         <li><strong>恶意确认</strong>（≥ 2 引擎标记 malicious）→ +25 分</li>
         <li><strong>可疑</strong>（1 引擎 malicious 或 ≥ 1 引擎 suspicious）→ +8 分</li>
         <li>情报分 <code style="font-size:9px;">Math.min(score, 100)</code>，上限 100；免费账户 500 次 / 天</li>
