@@ -1538,9 +1538,9 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
       <div class="callout-title">威胁情报维度 · VirusTotal v3</div>
       <ul>
         <li>通过 <code style="font-size:9.5px;background:var(--surface-subtle);padding:1px 4px;border-radius:3px;">/api/virustotal</code> 代理调用，VT key 在服务端</li>
-        <li>每次请求 4 秒 AbortController 超时</li>
+        <li>每次请求 8 秒 AbortController 超时；失败<strong>重试 1 次</strong>（600ms 退避，届时 Function 已热）— 扛住 consumption-plan 冷启动（实测冷启动单请求 ~3–4s）</li>
         <li>每封邮件最多查询 <strong>6 个域名 / URL</strong>（VITE_INTEL_MAX_LOOKUPS 可调）</li>
-        <li>重复域名去重，Promise.allSettled 并发查询</li>
+        <li>重复域名去重，<strong>并发限流 3</strong>（贴合 VT 4 次/分钟，避免冷启动函数被并发压垮）</li>
         <li><strong>Proofpoint URL Defense</strong>：入站链接被改写为 <code style="font-size:9px;">urldefense.com/v3/__真实URL__;…$</code>，查询前先解包还原真实地址再查；<code style="font-size:9px;">urldefense.com</code> 等 Proofpoint 自有域直接跳过不查（<code style="font-size:9px;">services/url-defense.js</code>）</li>
         <li><strong>恶意确认</strong>（≥ 2 引擎标记 malicious）→ +25 分</li>
         <li><strong>可疑</strong>（1 引擎 malicious 或 ≥ 1 引擎 suspicious）→ +8 分</li>
