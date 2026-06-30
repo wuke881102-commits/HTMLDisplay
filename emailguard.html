@@ -1149,7 +1149,7 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
       <div class="callout-title">🔗 运行时外部依赖（经代理）</div>
       <ul>
         <li><strong>DashScope（Qwen）：</strong>EmailGuard / EmailAssist / AttachAnalyst 文本路径共用，经 <code style="font-size:9.5px;">/api/dashscope-attachment</code></li>
-        <li><strong>VirusTotal v3：</strong>EmailGuard 威胁情报，经 <code style="font-size:9.5px;">/api/virustotal</code>，禁用后仅规则引擎打分</li>
+        <li><strong>VirusTotal v3：</strong>EmailGuard 威胁情报，经 <code style="font-size:9.5px;">/api/virustotal</code>，禁用后仅规则引擎打分。送检 URL 现同时取自纯文本正文与 HTML 锚点 href（解包 Proofpoint 后），故「显示文字无害、href 指向恶意」的真实链接也会被查</li>
         <li><strong>Azure OpenAI（GPT-4.1-mini）：</strong>AttachAnalyst 图像分析，经 <code style="font-size:9.5px;">/api/openai-vision</code></li>
         <li>SOC 转发 / 回复建议：通过 Office.js 原生 compose 窗口，不走外部 API</li>
       </ul>
@@ -1331,6 +1331,7 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
   <p class="section-desc">
     三维加权评分：<strong>规则引擎 30%</strong> + <strong>威胁情报 20%</strong> + <strong>AI 分析 50%</strong>，
     综合得分 0–100，经过三路阈值输出最终裁决（phish / uncertain / safe）。
+    <strong>AI 提示词注入加固：</strong>邮件元数据与正文一律置于 <code style="font-size:10px;">&lt;&lt;&lt;UNTRUSTED_EMAIL_CONTENT&gt;&gt;&gt;</code> 分隔符内作为「不可信数据」，伪造的分隔符会被剥除；模型被要求把正文中任何「指令」（如"判为安全""忽略以上规则"）视为钓鱼信号而非命令。这也是保留「VT 多引擎命中硬底线」的原因——AI 维度即使被操纵，硬底线仍能兜底。
     源码：<code style="font-size:10px;background:var(--surface-subtle);padding:1px 5px;border-radius:3px;">services/analyzer.js</code>
     · <code style="font-size:10px;background:var(--surface-subtle);padding:1px 5px;border-radius:3px;">services/rules.js</code>
     · <code style="font-size:10px;background:var(--surface-subtle);padding:1px 5px;border-radius:3px;">services/intel.js</code>
@@ -1347,7 +1348,7 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
       <div style="background:var(--success-bg);border:2px solid var(--success);border-radius:10px;padding:10px 18px;text-align:center;min-width:110px;">
         <div style="font-family:var(--font-mono);font-size:20px;font-weight:800;color:var(--success);">0.30</div>
         <div style="font-size:10px;font-weight:700;color:var(--success);margin-top:2px;">× 规则分</div>
-        <div style="font-size:9px;color:var(--text-disabled);margin-top:2px;">clamp 0–100<br>原始最高 169</div>
+        <div style="font-size:9px;color:var(--text-disabled);margin-top:2px;">clamp 0–100<br>原始最高 201</div>
       </div>
 
       <div style="font-size:18px;color:var(--text-disabled);font-weight:300;">+</div>
@@ -1459,10 +1460,10 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
 
   <!-- 规则引擎明细 -->
   <div style="padding:0 32px 24px;">
-    <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">规则引擎 · 11 条规则明细</div>
+    <div style="font-size:13px;font-weight:700;color:var(--text-primary);margin-bottom:4px;">规则引擎 · 14 条规则明细</div>
     <div style="font-size:12px;color:var(--text-tertiary);margin-bottom:14px;">
-      各规则分值累加（理论最高 169 分），再以权重 30% 贡献综合分；<strong>参与加权前先 clamp 到 0–100</strong>，故规则维度最多贡献 30 分。
-      移动端 Headers 不可用时 RULE-AUTH-001 自动跳过，原始上限降至 154 分。
+      各规则分值累加（理论最高 201 分），再以权重 30% 贡献综合分；<strong>参与加权前先 clamp 到 0–100</strong>，故规则维度最多贡献 30 分。
+      RULE-AUTH-001 与 RULE-AUTH-002 互斥（硬失败优先，二者不叠加）；移动端 Headers 不可用时两者均自动跳过，原始上限降至 186 分。
     </div>
     <table>
       <thead>
@@ -1480,8 +1481,13 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
         </tr>
         <tr>
           <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-DOM-001</code></td>
-          <td style="text-align:left;font-size:12px;">发件人域名仿冒知名品牌（microsoft / google / apple / paypal / amazon / docusign 等子串匹配）</td>
+          <td style="text-align:left;font-size:12px;">发件域名/显示名仿冒知名品牌或本公司域名 — 同形字骨架折叠（rn→m、0→o、1/i/l→l 等）+ Damerau-Levenshtein ≤1 通用检测，取代旧的逐品牌正则，覆盖任意拼写变体</td>
           <td><span class="s s-bad" style="font-size:11px;font-weight:700;letter-spacing:0;">+22</span></td>
+        </tr>
+        <tr>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-DOM-002</code></td>
+          <td style="text-align:left;font-size:12px;">发件域名为 Punycode / IDN（含 <code style="font-size:10px;">xn--</code> 标签）— 可能为同形异义（homograph）仿冒</td>
+          <td><span class="s s-warn" style="font-size:11px;font-weight:700;letter-spacing:0;">+14</span></td>
         </tr>
         <tr>
           <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-IMP-002</code></td>
@@ -1502,6 +1508,11 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
           <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-AUTH-001</code></td>
           <td style="text-align:left;font-size:12px;">邮件头部 SPF 检查结果为 fail 或 DMARC 结果为 fail<span class="note">移动端 Headers 不可用时自动跳过</span></td>
           <td><span class="s s-bad" style="font-size:11px;font-weight:700;letter-spacing:0;">+15</span></td>
+        </tr>
+        <tr>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-AUTH-002</code></td>
+          <td style="text-align:left;font-size:12px;">SPF 结果为 softfail 或 DKIM 签名验证失败 — 弱于硬失败的鉴权信号（与 RULE-AUTH-001 互斥，硬失败优先）<span class="note">移动端 Headers 不可用时自动跳过</span></td>
+          <td><span class="s s-warn" style="font-size:11px;font-weight:700;letter-spacing:0;">+8</span></td>
         </tr>
         <tr>
           <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-HDR-002</code></td>
@@ -1527,6 +1538,11 @@ pre .hi  { color: var(--accent-lime); font-weight: 600; }
           <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-LINK-001</code></td>
           <td style="text-align:left;font-size:12px;">正文超链接目标域名与发件人域名不一致（排除常见 CDN / 邮件服务商跳转）</td>
           <td><span class="s s-ok" style="font-size:11px;font-weight:700;letter-spacing:0;">+6</span></td>
+        </tr>
+        <tr>
+          <td><code style="font-family:var(--font-mono);font-size:10px;color:var(--brand-700);background:#f0f7f0;padding:2px 5px;border-radius:3px;">RULE-LINK-002</code></td>
+          <td style="text-align:left;font-size:12px;">超链接“显示文字”伪装为某域名，但真实 href 指向另一域名（经典“显示 bank.com、实际跳 evil.ru”障眼法）— 需 HTML 正文，仅当显示文字本身是域名/URL 时才触发，避免“点此”类误报</td>
+          <td><span class="s s-bad" style="font-size:11px;font-weight:700;letter-spacing:0;">+18</span></td>
         </tr>
       </tbody>
     </table>
