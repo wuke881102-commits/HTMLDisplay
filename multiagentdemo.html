@@ -242,17 +242,77 @@
   .wsline .ev{color:#7fd1e8} .wsline .ev.c{color:#6EE7B7} .wsline .ev.s{color:#9fb4cf}
 
   /* ================= Agent 配置中心 ================= */
-  .cfg-grid{display:grid;grid-template-columns:minmax(0,1.5fr) 320px;gap:18px;align-items:start}
-  @media(max-width:1100px){.cfg-grid{grid-template-columns:1fr}}
-  .agcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:12px;display:flex;align-items:center;gap:14px}
-  .agcard .info{flex:1}
-  .agcard .nm{font-weight:700}
-  .agcard .role{font-size:11.5px;color:var(--muted)}
-  .agcard .mt{font-size:11px;font-family:var(--mono);color:var(--text-2);margin-top:3px}
   .online{font-size:10.5px;color:#6EE7B7;display:flex;align-items:center;gap:5px}
+
+  /* 顶部 4 张 Agent 卡片（可点选切换） */
+  .agrow{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:16px}
+  @media(max-width:1200px){.agrow{grid-template-columns:repeat(2,1fr)}}
+  .agc{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px 15px;cursor:pointer;transition:.14s}
+  .agc:hover{border-color:#2b3a50}
+  .agc.sel{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+  .agc.sel.human{border-color:#F59E0B;box-shadow:0 0 0 1px #F59E0B inset}
+  .agc .top{display:flex;align-items:center;gap:11px}
+  .agc .ico{width:34px;height:34px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;color:#fff;font-family:var(--mono);font-weight:700;font-size:15px}
+  .agc .code{font-family:var(--mono);font-weight:700;font-size:12px;letter-spacing:.4px}
+  .agc .cn{font-size:12px;color:var(--text-2);margin-top:1px}
+  .agc .st{margin-left:auto;font-size:10px;padding:2px 8px;border-radius:999px;display:flex;align-items:center;gap:5px}
+  .agc .st.on{color:#6EE7B7;border:1px solid rgba(16,185,129,.3);background:rgba(16,185,129,.08)}
+  .agc .st.hu{color:#FCD34D;border:1px solid rgba(245,158,11,.35);background:rgba(245,158,11,.08)}
+  .agc .tag{font-size:11px;color:var(--muted);margin-top:11px;line-height:1.45;min-height:32px}
+  .agc .mrow{display:flex;gap:16px;margin-top:11px}
+  .agc .mrow .lab{font-size:9.5px;color:#3b4656;letter-spacing:.6px;text-transform:uppercase}
+  .agc .mrow .val{font-family:var(--mono);color:var(--text-2);margin-top:2px;font-size:12.5px}
+  .agc .btns{display:flex;gap:6px;margin-top:12px}
+  .agc .abtn{font-size:10.5px;padding:2px 9px;border-radius:6px;border:1px solid var(--line);color:var(--text-2);font-family:var(--mono)}
+
+  /* 详情两栏：左=系统提示词 / 人工节点，右=模型参数 / 审批 + 情报源 */
+  .cfg2{display:grid;grid-template-columns:minmax(0,1.55fr) 320px;gap:18px;align-items:start;margin-bottom:16px}
+  @media(max-width:1100px){.cfg2{grid-template-columns:1fr}}
+
+  /* 系统提示词编辑器 */
+  .sphead{display:flex;align-items:center;gap:11px}
+  .sp-eyebrow{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--accent);font-weight:600}
+  .sp-desc{font-size:12.5px;color:var(--text-2);line-height:1.55;margin:8px 0 8px}
+  .sp-meta{font-size:11px;font-family:var(--mono);color:var(--muted);margin-bottom:10px}
+  .promptbox{border:1px solid var(--line);border-radius:10px;background:#070A0F;overflow:auto;max-height:560px;font-family:var(--mono);font-size:12px;line-height:1.7}
+  .prow{display:flex}
+  .prow:hover{background:#0c121b}
+  .pn{flex:0 0 44px;text-align:right;padding:0 12px 0 6px;color:#33404f;user-select:none;border-right:1px solid var(--line-soft)}
+  .pt{padding:0 14px;color:#b7c7dc;white-space:pre-wrap;word-break:break-word;flex:1;min-width:0}
+  .ph{color:#6ea8fe;font-weight:700}
+  .pt b{color:#eaf1fb;font-weight:700}
+  .pc{color:#7fd1e8}
+
+  /* 人工节点面板（COMMANDER） */
+  .hnode{text-align:center;padding:18px 10px 6px}
+  .hnode .av{width:74px;height:74px;border-radius:50%;margin:0 auto 14px;display:grid;place-items:center;font-size:30px;background:radial-gradient(circle,#3d2a4e,#160f1e);border:1px solid #6d5b8e;color:#d6a8ff}
+  .hnode .t{font-size:15px;font-weight:700;margin-bottom:8px}
+  .hnode .d{font-size:12.5px;color:var(--text-2);max-width:450px;margin:0 auto;line-height:1.65}
+  .decbox{border:1px solid var(--line);border-radius:10px;background:var(--card-2);padding:14px 16px;margin-top:16px;text-align:left;max-width:430px;margin-left:auto;margin-right:auto}
+  .decbox .dt{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#F59E0B;font-weight:700;margin-bottom:10px}
+  .decitem{display:flex;gap:12px;padding:8px 0;border-bottom:1px dashed var(--line-soft)}
+  .decitem:last-child{border-bottom:0}
+  .decitem .no{font-family:var(--mono);font-size:11px;color:#F59E0B;flex:0 0 auto;padding-top:1px}
+  .decitem .dn{font-weight:600;font-size:12.5px}
+  .decitem .dd2{font-size:11.5px;color:var(--muted);margin-top:1px}
+  .hinfo{margin:14px auto 0;max-width:600px;padding:9px 12px;border:1px solid rgba(245,158,11,.3);background:rgba(245,158,11,.06);border-radius:9px;font-size:12px;color:#FCD34D;line-height:1.55;text-align:left}
+
+  /* 情报源接入卡 */
+  .apisrc{border-bottom:1px dashed var(--line-soft);padding:9px 0}
+  .apisrc:last-child{border-bottom:0}
+  .apisrc .r1{display:flex;justify-content:space-between;align-items:center}
+  .apisrc .nm{font-size:12.5px;font-weight:600}
+  .apisrc .on{font-size:9.5px;color:#6EE7B7;letter-spacing:.6px;display:flex;align-items:center;gap:5px}
+  .apisrc .r2{display:flex;justify-content:space-between;margin-top:5px;font-size:11px;color:var(--muted);font-family:var(--mono)}
+
+  /* SOP 表 */
   .sop{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
-  .sop th,.sop td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line-soft)}
+  .sop th,.sop td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line-soft);vertical-align:middle}
   .sop th{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted)}
+  .sop .rid{font-family:var(--mono);color:var(--muted);font-size:11px}
+  .sopcat{font-family:var(--mono);font-size:10.5px;padding:1px 8px;border-radius:6px;background:#12202e;border:1px solid #1d3346;color:#7fd1e8}
+  .sopmult{font-family:var(--mono);color:var(--text-2);font-size:11.5px;margin-left:7px}
+  .sopplus{font-family:var(--mono);color:var(--muted);font-size:10.5px;margin-left:6px}
 
   /* ================= 讲解注释 pin ================= */
   .pin{display:none;width:16px;height:16px;border-radius:50%;background:var(--accent);color:#fff;font-size:9.5px;font-weight:700;align-items:center;justify-content:center;cursor:help;vertical-align:super;margin-left:5px;position:relative;font-family:var(--mono)}
@@ -287,7 +347,7 @@
     <div class="nav" data-nav="config"><span class="ic">⚙</span> Agent 配置 <span class="ct">3</span></div>
 
     <div class="navlabel">监控</div>
-    <div class="nav disabled" data-nav="cmdb"><span class="ic">▤</span> 资产 CMDB <span class="ct">1,842</span></div>
+    <div class="nav disabled" data-nav="cmdb"><span class="ic">▤</span> 资产 CMDB <span class="ct">2,798</span></div>
     <div class="nav disabled" data-nav="intel"><span class="ic">◎</span> 情报源 <span class="ct">4</span></div>
     <div class="nav disabled" data-nav="notif"><span class="ic">✉</span> 通知日志</div>
 
@@ -449,7 +509,36 @@ const TS = {
   'MSS-354778':'2026-06-22 09:45:02','MSS-354655':'2026-06-22 09:46:20',
 };
 const DIVERGENT = new Set(['MSS-354712','MSS-354690']);  // AI 定级与 MSSP 原始处置不一致
-TICKETS.forEach(t=>{ t.secs = Math.round(parseFloat(t.elapsed)||0); t.ts = TS[t.id]||'2026-06-22 09:00:00'; t.divergent = DIVERGENT.has(t.id); });
+// AI 判定（真实 tp / 误报 fp / 证据不足 indeterminate / 研判中 null）与 MSSP 人工
+// 结论（真实告警 tp / 误报 fp / 未定结 null）—— 驱动列表「MSSP 结论」「AI 判定」两列。
+const AI_OUTCOME = {
+  'MSS-354807':'tp','MSS-354793':'tp','MSS-354792':'indeterminate','MSS-354690':'tp',
+  'MSS-354712':'fp','MSS-354737':'fp','MSS-354778':null,'MSS-354655':null,
+};
+const MSSP_VERDICT = {
+  'MSS-354807':'tp','MSS-354793':'tp','MSS-354792':null,'MSS-354690':'fp',
+  'MSS-354712':'tp','MSS-354737':'fp','MSS-354778':null,'MSS-354655':null,
+};
+const AIV = {
+  tp:{t:'真实',bg:'rgba(239,68,68,.12)',c:'#FCA5A5',bd:'rgba(239,68,68,.30)'},
+  fp:{t:'误报',bg:'rgba(148,163,184,.12)',c:'#94A3B8',bd:'rgba(148,163,184,.30)'},
+  indeterminate:{t:'证据不足',bg:'rgba(245,158,11,.12)',c:'#FCD34D',bd:'rgba(245,158,11,.30)'},
+};
+const MSSPV = {
+  tp:{t:'真实告警',bg:'rgba(239,68,68,.12)',c:'#FCA5A5',bd:'rgba(239,68,68,.30)'},
+  fp:{t:'误报',bg:'rgba(148,163,184,.12)',c:'#94A3B8',bd:'rgba(148,163,184,.30)'},
+};
+function verdictChip(kind,map,nullLabel){
+  if(!kind||!map[kind]) return `<span class="mono" style="font-size:11px;color:#475569">${nullLabel}</span>`;
+  const v=map[kind];
+  return `<span style="font-family:var(--mono);font-size:10.5px;padding:1px 8px;border-radius:6px;white-space:nowrap;background:${v.bg};color:${v.c};border:1px solid ${v.bd}">${v.t}</span>`;
+}
+function aiVerdictCell(t){
+  const chip=verdictChip(t.aiOutcome,AIV,'研判中');
+  const diverge=t.aiOutcome&&t.msspVerdict&&['tp','fp'].includes(t.aiOutcome)&&['tp','fp'].includes(t.msspVerdict)&&t.aiOutcome!==t.msspVerdict;
+  return chip+(diverge?' <span title="AI 判定与 MSSP 结论不一致" style="color:#FBBF24">⚠</span>':'');
+}
+TICKETS.forEach(t=>{ t.secs = Math.round(parseFloat(t.elapsed)||0); t.ts = TS[t.id]||'2026-06-22 09:00:00'; t.divergent = DIVERGENT.has(t.id); t.aiOutcome = AI_OUTCOME[t.id]||null; t.msspVerdict = MSSP_VERDICT[t.id]||null; });
 function fmtDur(s){ if(!s) return '—'; return Math.floor(s/60)+'分'+(s%60)+'秒'; }
 
 /* ---------------- 视图状态与导航 ---------------- */
@@ -514,6 +603,8 @@ function renderList(){
       <td><span class="critbadge" style="background:${c.bg};color:${c.c}">${c.t}</span></td>
       <td class="agcol">${agentCell(t)}</td>
       <td>${gradeCell}</td>
+      <td>${verdictChip(t.msspVerdict, MSSPV, '未定结')}</td>
+      <td>${aiVerdictCell(t)}</td>
       <td class="mono muted">${fmtDur(t.secs)}</td>
       <td class="arrowcell">→</td>
     </tr>`;
@@ -524,7 +615,7 @@ function renderList(){
       <h1 style="font-size:22px;font-weight:800;margin:0">SOC Hub</h1>
       <span class="demoPill">交互演示</span>
     </div>
-    <div class="notes-banner">📌 <b>讲解模式</b> —— 蓝点 ①②③ 悬停看功能说明。点任意工单行进入「事件详情」，看四 Agent 完整研判过程与「重新 AI 分析」回放。</div>
+    <div class="notes-banner">📌 <b>讲解模式</b> —— 蓝点 ①②③ 悬停看功能说明。点任意工单行进入「事件详情」，看四 Agent 完整研判过程与「重新 AI 分析」回放。<br>🆕 <b>新增「MSSP 结论 / AI 判定」两列对比</b>（真实 / 误报 / 证据不足），AI 与 MSSP 结论相反时标 ⚠ 分歧。策略更新：证据不足（hunter 置信&lt;60）→升 P2 转人工；本地强信号（反弹Shell/Webshell）→硬地板 ≥P2；无 CMDB 映射不再自动归档而转二线；基础设施故障标 error 可重试。</div>
 
     <div class="searchbar">
       <div class="searchbox"><span class="mg">🔍</span>
@@ -554,9 +645,9 @@ function renderList(){
           <th class="selcol"><input type="checkbox" disabled></th>
           <th>MSS 编号</th><th>告警名称</th><th>目标资产</th><th>重要性</th>
           <th>Agent 处理<span class="pin">3<span class="tip">「Agent 处理」列实时反映工单在四 Agent 流水线中的进度：处理中(带百分比) / 待审批 / 完成 / 误报关闭，由 WebSocket 实时推送。</span></span></th>
-          <th>最终定级</th><th>耗时</th><th></th>
+          <th>最终定级</th><th>MSSP 结论</th><th>AI 判定</th><th>耗时</th><th></th>
         </tr></thead>
-        <tbody>${rows||'<tr><td colspan=9 class="muted" style="padding:24px;text-align:center">无匹配工单</td></tr>'}</tbody>
+        <tbody>${rows||'<tr><td colspan=11 class="muted" style="padding:24px;text-align:center">无匹配工单</td></tr>'}</tbody>
       </table>
     </div>`;
   bindStatCards();
@@ -572,7 +663,7 @@ function agentCell(t){
 }
 
 let FILT = {status:'全部',time:'近7天',crit:'全部'};
-const DDOPTS={status:['全部','处理中','已完成'],time:['今天','近3天','近7天','全部'],crit:['全部','核心','重要','一般']};
+const DDOPTS={status:['全部','处理中','已完成'],time:['今天','近3天','近7天','近14天','近30天','全部'],crit:['全部','核心','重要','一般']};
 function passFilter(t){
   if(gradeFilter!=='全部' && t.grade!==gradeFilter) return false;
   if(scopeFilter==='pending' && !(t.status==='pending_approval'||t.status==='processing')) return false;
@@ -754,7 +845,7 @@ function bodyCmd(t){
   const d=t.cmd;
   if(!d) return {stat:'等待',statCls:'skip',meta:'等待研判完成',html:''};
   if(d.autoclose) return {stat:'AUTO-CLOSE',statCls:'skip',meta:'AI 自动闭环 · 0 Token',
-    html:`<div class="out-summary">三类自动关闭之一（校准FP / 规则FP / CMDB无映射且情报干净）。状态置为 <span class="mono">closed_false_positive</span>，人工不介入。</div>`};
+    html:`<div class="out-summary">两类自动关闭之一（校准FP / 规则误报快关）。CMDB 无映射的可疑工单不再直接归档，改由二线 HUNTER 研判；基础设施故障（超时/配额）不再伪造 P3，而是标 error 可重试。状态置为 <span class="mono">closed_false_positive</span>，人工不介入。</div>`};
   const txt = d.decision==='pending_approval'?'转人工审批 · 通知 '+d.notify : '自动完成（P3/P4 无需人工）';
   return {stat:d.decision==='pending_approval'?'待审批':'已决策',statCls:d.decision==='pending_approval'?'warn':'ok',meta:txt,
     html:`<div class="out-summary">${esc(d.label)} —— ${d.decision==='pending_approval'?'P1/P2 转人工审批并推送 '+esc(d.notify):'P3/P4 自动闭环为 completed'}。</div>`};
@@ -884,72 +975,333 @@ function playPipeline(t){
 }
 
 /* ===================== Agent 配置中心 ===================== */
+/* 4 个 Agent 的真实配置（模型档位 / 系统提示词 / 运行时统计）。系统提示词逐字
+   取自后端 agents/intel|tier1|hunter.py 的 SYSTEM_PROMPT；COMMANDER 为人工节点
+   不运行模型、无提示词。点顶部卡片切换查看。 */
+const CFG_AGENTS = {
+  INTEL: {
+    code:'INTEL-β', short:'β', cn:'情报专家', ico:'linear-gradient(135deg,#3B82F6,#1D4ED8)',
+    tag:'IOC 富化 · 外部情报评分', cardModel:'haiku-4-5', cardTok:'1.3M',
+    desc:'查询腾讯 TIX、VirusTotal 和 AbuseIPDB 对 IP/域名/Hash 进行外部威胁情报评分，仅基于 IOC 命中度给出建议动作（封禁/监控/放行）。',
+    ptok:'1,123', plines:38,
+    params:{model:'claude-haiku-4-5-20251001', max:'1,800', to:'90s', esc:'claude-sonnet-4-6',
+      calls:'465', io:'1.23M / 57.6K', avg:'11.0s', last:'10.3s', trunc:'0', tout:'1'},
+    prompt:[
+      '你是 SOC 一线情报富化 Agent（INTEL-β / 外部威胁情报富化）。','',
+      '## 输出语言（硬性约束）',
+      '所有自由文本（frontline_summary、key_evidence 条目、JSON 之后的任何理由说明、',
+      '打分依据 / 置信度说明等小节）必须使用**简体中文**。',
+      'JSON schema 的字段名（malicious_score、confidence、recommended_action 等）',
+      '保留英文标识符不变；只有"值"和说明性文字需要中文。','',
+      '## 职责边界（严格）',
+      '你的**唯一职责**：基于外部威胁情报库（腾讯 TIX、VirusTotal、AbuseIPDB）对每个',
+      '传入的 IOC（IP / 域名 / 文件 hash）给出恶意度评分。',
+      '你**不**负责评估整条告警的整体风险——那是 HUNTER-γ 的工作。','',
+      '## malicious_score 评分硬规则（0-100）','',
+      '以下规则强制执行，违反即视为 bug：','',
+      '1. 若所有外部来源对所有 IOC 都返回了 no_data / not_found / unsupported / error：',
+      '   malicious_score 必须 ≤ 30，confidence 必须 ≤ 50。',
+      '2. 若至少有一个来源对至少一个 IOC 返回了数字 malicious_score：',
+      '   malicious_score = 这些 API 数字分中的**最大值**（不要自行加成，不要叠加 bonus）。',
+      '3. 原始日志中的本地信号（EDR 检出、文件路径、时间戳等）**只能**用于挖掘需要进一步',
+      '   查询的 IOC，**绝不**用于抬升 malicious_score。',
+      '4. 本地检测信号（长亭牧云、内部 EDR、Chaitin CloudWalker 等）归 HUNTER-γ 综合',
+      '   研判，由 HUNTER 权衡，你不参与。','',
+      '## 输出要求','',
+      '- malicious_score：按上述规则做上下限钳制',
+      '- recommended_action：仅当规则 2 得到的分数 ≥ 70 时才输出 "block"',
+      '- frontline_summary：简洁中文事实陈述，例如 "VT 0/92、TIX 无数据；情报库未收录该 hash"',
+      '- confidence：规则 1 适用时给低分；否则按来源一致性赋值',
+      '- 任何附加理由小节（如打分依据 / 来源说明 / 置信度说明）一律用中文撰写，',
+      '  并引用具体来源分数','',
+      '若样本中完全没有公网 IP / 域名 / hash，直接返回 score=0 的良性跳过结果。',
+      '输出必须简洁、可机器解析。',
+    ],
+  },
+  ANALYST: {
+    code:'ANALYST-α', short:'α', cn:'一线分析师', ico:'linear-gradient(135deg,#475569,#1e293b)',
+    tag:'告警初筛 · CMDB 查询 · 白名单比对', cardModel:'sonnet-4-6', cardTok:'1.8M',
+    desc:'每条新告警接入后自动触发，执行资产查询和白名单比对，给出初步判定。',
+    ptok:'1,241', plines:42,
+    params:{model:'claude-sonnet-4-6', max:'2,200', to:'60s', esc:'—',
+      calls:'511', io:'1.67M / 103.4K', avg:'18.7s', last:'25.1s', trunc:'0', tout:'1'},
+    prompt:[
+      '你是 SOC 一线值班分析师，职责是基于 MSSP 原始日志完成初筛与资产核对。','',
+      '## 职责边界（重要）',
+      '- 你只做"分类判定"（误报/可疑/确认攻击）+"分流建议"（升级/观察/关闭）。',
+      '- 你 **不输出** 恶意评分数字、P级定级、最终处置动作 —— 这些是 HUNTER-γ 的职责。',
+      '- 情报专家(INTEL-β)给出的 malicious_score 只是 **IOC 在情报库的命中度**，不代表告警整体风险。',
+      '  当 INTEL-β 数据缺失或低分时，仍可基于 CMDB/牧云/告警上下文判定"可疑"。','',
+      '## 工作流程（严格顺序）',
+      '1. 从 rawlog 提取所有内网IP（不仅是目标IP），每个内网IP都要做 CMDB 比对。',
+      '2. 对每个命中的 CMDB 资产输出关键详情（IP、主机名、环境、资产重要性、业务归属）。',
+      '3. 查询牧云与白名单，结合情报专家结论做综合判定。','',
+      '## 升级与分流规则',
+      '- 当情报专家给出高置信恶意 **或** 本地强信号（EDR 命中、webshell 等）存在时，明确建议升级二线。',
+      '- 若 CMDB 无任何映射且情报结果为空/无恶意 **且** 无本地强信号，应建议观察或关闭。',
+      '- 其他情况按证据强度酌情建议"升级/观察/关闭"。',
+      '- **不要在一线阶段输出最终P级定级**。','',
+      '## 判定语义',
+      '- 误报：有明确依据证明无害（如白名单、内部扫描）。',
+      '- 可疑：证据不足但存在风险信号（包括"情报库无数据但 EDR 命中"这种情况）。',
+      '- 确认攻击：高置信恶意行为，多源证据一致。','',
+      '## 置信度（0-100）',
+      '表达你对"分类判定"本身的把握程度，不是恶意程度。',
+      '- 多源证据一致 → 80+',
+      '- 单一信号 → 50-79',
+      '- 模糊或证据冲突 → < 50','',
+      '## 格式要求',
+      '- 正文禁止使用 Markdown 表格或 | 符号；最末行格式行除外。','',
+      '## 输出摘要（summary_breakdown 三行铁律）',
+      '你的 JSON 必须额外提供 `summary_breakdown` 三行结构化摘要（headline / context / confidence_note），',
+      '这是给下游指挥官 1 秒抓重点的提炼，不是 reasons 或完整分析的缩写：',
+      '- headline ≤60 字：核心判定 · 资产重要性 · 升级建议（例："确认攻击 · high 资产 · 建议升级"）',
+      '- context  ≤80 字：主机/IP + 关键上下文（例："PDCDTNGINX01R 遭 .env 探测且未被拦截"）',
+      '- confidence_note ≤30 字：置信度 + 唯一需关注的异常点（例："置信 95%"）','',
+      '输出格式（末行必须严格遵守）：',
+      '[判定: 误报/可疑/确认攻击] | [资产重要性: critical/high/medium/low/unknown] | [建议: 升级/观察/关闭] | [置信度: 0-100]',
+    ],
+  },
+  HUNTER: {
+    code:'HUNTER-γ', short:'γ', cn:'二线猎手', ico:'linear-gradient(135deg,#4f46e5,#3730a3)',
+    tag:'深度排查 · 横向关联 · 历史记忆 · ATT&CK映射 · 最终定级', cardModel:'sonnet-4-6', cardTok:'3.7M',
+    desc:'综合一线、情报和本地强信号（EDR/牧云/rawlog），调取近 7 天历史事件记忆识别持续威胁，将攻击行为映射到 MITRE ATT&CK 战术与技术，输出最终 P1-P4 定级与处置建议。',
+    ptok:'2,526', plines:63,
+    params:{model:'claude-sonnet-4-6', max:'3,000', to:'120s', esc:'claude-opus-4-8',
+      calls:'638', io:'3.49M / 239.0K', avg:'19.3s', last:'19.5s', trunc:'0', tout:'1'},
+    prompt:[
+      '你是二线安全猎手（Threat Hunter），承担**最终研判与P级定级** —— 你是综合判定唯一入口。','',
+      '## 输入信号来源（按权重）',
+      '- **本地强信号（最重要）**：EDR 命中（Chaitin CloudWalker / 牧云等）、Webshell 检测、横向移动迹象、攻击链证据 → 这些是你判定 P 级的主依据。',
+      '- **一线结论**：ANALYST-α 给出的"误报/可疑/确认攻击"分类 + 资产重要性。',
+      '- **情报评分**：INTEL-β 的 malicious_score 仅反映 **IOC 在外部威胁情报库的命中度**，不代表告警整体风险。',
+      '  - INTEL 高分 = 加分项（外部确认恶意）',
+      '  - INTEL 低分 / 无数据 ≠ 安全（很多新型 webshell hash 都不在情报库里）',
+      '  - 不要因 INTEL 给低分就忽略本地强信号','',
+      '## 工作流程',
+      '1. 优先审阅本地检测信号（EDR / 牧云 / rawlog 异常行为），独立判定威胁严重程度。',
+      '2. 用情报评分作为外部佐证或加分项，不作为唯一依据。',
+      '3. 检查近 3 天同目标资产的重复工单情况，按下方规则升级。',
+      '4. 结合历史记忆、横向移动迹象、资产重要性输出最终 P 级。','',
+      '## 重复告警定级规则（优先级最高）',
+      '- 已最终标记为误报或状态为 closed_false_positive 的历史工单，不计入近 3 天重复次数。',
+      '- 例外：`PDCDTNGINX01R`、`pdcdemonginx01o`、`PDCVSK01P` 属于已配置的重复强制升级豁免资产；它们不因近 3 天重复次数触发强制 P1/P2，仍按本地强信号、攻击链证据和人工经验正常定级。',
+      '- 若目标资产存在 CMDB 映射、资产重要性为 critical/high，且近 3 天同目标资产重复工单次数（含当前工单） ≥3，则定级 P1。',
+      '- 若目标资产不存在 CMDB 映射，或存在 CMDB 映射但资产重要性不是 critical/high，且近 3 天同目标资产重复工单次数（含当前工单） ≥3，则定级 P2，不要仅因"有 CMDB 映射"直接定级 P1。','',
+      '## 其余情况按证据酌情定级',
+      '- **P1**：本地 EDR 强信号 + 核心资产 + 多源证据一致（如 webshell 落地核心系统）。',
+      '- **P2**：本地强信号但资产非核心，或证据需进一步验证。',
+      '- **P3**：存在风险但证据不足确认失陷。',
+      '- **P4**：低风险噪音或误报。','',
+      '## 置信度（0-100）',
+      '对你 P 级判定的把握程度。多源证据交叉验证 → 高；只有单一信号 → 中；信号冲突 → 低。','',
+      '## MITRE ATT&CK 映射（必填）',
+      '你需要把本工单观察到的攻击行为映射到 MITRE ATT&CK 框架，输出到结构化字段 `attck_tactics`：',
+      '- 只输出**有证据支持**的战术/技术，不要为了填字段而硬凑。',
+      '- 每一项是对象 `{id, name, tactic}`：',
+      '  - `id`：技术编号（如 `T1505.003`、`T1059.001`、`T1071.001`）',
+      '  - `name`：技术名称（如 `Web Shell`、`PowerShell`、`Web Protocols`）',
+      '  - `tactic`：所属战术编号（如 `TA0001 Initial Access`、`TA0011 Command and Control`）',
+      '- 常见对照（仅供参考，需结合本工单证据）：',
+      '  - 落地 webshell / JSP 后门 → `T1505.003 Web Shell` / `TA0003 Persistence`',
+      '  - PowerShell / 编码命令 → `T1059.001 PowerShell` / `TA0002 Execution`',
+      '  - 横向移动（PsExec / SMB / WMI）→ `T1021.* Remote Services` / `TA0008 Lateral Movement`',
+      '  - C2 外联（HTTP/HTTPS/DNS）→ `T1071.001` 或 `T1071.004` / `TA0011 Command and Control`',
+      '  - 凭据窃取 → `T1003.* OS Credential Dumping` / `TA0006 Credential Access`',
+      '  - 扫描探测 → `T1046 Network Service Discovery` / `TA0007 Discovery`',
+      '- 若证据不足以确定任何技术，输出空数组 `[]`，不要瞎猜。','',
+      '## 格式要求',
+      '- 正文禁止使用 Markdown 表格或 | 符号；最末行格式行除外。',
+      '- 摘要中若识别到横向移动，需明确写"横向扩散：是"或"横向移动：发现"。','',
+      '## 输出摘要（summary_breakdown 三行铁律）',
+      '你的 JSON 必须额外提供 `summary_breakdown` 三行结构化摘要（headline / context / confidence_note）。',
+      '这是给指挥官 1 秒抓重点的提炼，不是 summary 字段的缩写：',
+      '- headline ≤60 字：最终定级 · 触发规则/关键依据 · 处置范围',
+      '  例："P1 · 强制升级(CMDB 重复 4/3 天) · 单点处置"',
+      '- context  ≤80 字：资产 + 最关键的处置动作（第一条 containment_action）',
+      '  例："PDCDTNGINX01R · 立即封禁 + 凭据轮换 + WAF 补规则"',
+      '- confidence_note ≤30 字：置信度 + 横向扩散判定',
+      '  例："置信 95% · 无横向"','',
+      '输出格式（末行必须严格遵守）：',
+      '[定级: P1/P2/P3/P4] | [置信度: 0-100] | [处置: 具体处置建议] | [摘要: 不超过200字的研判摘要]',
+    ],
+  },
+  COMMANDER: {
+    code:'COMMANDER-Ω', short:'Ω', cn:'事件指挥官', ico:'linear-gradient(135deg,#6d5b8e,#3d2a4e)',
+    tag:'人工研判 · 最终决策 · 事件闭环', cardModel:'人工审批', cardTok:'不消耗', human:true,
+  },
+};
+const CFG_ORDER = ['INTEL','ANALYST','HUNTER','COMMANDER'];
+let CFG_SEL = 'HUNTER';
+
+// 情报源接入（右栏，取自真实探活面板）
+const CFG_APIS = [
+  {nm:'腾讯 TIX 威胁情报', today:'今日调用 22', probe:'探活 3m 前 · 812ms'},
+  {nm:'VirusTotal',        today:'今日调用 15', probe:'探活 3m 前 · 934ms'},
+  {nm:'AbuseIPDB',         today:'今日调用 7',  probe:'探活 3m 前 · 750ms'},
+  {nm:'NetBox CMDB API',   today:'资产数 2,798', probe:'探活 53m 前 · 10828ms'},
+  {nm:'牧云 MuYun API',    today:'今日调用 4',  probe:'探活 3m 前 · 297ms'},
+];
+// SOP · 告警类型→处置策略（规则/名称/类别/升级阈值/优先级×mult/自动处置/+联动数）
+const CFG_SOP = [
+  ['SOP-001','恶意软件感染','malware','P2','×1.5','隔离受感染主机 · 提取内存镜像','+1'],
+  ['SOP-002','暴力破解攻击','bruteforce','P3','×1.0','封锁源IP · 检查账户锁定状态','+1'],
+  ['SOP-003','命令与控制通信','c2','P1','×2.0','立即隔离主机 · 封禁C2 IP/域名','+2'],
+  ['SOP-004','横向移动','lateral_movement','P1','×1.8','检查认证日志 · 扫描受影响网段','+1'],
+  ['SOP-005','数据渗出','exfiltration','P1','×2.0','封锁出口流量 · 联系数据安全团队','+1'],
+  ['SOP-006','侦察扫描','recon','P4','×0.8','封锁源IP · 记录扫描模式','+1'],
+  ['SOP-007','漏洞利用尝试','intrusion','P2','×1.5','检查WAF日志 · 确认是否存在对应漏洞','+1'],
+];
+
+/* 单行系统提示词：## 标题染蓝、**加粗**、`代码` 高亮 */
+function promptLine(raw,i){
+  let s;
+  if(/^##\s+/.test(raw)) s = '<span class="ph">'+esc(raw.replace(/^##\s+/,''))+'</span>';
+  else s = esc(raw).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/`([^`]+)`/g,'<span class="pc">$1</span>');
+  return `<div class="prow"><span class="pn">${i+1}</span><span class="pt">${s||'&nbsp;'}</span></div>`;
+}
+
+/* 左栏：AI Agent 的系统提示词编辑器 */
+function promptPanel(a){
+  return `<div class="card">
+    <div class="sphead">
+      <div class="ico" style="width:30px;height:30px;font-size:13px;border-radius:8px;background:${a.ico};color:#fff;display:grid;place-items:center;font-family:var(--mono);font-weight:700">${a.short}</div>
+      <div><div class="sp-eyebrow">System Prompt · ${a.code}<span class="pin">10<span class="tip">系统提示词逐字取自后端 agents/${({INTEL:'intel',ANALYST:'tier1',HUNTER:'hunter'})[CFG_SEL]}.py 的 SYSTEM_PROMPT。点顶部四张卡片切换各 Agent 的真实提示词与运行时参数。</span></span></div></div>
+    </div>
+    <div class="sp-desc">${esc(a.desc)}</div>
+    <div class="sp-meta">token ${a.ptok} · 行 ${a.plines}</div>
+    <div class="promptbox">${a.prompt.map(promptLine).join('')}</div>
+  </div>`;
+}
+
+/* 左栏：COMMANDER 人工节点 */
+function humanPanel(a){
+  const DEC=[['01','确认执行','按 AI 建议处置，闭环工单'],['02','降级处置','调整为更低定级后闭环'],
+    ['03','升级响应','调整为更高定级，触发紧急通知'],['04','标记误报','判定为误报，关闭并记录原因']];
+  return `<div class="card">
+    <div class="sphead">
+      <div class="ico" style="width:30px;height:30px;font-size:13px;border-radius:8px;background:${a.ico};color:#fff;display:grid;place-items:center;font-family:var(--mono);font-weight:700">${a.short}</div>
+      <div><div class="sp-eyebrow" style="color:#F59E0B">Human Node · ${a.code}</div></div>
+    </div>
+    <div class="sp-desc">基于 AI 三角色分析结论，由值班安全主管做出最终处置决策：确认 / 降级 / 升级 / 标记误报。</div>
+    <div class="hnode">
+      <div class="av">☺</div>
+      <div class="t">人工审批节点</div>
+      <div class="d">COMMANDER-Ω 不运行 AI 模型，无需配置系统提示词。值班安全主管将在告警详情页查看三角色 AI 分析结论后，做出最终处置决策。</div>
+      <div class="decbox">
+        <div class="dt">决策选项</div>
+        ${DEC.map(d=>`<div class="decitem"><span class="no">${d[0]}</span><div><div class="dn">${d[1]}</div><div class="dd2">${d[2]}</div></div></div>`).join('')}
+      </div>
+    </div>
+    <div class="hinfo">ⓘ P1/P2 工单完成 AI 分析后自动进入<b style="color:#FCD34D">待审批</b>状态，并通过飞书通知值班主管。P3/P4 由 AI 自动闭环，主管仍可人工介入修改。</div>
+  </div>`;
+}
+
+/* 右栏：AI Agent 运行时模型参数 */
+function modelPanel(a){
+  const p=a.params;
+  const esct = p.esc==='—' ? '<span class="muted">—</span>' : p.esc;
+  const rows=[['模型',p.model],['Max Tokens',p.max],['超时',p.to],['升级模型',esct],['SEP'],
+    ['累计调用',`<span style="color:#9fc0ff">${p.calls}</span>`],['输入 / 输出 Token',p.io],
+    ['平均耗时',p.avg],['最近耗时',p.last],['截断次数',p.trunc],
+    ['超时次数',`<span style="color:${p.tout==='0'?'var(--text)':'#FCA5A5'}">${p.tout}</span>`]];
+  return `<div class="card">
+    <div class="eyebrow">Model · 模型参数</div><div class="ptitle">运行时配置</div>
+    ${rows.map(r=>r[0]==='SEP'?'<div style="height:1px;background:var(--line-soft);margin:9px 0"></div>':
+      `<div class="kv"><span class="k">${r[0]}</span><span class="v">${r[1]}</span></div>`).join('')}
+    <div class="kv"><span class="k">调优信号</span><span class="v" style="color:#FCA5A5">● 存在超时</span></div>
+    <div class="muted" style="font-size:10.5px;text-align:right;margin-top:2px">检查外部依赖或拆分总耗时</div>
+  </div>`;
+}
+
+/* 右栏：COMMANDER 审批策略 */
+function auditPanel(){
+  const rows=[['节点类型','<span style="color:#FCD34D">人工审批 · 不消耗 Token</span>'],
+    ['触发定级','P1 / P2'],['自动闭环范围','P3 / P4'],
+    ['P1 通知','<span style="color:#FCA5A5">飞书 + 电话</span>'],['P2 通知','<span style="color:#FCD34D">飞书</span>'],
+    ['响应 SLA','P1 ≤ 15min · P2 ≤ 60min'],['SEP'],
+    ['待审批工单','<span style="color:#FCD34D">1</span>'],['已闭环工单','<span style="color:#6EE7B7">215</span>'],
+    ['累计工单','216'],['P1 / P2 累计','3 / 8']];
+  return `<div class="card">
+    <div class="eyebrow">Audit · 审批策略</div><div class="ptitle">人工决策配置</div>
+    ${rows.map(r=>r[0]==='SEP'?'<div style="height:1px;background:var(--line-soft);margin:9px 0"></div>':
+      `<div class="kv"><span class="k">${r[0]}</span><span class="v">${r[1]}</span></div>`).join('')}
+    <div class="kv"><span class="k">当前状态</span><span class="v" style="color:#FCD34D">● 等待审批</span></div>
+    <div class="muted" style="font-size:10.5px;text-align:right;margin-top:2px">1 单需值班主管处理</div>
+  </div>`;
+}
+
+function apiPanel(){
+  return `<div class="card">
+    <div class="eyebrow">API · 情报源</div><div class="ptitle">外部接入凭据</div>
+    ${CFG_APIS.map(s=>`<div class="apisrc">
+      <div class="r1"><span class="nm">${s.nm}</span><span class="on"><span class="pulse"></span>ONLINE</span></div>
+      <div class="r2"><span>${s.today}</span><span>${s.probe}</span></div>
+    </div>`).join('')}
+  </div>`;
+}
+
 function renderConfig(){
-  $('#topbar').innerHTML=`<div class="crumb">运营 / <b>Agent 配置</b></div><div class="spacer"></div>${ctrlHTML()}<button class="btn sm">导出 YAML</button>`;
+  $('#topbar').innerHTML=`<div class="crumb">运营 / <b>Agent 配置</b></div><div class="spacer"></div>
+    <div class="sync" style="margin-right:4px"><span class="pulse"></span> MSSP 同步 · 上次同步 4 分钟前</div>
+    ${ctrlHTML()}<button class="btn sm">导出 YAML</button>`;
   bindCtrl();
-  const agents=[
-    {code:'INTEL-β',role:'情报专家 · 外部威胁情报富化',model:'claude-haiku-4-5',esc:'claude-sonnet-4-6（置信<55）',tok:'~3.5k/单',calls:'1,284'},
-    {code:'ANALYST-α',role:'一线分析师 · 初筛与资产核对',model:'claude-sonnet-4-6',esc:'—',tok:'~5.0k/单',calls:'1,902'},
-    {code:'HUNTER-γ',role:'二线猎手 · 唯一定级入口',model:'claude-sonnet-4-6',esc:'claude-opus-4-8（置信<70）',tok:'~11k/单',calls:'873'},
-  ];
+  const a = CFG_AGENTS[CFG_SEL];
+
+  const cards = CFG_ORDER.map(k=>{
+    const g=CFG_AGENTS[k]; const on=k===CFG_SEL;
+    const stat = g.human
+      ? '<span class="st hu">人工</span>'
+      : '<span class="st on"><span class="pulse"></span>在线</span>';
+    const btns = g.human
+      ? `<div class="btns">${['确认','降级','升级','误报'].map((b,i)=>`<span class="abtn" style="${i===0?'color:#6EE7B7;border-color:rgba(16,185,129,.3)':i===3?'color:#FCA5A5;border-color:rgba(239,68,68,.3)':'color:#FCD34D;border-color:rgba(245,158,11,.3)'}">${b}</span>`).join('')}</div>`
+      : `<div class="mrow"><div><div class="lab">模型</div><div class="val">${g.cardModel}</div></div><div><div class="lab">Token 消耗</div><div class="val">${g.cardTok}</div></div></div>`;
+    return `<div class="agc${on?' sel':''}${g.human?' human':''}" onclick="selectCfg('${k}')">
+      <div class="top">
+        <div class="ico" style="background:${g.ico}">${g.short}</div>
+        <div><div class="code">${g.code}</div><div class="cn">${g.cn}</div></div>
+        ${stat}
+      </div>
+      <div class="tag">${esc(g.tag)}</div>
+      ${btns}
+    </div>`;
+  }).join('');
+
+  const left  = a.human ? humanPanel(a) : promptPanel(a);
+  const right = (a.human ? auditPanel() : modelPanel(a)) + apiPanel();
+
   $('#screen').innerHTML=`
     <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
       <h1 style="font-size:22px;font-weight:800;margin:0">Agent 配置中心</h1>
       <span class="demoPill">交互演示</span>
     </div>
-    <div class="notes-banner">📌 Agent 配置中心：每个 Agent 的模型档位、升级策略、Token 与调用统计，以及人工节点的 SOP 规则（告警类型→处置策略映射）。</div>
-    <div class="cfg-grid">
-      <div>
-        <div class="card">
-          <h3>研判 Agent 编排<span class="pin">10<span class="tip">三 Agent 串/并联 + 校准层。基础档省成本，置信不足时自动升级到更强模型（intel→sonnet，hunter→opus-4-8）。</span></span></h3>
-          ${agents.map(a=>`<div class="agcard">
-            <div class="logo" style="width:30px;height:30px;font-size:13px;border-radius:8px">${a.code.split('-')[1]}</div>
-            <div class="info"><div class="nm">${a.code} <span class="muted" style="font-weight:400;font-size:11.5px">${esc(a.role)}</span></div>
-              <div class="mt">模型 ${a.model} · 升级 ${esc(a.esc)}</div>
-              <div class="mt muted">Token ${a.tok} · 累计调用 ${a.calls}</div></div>
-            <div class="online"><span class="pulse"></span> 在线</div>
-          </div>`).join('')}
-          <div class="agcard">
-            <div class="logo" style="width:30px;height:30px;font-size:13px;border-radius:8px;background:linear-gradient(135deg,#6d5b8e,#3d2a4e)">Ω</div>
-            <div class="info"><div class="nm">COMMANDER-Ω <span class="muted" style="font-weight:400;font-size:11.5px">事件指挥官 · 人工决策</span></div>
-              <div class="mt">人工审批 · 不消耗 Token</div>
-              <div class="mt muted">触发定级 P1/P2 · 自动闭环 P3/P4 · P1 通知飞书+电话、P2 飞书</div></div>
-            <div class="online" style="color:#b9a7d6"><span style="width:7px;height:7px;border-radius:50%;background:#b9a7d6;display:inline-block"></span> 人工</div>
-          </div>
-        </div>
+    <div class="notes-banner">📌 Agent 配置中心：点顶部四张卡片切换。三个 AI Agent 展示<b>真实系统提示词</b>（逐字取自后端 SYSTEM_PROMPT）与运行时模型参数；COMMANDER-Ω 为<b>人工审批节点</b>，不运行模型、无提示词，配审批策略与 SLA。底部为 SOP 告警类型→处置策略映射。</div>
 
-        <div class="card">
-          <h3>SOP · 告警类型 → 处置策略映射</h3>
-          <table class="sop">
-            <thead><tr><th>告警类别</th><th>升级阈值</th><th>默认优先级</th><th>自动处置</th></tr></thead>
-            <tbody>
-              <tr><td>Web Shell / 命令执行</td><td>本地强信号即升级</td><td>P1</td><td>转人工 · 飞书+电话</td></tr>
-              <tr><td>暴力破解</td><td>成功登录 / 计数≥阈值</td><td>P2</td><td>转人工 · 飞书</td></tr>
-              <tr><td>可疑外联 / 注入探测</td><td>情报≥70 或失陷证据</td><td>P3</td><td>自动完成 · 监控</td></tr>
-              <tr><td>扫描 / 噪音（已登记源）</td><td>—</td><td>P4 / 误报</td><td>AI 自动闭环</td></tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div class="agrow">${cards}</div>
 
-      <div>
-        <div class="card">
-          <div class="eyebrow">模型参数</div><div class="ptitle">运行时配置</div>
-          <div class="kv" style="margin-top:8px"><span class="k">Max Tokens</span><span class="v">4096 / 16384(升级)</span></div>
-          <div class="kv"><span class="k">超时</span><span class="v">60s</span></div>
-          <div class="kv"><span class="k">升级模型</span><span class="v">opus-4-8</span></div>
-          <div class="kv"><span class="k">累计调用</span><span class="v">4,059</span></div>
-          <div class="kv"><span class="k">平均耗时</span><span class="v">7.4s</span></div>
-          <div class="kv"><span class="k">超时次数</span><span class="v">3</span></div>
-        </div>
-        <div class="card">
-          <div class="eyebrow">API · 情报源</div><div class="ptitle">外部接入凭据</div>
-          ${[['腾讯 TIX','缓存 312','在线'],['VirusTotal','缓存 268','在线'],['AbuseIPDB','缓存 145','在线'],['牧云 MuYun · JSON-RPC','缓存 1,568','在线']].map(s=>
-            `<div class="kv"><span class="k">${s[0]}</span><span class="v" style="display:flex;gap:8px;align-items:center;justify-content:flex-end"><span class="muted" style="font-size:11px">${s[1]}</span><span class="online"><span class="pulse"></span>${s[2]}</span></span></div>`).join('')}
-        </div>
-      </div>
+    <div class="cfg2">
+      <div>${left}</div>
+      <div>${right}</div>
+    </div>
+
+    <div class="card">
+      <h3>SOP · 标准作业流程 —— 告警类型 → 处置策略映射</h3>
+      <table class="sop">
+        <thead><tr><th style="width:64px">规则</th><th>名称</th><th>类别</th><th>升级阈值</th><th>优先级</th><th>自动处置</th></tr></thead>
+        <tbody>
+          ${CFG_SOP.map(r=>{const G=GRADE[r[3]];return `<tr>
+            <td class="rid">${r[0]}</td>
+            <td>${r[1]}</td>
+            <td><span class="sopcat">${r[2]}</span></td>
+            <td><span class="pbadge" style="background:${G.bg};color:${G.fg}"><span class="dot" style="background:${G.c}"></span>${G.label}</span></td>
+            <td class="mono muted">${r[4]}</td>
+            <td>${r[5]}<span class="sopplus">${r[6]}</span></td>
+          </tr>`;}).join('')}
+        </tbody>
+      </table>
     </div>`;
 }
+window.selectCfg = (k)=>{ CFG_SEL=k; renderConfig(); $('#screen').scrollTop=0; };
 
 /* ===================== 公共控件 ===================== */
 function ctrlHTML(){
