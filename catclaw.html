@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw 任务执行演示</title>
+    <style>
+        /* 深绿科技主题配置 */
+        :root {
+            /* 品牌主色系 */
+            --primary: #00AA4F; 
+            --primary-active: #008E43; 
+            --primary-soft: #E3F5EA;
+            --deep: #006845; 
+            --lime: #82BC00; 
+            --green: #009B4A;
+            --green-deep: #005A3C;
+            
+            /* 界面颜色 */
+            --chat-bg: #ffffff;        
+            --text-color: #42464A;     
+            --body-text: #555B61;      
+            
+            /* 气泡样式 */
+            --user-msg-bg: #00AA4F;    
+            --user-msg-text: #ffffff;  
+            --bot-msg-bg: #F6F4EF;     
+            --border-color: #DDE3EA;   
+            --border-green: #B8DFC9;   
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Lato", "Segoe UI", "PingFang SC", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif;
+        }
+
+        body {
+            background-color: var(--green);
+            color: var(--body-text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* 几何圆弧背景 */
+        .bg-arc {
+            position: absolute;
+            border-radius: 50%;
+            z-index: 0;
+        }
+        .arc1 {
+            width: 720px;
+            height: 720px;
+            background: var(--green-deep);
+            left: -200px;
+            top: -260px;
+            opacity: 0.55;
+        }
+        .arc2 {
+            width: 620px;
+            height: 620px;
+            background: var(--lime);
+            right: -150px;
+            bottom: -280px;
+            opacity: 0.25;
+        }
+        .arc3 {
+            width: 400px;
+            height: 400px;
+            background: var(--primary);
+            right: 15%;
+            top: -100px;
+            opacity: 0.45;
+        }
+
+        #app-window {
+            z-index: 10;
+            width: 100%;
+            max-width: 1000px;
+            height: 100vh;
+            background-color: var(--chat-bg);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 30px rgba(0, 90, 60, 0.5); 
+            border-left: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        header {
+            background: rgba(249,250,252,.92);
+            backdrop-filter: blur(8px);
+            padding: 15px 32px;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--primary); 
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: var(--lime);
+            border-radius: 50%;
+            box-shadow: 0 0 5px rgba(130, 188, 0, 0.4);
+        }
+
+        #chat-container {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            max-width: 85%;
+            padding: 14px 18px;
+            border-radius: 10px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeIn 0.3s forwards;
+            font-size: 0.95rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--user-msg-bg);
+            color: var(--user-msg-text);
+            border-bottom-right-radius: 2px;
+            box-shadow: 0 4px 12px rgba(0, 170, 79, 0.2);
+            font-weight: 500;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--bot-msg-bg);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary); 
+            border-bottom-left-radius: 2px;
+            color: var(--text-color);
+        }
+
+        .bot-message pre {
+            font-family: "Consolas", "Courier New", monospace; 
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* 视频专用气泡样式调整 */
+        .video-message {
+            padding: 14px;
+            width: 60%;
+            max-width: 600px;
+            min-width: 300px;
+        }
+        .video-message video {
+            width: 100%;
+            border-radius: 6px;
+            outline: none;
+            display: block;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .video-title {
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--deep);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-self: flex-start;
+            background-color: var(--primary-soft); 
+            padding: 12px 16px;
+            border-radius: 8px;
+            border-bottom-left-radius: 2px;
+            border: 1px solid var(--border-green);
+            margin-bottom: 10px;
+        }
+
+        .dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: var(--primary);
+            border-radius: 50%;
+            margin: 0 2px;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        #input-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 20px 32px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            gap: 12px;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: #ffffff;
+            color: var(--text-color);
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.2s;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        #user-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-soft);
+        }
+
+        #send-btn {
+            padding: 0 28px;
+            background-color: var(--primary);
+            color: var(--user-msg-text);
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s, transform 0.1s;
+            box-shadow: 0 4px 12px rgba(0, 170, 79, 0.2);
+        }
+
+        #send-btn:hover {
+            background-color: var(--primary-active);
+        }
+        
+        #send-btn:active {
+            transform: translateY(1px);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #A6ADB5; }
+
+        /* ===== 报告展示样式 ===== */
+        .report-bubble {
+            max-width: 100%;
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            border-radius: 10px;
+            padding: 20px 24px;
+            font-size: 0.92rem;
+            line-height: 1.7;
+            color: var(--text-color);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        }
+        .report-bubble pre {
+            font-family: "Consolas", "Courier New", monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 0;
+            font-size: 0.88rem;
+        }
+        /* 完成汇报中可点击的报告文件名 */
+        .report-file-link {
+            color: var(--primary);
+            text-decoration: underline;
+            text-underline-offset: 2px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .report-file-link:hover {
+            color: var(--primary-active);
+        }
+        .report-title {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--green-deep);
+            margin-bottom: 6px;
+            letter-spacing: 2px;
+        }
+        .report-subtitle {
+            text-align: center;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--deep);
+            margin-bottom: 16px;
+        }
+        .report-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 28px;
+            margin: 12px 0 18px;
+            padding: 12px 16px;
+            background: var(--primary-soft);
+            border-radius: 8px;
+        }
+        .report-meta-item {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+        .report-meta-item strong {
+            color: var(--green-deep);
+        }
+        .report-section {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--deep);
+            margin: 18px 0 10px;
+            padding-bottom: 4px;
+            border-bottom: 2px solid var(--primary);
+        }
+        .report-section-sub {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--green-deep);
+            margin: 14px 0 8px;
+        }
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0 16px;
+            font-size: 0.88rem;
+        }
+        .report-table th, .report-table td {
+            border: 1px solid var(--border-color);
+            padding: 7px 12px;
+            text-align: left;
+        }
+        .report-table th {
+            background: var(--primary-soft);
+            font-weight: 600;
+            color: var(--deep);
+        }
+        .report-table tr:nth-child(even) td {
+            background: #f9fafb;
+        }
+        .vuln-card {
+            background: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 16px 20px;
+            margin: 10px 0;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.03);
+        }
+        .vuln-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        .vuln-id {
+            font-weight: 700;
+            color: var(--deep);
+            font-size: 0.95rem;
+            min-width: 36px;
+        }
+        .vuln-name {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+        .severity-tag {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: 1px;
+        }
+        .severity-critical { background: #D32F2F; }
+        .severity-high { background: #F57C00; }
+        .severity-medium { background: #FBC02D; color: #333; }
+        .vuln-label {
+            font-weight: 700;
+            color: var(--deep);
+            margin: 10px 0 4px;
+            font-size: 0.9rem;
+        }
+        .vuln-text {
+            font-size: 0.88rem;
+            color: var(--body-text);
+            line-height: 1.65;
+        }
+        .vuln-payload {
+            background: #f4f4f4;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-family: "Consolas", "Courier New", monospace;
+            font-size: 0.82rem;
+            word-break: break-all;
+            margin: 4px 0 8px;
+            color: #c62828;
+        }
+        .report-declaration {
+            font-size: 0.85rem;
+            color: #888;
+            font-style: italic;
+            line-height: 1.6;
+            margin: 8px 0;
+            padding: 10px 14px;
+            border-left: 3px solid #ddd;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-arc arc1"></div>
+    <div class="bg-arc arc2"></div>
+    <div class="bg-arc arc3"></div>
+
+    <div id="app-window">
+        <header>
+            <div class="status-dot"></div>
+            OpenClaw Workspace
+        </header>
+
+        <div id="chat-container">
+            <div class="message bot-message">环境初始化完成。等待下发验证指令...</div>
+            
+            <div class="typing-indicator" id="typing">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+            </div>
+        </div>
+        
+        <div id="input-container">
+            <input type="text" id="user-input" value="开始执行对DVWA系统的安全渗透测试" placeholder="输入包含 '开始执行' 的指令即可启动任务..." autocomplete="off">
+            <button id="send-btn">发送</button>
+        </div>
+    </div>
+
+    <script>
+    // ===== 报告数据（已内联，原 report-data.js，无需外部文件）=====
+// DVWA 测试报告数据 - 独立 JS 文件，避免 HTML 解析器误处理
+// 注意: <\/script> 在 JS 字符串中用 \x3c/script> 表示，防止 HTML 解析器误判
+
+window.reportSections = [
+    { type: 'cover', title: 'CAT 安全保障测试报告', subtitle: 'DVWA测试', meta: [
+        { k: '安全级别', v: '不安全' }, { k: 'CAT分数', v: '0' }, { k: '报告时间', v: '2026-05-21' }
+    ]},
+    { type: 'declaration', text: '此报告包含敏感、特权和机密信息。应采取措施保护本文件中信息的机密性。本报告的任何部分（全部或部分），在未经普洛斯事先书面许可前，不得以任何形式或通过任何方式（如信息存储、传输或检索系统）复制、转让，包括影印和所有其他复制，不得使用任何网络或其他通信手段的转让或传输。\n请注意，此评估可能不会披露系统上存在的所有漏洞。本报告是对DVWA测试环境进行的特定时间内的评估结果的总结。测试期间对环境所做的任何更改都可能影响评估结果。' },
+    { type: 'section', text: '1. 概要' },
+    { type: 'text', text: '普洛斯网络安全团队于2026-05-20至2026-05-20对DVWA测试进行了安全保障测试。\n此评估的目的是发现和识别DVWA测试中的漏洞，并提出补救方法。\n通过测试，CAT团队在评估范围内发现了总共35个风险，这些风险已按严重程度排列在下表中。' },
+    { type: 'statsTable' },
+    { type: 'text', text: '为确保数据的机密性、完整性和可用性，应按照安全评估结果中的建议实施安全补救措施。' },
+    { type: 'section', text: '2. 风险评估方法' },
+    { type: 'subsection', text: '2.1 风险评估范围' },
+    { type: 'text', text: '所有测试均基于CAT服务请求中定义的范围。范围内的项目如下所示。' },
+    { type: 'scopeTable' },
+    { type: 'subsection', text: '2.2 风险矩阵' },
+    { type: 'riskMatrix' },
+    { type: 'section', text: '3. 评估结果' },
+    { type: 'text', text: '通过测试，共发现35个安全风险，汇总如下：' },
+    { type: 'summaryTable' },
+    { type: 'section', text: '漏洞详情' },
+];
+
+window.vulnList = [
+    // ===== 严重 (C1-C5) =====
+    { id:'C1', name:'远程命令执行漏洞', sev:'critical', sevText:'严重', impact:'可能性: 几乎肯定',
+      summary:'攻击者可通过远程命令注入在服务器系统上执行任意命令，可能导致服务器被完全控制、敏感数据泄露、或通过该系统作为跳板横向移动到内网其他服务器。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/rce/rce_ping.php\n2、在参数 ipaddress 中填入 Payload：ZAP&cat /etc/passwd&\n3、提交请求\n4、观察响应是否包含命令执行输出（如 uid=、whoami 结果、uname 等）',
+      payload:'ZAP&cat /etc/passwd&',
+      result:'命令注入成功，检测到命令执行输出\n匹配内容: xy:x:13:13:proxy:/bin:/usr/sbin/nologin\nwww-data:x:1000:33:www-data:/var/www:/u',
+      fix:'1、禁止使用 system()、exec()、passthru()、shell_exec()、popen()、proc_open() 等危险函数直接执行用户输入；\n2、如必须执行系统命令，使用 escapeshellarg() 和 escapeshellcmd() 对用户输入进行严格转义；\n3、使用白名单机制限制可执行的命令范围，避免直接拼接用户输入到命令字符串；\n4、在 php.ini 中通过 disable_functions 禁用不需要的危险函数；\n5、以最低权限（非 root）运行 PHP-FPM/Apache 进程。' },
+    { id:'C2', name:'路径遍历漏洞', sev:'critical', sevText:'严重', impact:'可能性: 几乎肯定',
+      summary:'路径遍历（Path Traversal）漏洞允许攻击者通过在文件路径参数中使用 ../ 等目录跳转序列，访问服务器文件系统上的任意文件。常见目标包括 /etc/passwd、/etc/shadow、配置文件、源代码等敏感信息。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/dir/dir_list.php?title=..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fetc%2Fpasswd\n攻击载荷为：../../../../../../../../../../../../../../../../etc/passwd\n2、观察响应是否包含服务器敏感文件内容（如 /etc/passwd）',
+      payload:'../../../../../../../../../../../../../../../../etc/passwd',
+      result:'路径遍历成功，检测到敏感内容\n匹配内容: root:x:0:0:root:/root:/bin/bash\ndae',
+      fix:'对用户输入的文件路径进行严格校验，禁止包含 ../、..\\、%2e%2e 等目录跳转字符；使用白名单机制限制可访问的文件范围；将用户输入与基础目录拼接后，验证最终路径是否仍在允许的目录下（realpath 校验）；避免将用户输入直接传递给文件系统 API，使用安全的文件访问抽象层。' },
+    { id:'C3', name:'PHP 代码注入漏洞', sev:'critical', sevText:'严重', impact:'可能性: 几乎肯定',
+      summary:'服务端 PHP 代码注入（Server Side Code Injection - PHP Code Injection）漏洞允许攻击者通过在应用程序的输入参数中注入 PHP 代码，利用 eval()、exec()、system() 等函数在服务器端执行任意 PHP 代码。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/rce/rce_eval.php\n2、在参数 txt 中填入 Payload：;print(chr(122).chr(97).chr(112).chr(95).chr(116).chr(111).chr(107).chr(101).chr(110));\n3、提交请求\n4、观察响应是否包含注入的唯一标记字符串（如 zap_token）',
+      payload:';print(chr(122).chr(97).chr(112).chr(95).chr(116).chr(111).chr(107).chr(101).chr(110));',
+      result:'代码注入成功，响应中出现唯一标记',
+      fix:'1、避免使用 eval()、exec()、system() 等危险函数处理用户输入\n2、如必须动态执行代码，使用白名单机制限制可执行的代码范围\n3、对用户输入进行严格的类型检查和过滤，禁止 PHP 语法关键字\n4、使用 htmlspecialchars() 或 filter_var() 对用户输入进行编码和过滤\n5、在 php.ini 中配置 disable_functions 禁用危险函数\n6、开启 open_basedir 限制 PHP 脚本的文件访问范围\n7、使用 WAF（Web 应用防火墙）对恶意请求进行拦截' },
+    { id:'C4', name:'路径遍历漏洞', sev:'critical', sevText:'严重', impact:'可能性: 几乎肯定',
+      summary:'路径遍历（Path Traversal）漏洞允许攻击者通过在文件路径参数中使用 ../ 等目录跳转序列，访问服务器文件系统上的任意文件。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/ssrf/ssrf_fgc.php?file=%2Fetc%2Fpasswd\n攻击载荷为：/etc/passwd\n2、观察响应是否包含服务器敏感文件内容（如 /etc/passwd）',
+      payload:'/etc/passwd',
+      result:'路径遍历成功，检测到敏感内容\n匹配内容: root:x:0:0:root:/root:/bin/bash\ndae',
+      fix:'对用户输入的文件路径进行严格校验，禁止包含 ../、..\\、%2e%2e 等目录跳转字符；使用白名单机制限制可访问的文件范围；将用户输入与基础目录拼接后，验证最终路径是否仍在允许的目录下（realpath 校验）；避免将用户输入直接传递给文件系统 API，使用安全的文件访问抽象层。' },
+    { id:'C5', name:'路径遍历漏洞', sev:'critical', sevText:'严重', impact:'可能性: 几乎肯定',
+      summary:'路径遍历（Path Traversal）漏洞允许攻击者通过在文件路径参数中使用 ../ 等目录跳转序列，访问服务器文件系统上的任意文件。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/unsafedownload/execdownload.php?filename=..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2F..%2Fetc%2Fpasswd\n攻击载荷为：../../../../../../../../../../../../../../../../etc/passwd\n2、观察响应是否包含服务器敏感文件内容（如 /etc/passwd）',
+      payload:'../../../../../../../../../../../../../../../../etc/passwd',
+      result:'路径遍历成功，检测到敏感内容\n匹配内容: root:x:0:0:root:/root:/bin/bash\ndaemon:x:1:1:daemon',
+      fix:'对用户输入的文件路径进行严格校验，禁止包含 ../、..\\、%2e%2e 等目录跳转字符；使用白名单机制限制可访问的文件范围；将用户输入与基础目录拼接后，验证最终路径是否仍在允许的目录下（realpath 校验）；避免将用户输入直接传递给文件系统 API，使用安全的文件访问抽象层。' },
+    // ===== 高危 (H1-H16) =====
+    { id:'H1', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。攻击者可提交包含恶意脚本的内容并被持久化保存，任意用户访问相关页面时脚本自动执行。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_del.php?id=%3Cscript%3Ealert(5397)%3C/script%3E\n2、在表单对应字段中输入 Payload：message=Zaproxy alias impedit expedita quisquam pariatur exercitationem.\n3、提交表单\n4、观察是否出现 alert 弹窗',
+      payload:'<script>alert(5397)\x3c/script>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码（HTML/属性/JS/URL 场景分别编码）；确保持久化数据在展示时被安全处理；如业务确需富文本，使用严格白名单的净化器（如 DOMPurify）并避免危险标签/事件属性；部署 Content Security Policy (CSP) 限制脚本执行来源。' },
+    { id:'H2', name:'目录浏览漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'目录浏览（Directory Browsing）漏洞是指 Web 服务器配置不当，允许用户直接浏览服务器上的目录结构和文件列表。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/\n2、观察页面是否显示目录列表（文件/文件夹列表）\n3、确认是否存在 Parent Directory 链接、Index of 标题等目录浏览特征',
+      payload:'http://192.168.64.129:8082/vul/xss/',
+      result:'目录浏览确认（匹配 8 条规则）',
+      fix:'1、Apache 服务器：在 httpd.conf 或 .htaccess 中设置 Options -Indexes 禁用目录浏览；\n2、Nginx 服务器：在 server/location 块中设置 autoindex off 关闭自动索引；\n3、IIS 服务器：在 IIS Manager 中禁用 Directory Browsing 功能；\n4、确保每个目录都包含默认首页文件（index.html/index.php 等）。' },
+    { id:'H3', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。攻击者可提交包含恶意脚本的内容并被持久化保存，任意用户访问相关页面时脚本自动执行。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/xss/xss_stored.php\n2、在表单对应字段中输入 Payload：message=Zaproxy alias impedit expedita quisquam pariatur exercitationem.\n3、提交表单\n4、观察是否出现 alert 弹窗',
+      payload:'message=Zaproxy alias impedit expedita quisquam pariatur exercitationem.',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；确保持久化数据在展示时被安全处理；部署 Content Security Policy (CSP) 限制脚本执行来源。' },
+    { id:'H4', name:'目录浏览漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'目录浏览（Directory Browsing）漏洞是指 Web 服务器配置不当，允许用户直接浏览服务器上的目录结构和文件列表。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xssblind/\n2、观察页面是否显示目录列表\n3、确认是否存在 Parent Directory 链接、Index of 标题等目录浏览特征',
+      payload:'http://192.168.64.129:8082/vul/xss/xssblind/',
+      result:'目录浏览确认（匹配 8 条规则）',
+      fix:'1、Apache：Options -Indexes；\n2、Nginx：autoindex off；\n3、IIS：禁用 Directory Browsing；\n4、确保每个目录包含默认首页文件。' },
+    { id:'H5', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_del.php?id=%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n2、输入 Payload：message=Zaproxy alias...\n3、提交表单\n4、观察是否出现 alert 弹窗',
+      payload:'<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 Content Security Policy (CSP) 限制脚本执行来源。' },
+    { id:'H6', name:'目录浏览漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'目录浏览（Directory Browsing）漏洞是指 Web 服务器配置不当。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xsspost/\n2、观察页面是否显示目录列表\n3、确认目录浏览特征',
+      payload:'http://192.168.64.129:8082/vul/xss/xsspost/',
+      result:'目录浏览确认（匹配 8 条规则）',
+      fix:'禁用目录浏览：Apache Options -Indexes / Nginx autoindex off。' },
+    { id:'H7', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_id.php\n2、输入 Payload：id=%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n3、提交表单\n4、观察是否出现 alert 弹窗',
+      payload:'<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 Content Security Policy (CSP)。' },
+    { id:'H8', name:'目录浏览漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'目录浏览（Directory Browsing）漏洞是指 Web 服务器配置不当。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/\n2、观察页面是否显示目录列表\n3、确认目录浏览特征',
+      payload:'http://192.168.64.129:8082/vul/',
+      result:'目录浏览确认（匹配 7 条规则）',
+      fix:'禁用目录浏览：Apache Options -Indexes / Nginx autoindex off。' },
+    { id:'H9', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_iu/sqli_reg.php\n2、输入 Payload：add=%27%22%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n3、提交表单\n4、观察是否出现 alert 弹窗',
+      payload:'add=\'"<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 CSP。' },
+    { id:'H10', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_iu/sqli_reg.php\n2、输入 Payload：email=%27%22%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n3、提交表单\n4、观察是否出现 alert 弹窗',
+      payload:'email=\'"<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 CSP。' },
+    { id:'H11', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_iu/sqli_reg.php\n2、输入 Payload：password=%27%22%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n3、提交表单',
+      payload:'password=\'"<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 CSP。' },
+    { id:'H12', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_iu/sqli_reg.php\n2、输入 Payload：phonenum=%27%22%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n3、提交表单',
+      payload:'phonenum=\'"<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 CSP。' },
+    { id:'H13', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_iu/sqli_reg.php\n2、输入 Payload：sex=%27%22%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n3、提交表单',
+      payload:'sex=\'"<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 CSP。' },
+    { id:'H14', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/sqli/sqli_iu/sqli_reg.php\n2、输入 Payload：username=%27%22%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n3、提交表单',
+      payload:'username=\'"<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 CSP。' },
+    { id:'H15', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/xss/xss_stored.php\n2、输入 Payload：message=%3C%2Fp%3E%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E%3Cp%3E\n3、提交表单',
+      payload:'\x3c/p><scrIpt>alert(1);\x3c/scRipt><p>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 CSP。' },
+    { id:'H16', name:'存储型 XSS 漏洞', sev:'high', sevText:'高', impact:'可能性: 很可能',
+      summary:'经过测试确认，此系统存在存储型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/xss/xss_stored.php?id=%3C%2Fp%3E%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E%3Cp%3E\n2、输入 Payload：message=Zaproxy alias...\n3、提交表单',
+      payload:'id=\x3c/p><scrIpt>alert(1);\x3c/scRipt><p>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的内容进行上下文相关编码；部署 CSP。' },
+    // ===== 中危 (M1-M14) =====
+    { id:'M1', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。攻击者可通过构造包含恶意脚本的链接或请求参数进行利用。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/sqli/sqli_del.php?id=%3Cscript%3Ealert(5397)%3C/script%3E\n攻击载荷为：<script>alert(5397)\x3c/script>\n2、观察是否出现 alert(5397)',
+      payload:'<script>alert(5397)\x3c/script>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；优先使用模板引擎的默认转义能力；部署 Content Security Policy (CSP) 限制脚本执行来源。' },
+    { id:'M2', name:'DOM 型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在 DOM 型 XSS 漏洞。攻击者可通过操控前端可控数据源进行利用，使恶意脚本在浏览器端执行。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xss_01.php?message=%3Cimg%20src=%22random.gif%22%20onerror=alert(5397)%3E\n攻击载荷为：<img src="random.gif" onerror=alert(5397)>\n2、观察是否出现 alert(5397)',
+      payload:'<img src="random.gif" onerror=alert(5397)>',
+      result:'触发 alert',
+      fix:'对写入 DOM 的数据进行上下文相关编码；避免使用 innerHTML/document.write 等危险接口；优先使用 textContent/setAttribute 等安全方式操作 DOM；部署 CSP 进行加固。' },
+    { id:'M3', name:'DOM 型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在 DOM 型 XSS 漏洞。',
+      desc:'1、打开页面：http://192.168.64.129:8082/vul/xss/xss_04.php\n2、在页面输入框中填入 Payload\n3、点击提交/确认按钮\n4、观察是否出现 alert(5397)',
+      payload:"#jaVasCript:/*-/*`/*\\/*'/*\"/**/(/* */oNcliCk=alert(5397) )//%0D%0A%0d%0a//\x3c/stYle/\x3ctitLe/\x3cteXtarEa/\x3cscRipt/--!>\x3csVg/\x3csVg/oNloAd=alert(5397)//>\x3e",
+      result:'触发 alert',
+      fix:'对写入 DOM 的数据进行上下文相关编码；避免使用 innerHTML/document.write；部署 CSP。' },
+    { id:'M4', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xss_reflected_get.php?message=%3Cscript%3Ealert(5397)%3C/script%3E\n攻击载荷为：<script>alert(5397)\x3c/script>\n2、观察是否出现 alert(5397)',
+      payload:'<script>alert(5397)\x3c/script>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M5', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/sqli/sqli_str.php?name=ZAP&submit=查询\n攻击载荷为：\x3c/p><script>alert(1);\x3c/script><p>\n2、观察是否出现 alert(1)',
+      payload:'\x3c/p><script>alert(1);\x3c/script><p>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M6', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xss_stored.php\n攻击载荷为：\x3c/p><script>alert(1);\x3c/script><p>\n2、观察是否出现 alert(1)',
+      payload:'\x3c/p><script>alert(1);\x3c/script><p>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M7', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/sqli/sqli_del.php?id=%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n攻击载荷为：<scrIpt>alert(1);\x3c/scRipt>\n2、观察是否出现 alert(1)',
+      payload:'<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M8', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/sqli/sqli_str.php?name=%27%22%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n攻击载荷为：\'\'<scrIpt>alert(1);\x3c/scRipt>\n2、观察是否出现 alert(1)',
+      payload:'\'\'<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M9', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/sqli/sqli_x.php?name=%27%22%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E\n攻击载荷为：\'\'<scrIpt>alert(1);\x3c/scRipt>\n2、观察是否出现 alert(1)',
+      payload:'\'\'<scrIpt>alert(1);\x3c/scRipt>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M10', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xss_02.php?message=javascript%3Aalert%281%29%3B\n攻击载荷为：javascript:alert(1);\n2、观察是否出现 alert(1)',
+      payload:'javascript:alert(1);',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M11', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xss_03.php?message=javascript%3Aalert%281%29%3B\n攻击载荷为：javascript:alert(1);\n2、观察是否出现 alert(1)',
+      payload:'javascript:alert(1);',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M12', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xss_04.php?message=%27%3Balert%281%29%3B%27\n攻击载荷为：\';alert(1);\'\n2、观察是否出现 alert(1)',
+      payload:"';alert(1);'",
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M13', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xss_reflected_get.php?message=%3C%2Fp%3E%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E%3Cp%3E\n攻击载荷为：\x3c/p><scrIpt>alert(1);\x3c/scRipt><p>\n2、观察是否出现 alert(1)',
+      payload:'\x3c/p><scrIpt>alert(1);\x3c/scRipt><p>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+    { id:'M14', name:'反射型 XSS 漏洞', sev:'medium', sevText:'中', impact:'可能性: 可能',
+      summary:'经过测试确认，此系统存在反射型 XSS 漏洞。',
+      desc:'1、访问 URL：http://192.168.64.129:8082/vul/xss/xss_stored.php?id=%3C%2Fp%3E%3CscrIpt%3Ealert%281%29%3B%3C%2FscRipt%3E%3Cp%3E\n攻击载荷为：\x3c/p><scrIpt>alert(1);\x3c/scRipt><p>\n2、观察是否出现 alert(1)',
+      payload:'\x3c/p><scrIpt>alert(1);\x3c/scRipt><p>',
+      result:'触发 alert',
+      fix:'对所有输出到页面的用户输入进行上下文相关编码；部署 CSP。' },
+];
+    </script>
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const typingIndicator = document.getElementById('typing');
+
+        const logSequence = [
+            {
+                delay: 800,
+                text: `收到，开始执行 all_scan 流水线验证。
+
+当前活跃的漏洞验证 Skill（5 个）：
+- xss-ai
+- rce-ai
+- path_traversal-ai
+- server_injection-ai
+- directory_browsing-ai`
+            },
+            {
+                delay: 1200,
+                text: `🚀 开始执行 all_scan 流水线
+
+进程已启动（session: cool-trail, pid: 2386930）
+正在监控执行进度...
+📊 阶段 1: 漏洞验证`
+            },
+            {
+                delay: 1500,
+                text: `[1/5] xss-ai — 正在执行...
+输出目录：192_168_64_129_8082_20260701_121408
+任务文件：xss_tasks.json (26 个任务)`
+            },
+            {
+                delay: 1000,
+                text: `📊 实时进度汇报
+[1/5] xss-ai — 已完成 6/26 个任务
+当前进度：xss_06 正在处理`
+            },
+            {
+                delay: 1000,
+                text: `📊 实时进度汇报
+[1/5] xss-ai — 已完成 17/26 个任务
+当前进度：xss_17 正在处理`
+            },
+            {
+                delay: 1200,
+                text: `[1/5] xss-ai — ✅ 已完成！
+任务完成：26/26 (100%)
+报告文件：xss_report.docx 已生成`
+            },
+            {
+                delay: 1500,
+                text: `[2/5] rce-ai — 🔄 正在执行中...
+[2/5] rce-ai — ✅ 已完成！(1/1)
+
+[3/5] path_traversal-ai — ⚠️ 判定为误报
+任务完成：3/4 (75%)
+1 个任务判定为误报
+输出目录：192_168_64_129_8082_20260701_121856`
+            },
+            {
+                delay: 1200,
+                text: `[4/5] server_injection-ai — 🔄 正在执行中...
+已生成 5 个任务目录
+[4/5] server_injection-ai — ✅ 已完成！(1/1)
+
+[5/5] directory_browsing-ai — ✅ 已完成！(4/4)`
+            },
+            {
+                delay: 1500,
+                text: `漏洞验证阶段已完成！
+
+📈 验证汇总
+总计：5个skill
+成功：5个
+失败：0个
+误报：1个
+跳过：0个
+
+📤 CAT上传阶段 — 🔄 正在上传...
+发现漏洞：
+🔴 严重(C)：5个
+🟠 高危(H)：16个
+🟡 中危(M)：14个
+总计：35个漏洞`
+            },
+            {
+                delay: 2000,
+                text: `## ✅ 任务完成汇报
+
+all_scan 流水线执行成功！
+
+📊 漏洞验证结果
+Skill                 | 状态         | 任务数 | 成功率
+----------------------|--------------|--------|-------
+xss-ai                | ✅ 成功      | 26/26  | 100%
+rce-ai                | ✅ 成功      | 1/1    | 100%
+path_traversal-ai     | ⚠️ 包含误报  | 3/4    | 75%
+server_injection-ai   | ✅ 成功      | 1/1    | 100%
+directory_browsing-ai | ✅ 成功      | 4/4    | 100%
+
+📤 CAT 报告上传
+成功上传 35 个漏洞：
+🔴 严重 (C): 5 个 (远程命令执行 ×1, 路径遍历 ×3, PHP 代码注入 ×1)
+🟠 高危 (H): 16 个 (存储型 XSS ×12, 目录浏览 ×4)
+🟡 中危 (M): 14 个 (反射型/DOM型 XSS)
+
+报告文件: DVWA测试测CAT试报告_20260701_122121.json
+保存位置: C:/Users/Administrator/Downloads/CATreports/
+
+总耗时: 约 8 分钟
+执行状态: ✅ 全部完成`
+            }
+        ];
+
+        function addMessage(text, isUser = false) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+            msgDiv.innerHTML = isUser ? text : `<pre>${text}</pre>`;
+            
+            chatContainer.insertBefore(msgDiv, typingIndicator);
+            scrollToBottom();
+        }
+
+        // 检测并附加视频模块
+        function checkAndAppendVideo() {
+            return new Promise((resolve) => {
+                const videoSrc = "openclaw.mp4";
+                const tempVideo = document.createElement('video');
+                tempVideo.src = videoSrc;
+                tempVideo.preload = "metadata";
+
+                // 如果成功加载了视频信息，说明文件存在
+                tempVideo.onloadedmetadata = () => {
+                    showTyping();
+                    setTimeout(() => {
+                        hideTyping();
+                        const msgDiv = document.createElement('div');
+                        msgDiv.className = 'message bot-message video-message';
+                        msgDiv.innerHTML = `
+                            <div class="video-title">
+                                🎬 任务执行录屏已生成：
+                            </div>
+                            <video src="${videoSrc}" controls preload="metadata"></video>
+                        `;
+                        chatContainer.insertBefore(msgDiv, typingIndicator);
+                        scrollToBottom();
+                        resolve();
+                    }, 1500); // 模拟生成视频的等待感
+                };
+
+                // 如果出错（找不到文件、跨域限制等），静默失败，什么都不推
+                tempVideo.onerror = () => {
+                    console.log("未检测到同名本地视频 (openclaw.mp4) 或无法读取，跳过视频渲染。");
+                    resolve();
+                };
+            });
+        }
+
+        function showTyping() {
+            typingIndicator.style.display = 'block';
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            typingIndicator.style.display = 'none';
+        }
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+        // ===== 报告渲染函数 =====
+        function escapeHtml(str) {
+            return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function addReportBubble(html) {
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message report-bubble';
+            msgDiv.innerHTML = html;
+            chatContainer.insertBefore(msgDiv, typingIndicator);
+            scrollToBottom();
+        }
+
+        function buildStatsTable() {
+            return '<table class="report-table">' +
+                '<tr><th>严重</th><th>高</th><th>中</th><th>低</th><th>信息</th><th>总计</th></tr>' +
+                '<tr><td style="color:#D32F2F;font-weight:700">5</td><td style="color:#F57C00;font-weight:700">16</td><td style="color:#FBC02D;font-weight:700">14</td><td>0</td><td>0</td><td style="font-weight:700">35</td></tr>' +
+                '</table>';
+        }
+
+        function buildScopeTable() {
+            var rows = [
+                ['应用名称', 'DVWA测试'], ['BIA等级', 'High'], ['数据类型', '保密'],
+                ['开放公网', '否'], ['可通过互联网修改数据', '否'],
+                ['网址', 'http://192.168.64.129:8082/'], ['账号', 'admin/admin'],
+                ['测试日期', '2026-05-20'], ['测试工程师', 'Jiang, Jesse']
+            ];
+            var html = '<table class="report-table"><tr><th>标题</th><th>描述</th></tr>';
+            for (var i = 0; i < rows.length; i++) {
+                html += '<tr><td>' + escapeHtml(rows[i][0]) + '</td><td>' + escapeHtml(rows[i][1]) + '</td></tr>';
+            }
+            return html + '</table>';
+        }
+
+        function buildRiskMatrix() {
+            var m = [
+                ['', '较小的', '中等的', '重要的', '严重的'],
+                ['几乎肯定', '低', '中', '高', '严重'],
+                ['很可能', '低', '中', '高', '严重'],
+                ['可能', '低', '中', '中', '高'],
+                ['不太可能', '低', '低', '低', '中']
+            ];
+            var html = '<table class="report-table">';
+            for (var i = 0; i < m.length; i++) {
+                html += '<tr>';
+                for (var j = 0; j < m[i].length; j++) {
+                    if (i === 0) { html += '<th>' + m[i][j] + '</th>'; }
+                    else if (j === 0) { html += '<th>' + m[i][j] + '</th>'; }
+                    else { html += '<td>' + m[i][j] + '</td>'; }
+                }
+                html += '</tr>';
+            }
+            return html + '</table>';
+        }
+
+        function buildSummaryTable() {
+            var items = [];
+            var v, c, sevColor = { '严重': '#D32F2F', '高': '#F57C00', '中': '#FBC02D' };
+            for (var i = 0; i < window.vulnList.length; i++) {
+                v = window.vulnList[i];
+                items.push([v.id, v.name, v.sevText, '开放']);
+            }
+            var html = '<table class="report-table"><tr><th>序号</th><th>发现</th><th>漏洞等级</th><th>状态</th></tr>';
+            for (var i = 0; i < items.length; i++) {
+                c = sevColor[items[i][2]] || '#333';
+                html += '<tr><td>' + items[i][0] + '</td><td>' + escapeHtml(items[i][1]) + '</td><td style="color:' + c + ';font-weight:600">' + items[i][2] + '</td><td>' + items[i][3] + '</td></tr>';
+            }
+            return html + '</table>';
+        }
+
+        function buildVulnCard(v) {
+            return '<div class="vuln-card">' +
+                '<div class="vuln-header">' +
+                    '<span class="vuln-id">' + escapeHtml(v.id) + '</span>' +
+                    '<span class="vuln-name">' + escapeHtml(v.name) + '</span>' +
+                    '<span class="severity-tag severity-' + v.sev + '">' + escapeHtml(v.sevText) + '</span>' +
+                    '<span style="font-size:0.82rem;color:#888;margin-left:auto">' + escapeHtml(v.impact) + '</span>' +
+                '</div>' +
+                '<div class="vuln-label">概要</div>' +
+                '<div class="vuln-text">' + escapeHtml(v.summary) + '</div>' +
+                '<div class="vuln-label">具体描述</div>' +
+                '<div class="vuln-text">' + escapeHtml(v.desc) + '</div>' +
+                '<div class="vuln-label">攻击载荷 (Payload)</div>' +
+                '<div class="vuln-payload">' + escapeHtml(v.payload) + '</div>' +
+                '<div class="vuln-label">结果</div>' +
+                '<div class="vuln-text">' + escapeHtml(v.result) + '</div>' +
+                '<div class="vuln-label">修复建议</div>' +
+                '<div class="vuln-text">' + escapeHtml(v.fix) + '</div>' +
+            '</div>';
+        }
+
+        // ===== 报告分步展示状态 =====
+        var reportState = { phase: 'idle', sectionIdx: 0, vulnIdx: 0 };
+        var sectionGroups = [
+            [0],       // 封面
+            [1],       // 声明
+            [2, 3, 4], // 概要 + 文本 + 统计表
+            [5, 6, 7], // 风险评估方法 + 范围表格 + 风险矩阵
+            [8, 9, 10],// 评估结果 + 文本 + 汇总表
+            [11],      // 漏洞详情标题
+        ];
+
+        function renderSectionByIndex(idx) {
+            var sec = window.reportSections[idx];
+            var html = '';
+            switch (sec.type) {
+                case 'cover':
+                    html = '<div class="report-title">' + escapeHtml(sec.title) + '</div>' +
+                        '<div class="report-subtitle">' + escapeHtml(sec.subtitle) + '</div>' +
+                        '<div class="report-meta">';
+                    for (var j = 0; j < sec.meta.length; j++) {
+                        html += '<span class="report-meta-item"><strong>' + escapeHtml(sec.meta[j].k) + '：</strong>' + escapeHtml(sec.meta[j].v) + '</span>';
+                    }
+                    html += '</div>';
+                    break;
+                case 'declaration':
+                    html = '<div class="report-declaration">' + escapeHtml(sec.text) + '</div>';
+                    break;
+                case 'section':
+                    html = '<div class="report-section">' + escapeHtml(sec.text) + '</div>';
+                    break;
+                case 'subsection':
+                    html = '<div class="report-section-sub">' + escapeHtml(sec.text) + '</div>';
+                    break;
+                case 'text':
+                    html = '<div class="vuln-text">' + escapeHtml(sec.text) + '</div>';
+                    break;
+                case 'statsTable':
+                    html = buildStatsTable();
+                    break;
+                case 'scopeTable':
+                    html = buildScopeTable();
+                    break;
+                case 'riskMatrix':
+                    html = buildRiskMatrix();
+                    break;
+                case 'summaryTable':
+                    html = buildSummaryTable();
+                    break;
+            }
+            return html;
+        }
+
+        function addDetailButton(onclickFn) {
+            addReportBubble(
+                '<div style="text-align:center;padding:8px 0;">' +
+                    '<a href="javascript:void(0)" onclick="' + onclickFn + '" style="display:inline-block;padding:8px 28px;background:var(--primary);color:#fff;border-radius:6px;text-decoration:none;font-size:0.9rem;font-weight:600;cursor:pointer;transition:background .2s;" onmouseover="this.style.background=\'var(--primary-active)\'" onmouseout="this.style.background=\'var(--primary)\'">' +
+                        '查看详情 &raquo;' +
+                    '</a>' +
+                '</div>'
+            );
+        }
+
+        function removeLastButton() {
+            var bubbles = chatContainer.querySelectorAll('.report-bubble');
+            for (var i = bubbles.length - 1; i >= 0; i--) {
+                if (bubbles[i].innerHTML.indexOf('查看详情') !== -1) {
+                    bubbles[i].parentNode.removeChild(bubbles[i]);
+                    return;
+                }
+            }
+        }
+
+        async function renderReport() {
+            reportState = { phase: 'sections', sectionIdx: 0, vulnIdx: 0 };
+            // 先展示封面
+            showTyping();
+            await sleep(600);
+            hideTyping();
+            addReportBubble(renderSectionByIndex(0));
+            reportState.sectionIdx = 1;
+            addDetailButton('showNextSection()');
+        }
+
+        async function showNextSection() {
+            removeLastButton();
+            if (reportState.sectionIdx >= sectionGroups.length) {
+                // 所有章节展示完毕，进入漏洞卡片阶段
+                reportState.phase = 'vulns';
+                reportState.vulnIdx = 0;
+                await showNextVuln();
+                return;
+            }
+            var group = sectionGroups[reportState.sectionIdx];
+            showTyping();
+            await sleep(600);
+            hideTyping();
+            var html = '';
+            for (var i = 0; i < group.length; i++) {
+                html += renderSectionByIndex(group[i]);
+            }
+            addReportBubble(html);
+            reportState.sectionIdx++;
+            addDetailButton('showNextSection()');
+        }
+
+        async function showNextVuln() {
+            if (reportState.vulnIdx >= window.vulnList.length) {
+                // 所有漏洞展示完毕
+                await showDownloadBtn();
+                return;
+            }
+            showTyping();
+            await sleep(500);
+            hideTyping();
+            addReportBubble(buildVulnCard(window.vulnList[reportState.vulnIdx]));
+            reportState.vulnIdx++;
+            if (reportState.vulnIdx < window.vulnList.length) {
+                addDetailButton('showNextVuln()');
+            } else {
+                await showDownloadBtn();
+            }
+        }
+
+        async function showDownloadBtn() {
+            showTyping();
+            await sleep(500);
+            hideTyping();
+            addReportBubble('<div style="text-align:center;padding:16px 0;color:var(--deep);font-weight:700;font-size:1rem;">' +
+                '— 报告结束 —<br>' +
+                '<span style="font-size:0.85rem;font-weight:400;color:#888;">共发现 35 个安全风险 | CAT 安全保障测试报告</span>' +
+            '</div>');
+
+            showTyping();
+            await sleep(600);
+            hideTyping();
+            addReportBubble(
+                '<div style="padding:12px 0;">' +
+                    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
+                        '<span style="font-size:1.3rem;">📄</span>' +
+                        '<span style="font-weight:700;color:var(--deep);font-size:1rem;">报告已生成，点击可打开完整报告</span>' +
+                    '</div>' +
+                    '<div style="background:#F6F8FA;border:1px solid var(--border-color);border-radius:8px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;">' +
+                        '<div style="flex:1;min-width:0;">' +
+                            '<div style="font-weight:600;color:var(--text-color);font-size:0.92rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">CAT安全保障测试报告_DVWA测试_2026-05-21.pdf</div>' +
+                            '<div style="font-size:0.8rem;color:#888;margin-top:4px;">保存位置：C:/Users/Administrator/Downloads/CATreports/</div>' +
+                        '</div>' +
+                        '<a href="javascript:void(0)" id="downloadBtn" onclick="openFullReport()" style="flex-shrink:0;display:inline-flex;align-items:center;gap:6px;padding:8px 18px;background:var(--primary);color:#fff;border-radius:6px;text-decoration:none;font-size:0.88rem;font-weight:600;cursor:pointer;transition:background .2s;" onmouseover="this.style.background=\'var(--primary-active)\'" onmouseout="this.style.background=\'var(--primary)\'">' +
+                            '<span style="font-size:1rem;">📂</span> 打开完整报告' +
+                        '</a>' +
+                    '</div>' +
+                '</div>'
+            );
+        }
+
+        async function startExecution() {
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            userInput.value = '';
+
+            showTyping();
+            await sleep(600);
+            hideTyping();
+            addMessage("已解析指令参数...\n目标配置：/home/cat/.openclaw/workspace/skills/zap_report.json\n任务要求：严格按要求验证漏洞并上传报告");
+
+            // 循环推送日志
+            for (const log of logSequence) {
+                showTyping();
+                await sleep(log.delay);
+                hideTyping();
+                addMessage(log.text);
+            }
+
+            // 将"任务完成汇报"中的报告文件名变为可点击链接
+            makeReportFilenameClickable();
+
+            // 日志推送完后，尝试检测并加载视频
+            await checkAndAppendVideo();
+
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            userInput.focus();
+        }
+
+        // ===== 生成并打开完整 CAT 报告（单页完整版，含全部章节 + 35 个漏洞）=====
+        function buildFullReportHtml() {
+            var body = '';
+            for (var i = 0; i < window.reportSections.length; i++) {
+                body += renderSectionByIndex(i);
+            }
+            for (var k = 0; k < window.vulnList.length; k++) {
+                body += buildVulnCard(window.vulnList[k]);
+            }
+            var css =
+                ':root{--primary:#00AA4F;--primary-active:#008E43;--primary-soft:#E3F5EA;--deep:#006845;--green-deep:#005A3C;--text-color:#42464A;--body-text:#555B61;--border-color:#DDE3EA;}' +
+                '*{box-sizing:border-box;margin:0;padding:0;font-family:"Lato","Segoe UI","PingFang SC","Microsoft YaHei","Source Han Sans SC","Noto Sans CJK SC",sans-serif;}' +
+                'body{background:#eef1f4;color:var(--text-color);padding:32px 16px;line-height:1.7;}' +
+                '.report-doc{max-width:900px;margin:0 auto;background:#fff;padding:48px 56px;box-shadow:0 4px 24px rgba(0,0,0,.08);border-radius:6px;}' +
+                '.report-title{text-align:center;font-size:1.8rem;font-weight:800;color:var(--green-deep);margin-bottom:8px;letter-spacing:2px;}' +
+                '.report-subtitle{text-align:center;font-size:1.2rem;font-weight:600;color:var(--deep);margin-bottom:20px;}' +
+                '.report-meta{display:flex;flex-wrap:wrap;gap:12px 28px;margin:12px 0 24px;padding:14px 18px;background:var(--primary-soft);border-radius:8px;justify-content:center;}' +
+                '.report-meta-item{font-size:.92rem;color:var(--text-color);}' +
+                '.report-meta-item strong{color:var(--green-deep);}' +
+                '.report-section{font-size:1.25rem;font-weight:700;color:var(--deep);margin:28px 0 12px;padding-bottom:6px;border-bottom:2px solid var(--primary);}' +
+                '.report-section-sub{font-size:1.05rem;font-weight:600;color:var(--green-deep);margin:18px 0 8px;}' +
+                '.report-table{width:100%;border-collapse:collapse;margin:12px 0 18px;font-size:.9rem;}' +
+                '.report-table th,.report-table td{border:1px solid var(--border-color);padding:8px 12px;text-align:left;}' +
+                '.report-table th{background:var(--primary-soft);font-weight:600;color:var(--deep);}' +
+                '.report-table tr:nth-child(even) td{background:#f9fafb;}' +
+                '.vuln-text{font-size:.9rem;color:var(--body-text);line-height:1.7;white-space:pre-wrap;}' +
+                '.report-declaration{font-size:.85rem;color:#777;font-style:italic;line-height:1.7;margin:10px 0 8px;padding:12px 16px;border-left:3px solid #ddd;background:#fafafa;white-space:pre-wrap;}' +
+                '.vuln-card{background:#fff;border:1px solid var(--border-color);border-radius:8px;padding:18px 22px;margin:12px 0;box-shadow:0 1px 6px rgba(0,0,0,.03);page-break-inside:avoid;}' +
+                '.vuln-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;}' +
+                '.vuln-id{font-weight:700;color:var(--deep);font-size:.95rem;min-width:36px;}' +
+                '.vuln-name{font-weight:600;font-size:1rem;color:var(--text-color);}' +
+                '.severity-tag{display:inline-block;padding:2px 10px;border-radius:4px;font-size:.78rem;font-weight:700;color:#fff;letter-spacing:1px;}' +
+                '.severity-critical{background:#D32F2F;}.severity-high{background:#F57C00;}.severity-medium{background:#FBC02D;color:#333;}' +
+                '.vuln-label{font-weight:700;color:var(--deep);margin:12px 0 4px;font-size:.9rem;}' +
+                '.vuln-payload{background:#f4f4f4;border:1px solid #e0e0e0;border-radius:4px;padding:8px 12px;font-family:"Consolas","Courier New",monospace;font-size:.82rem;word-break:break-all;margin:4px 0 8px;color:#c62828;white-space:pre-wrap;}' +
+                '.report-toolbar{max-width:900px;margin:0 auto 16px;display:flex;justify-content:flex-end;gap:10px;}' +
+                '.report-toolbar button{padding:9px 20px;background:var(--primary);color:#fff;border:none;border-radius:6px;font-size:.9rem;font-weight:600;cursor:pointer;}' +
+                '.report-toolbar button:hover{background:var(--primary-active);}' +
+                '@media print{body{background:#fff;padding:0;}.report-doc{box-shadow:none;max-width:none;padding:0;}.report-toolbar{display:none;}}';
+            return '<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8">' +
+                '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+                '<title>CAT安全保障测试报告 - DVWA测试</title><style>' + css + '<\/style></head><body>' +
+                '<div class="report-toolbar"><button onclick="window.print()">🖨 打印 / 另存为 PDF</button></div>' +
+                '<div class="report-doc">' + body + '<\/div></body></html>';
+        }
+
+        function openFullReport() {
+            var win = window.open('', '_blank');
+            if (!win) {
+                addMessage('⚠️ 浏览器拦截了新窗口，请允许本页面弹出窗口后重试。');
+                return;
+            }
+            win.document.open();
+            win.document.write(buildFullReportHtml());
+            win.document.close();
+            var btn = document.getElementById('downloadBtn');
+            if (btn) {
+                btn.innerHTML = '<span style="font-size:1rem;">✅</span> 已打开完整报告';
+            }
+            addMessage('✅ 已在新窗口打开完整《CAT 安全保障测试报告》（含全部 35 个漏洞详情）。\n如需存档，可在新窗口点击右上角「打印 / 另存为 PDF」保存为 PDF。');
+        }
+
+        // ===== 报告文件名可点击 → 填入指令 → 发送后在对话中显示整个报告 =====
+        function makeReportFilenameClickable() {
+            var fn = 'DVWA测试测CAT试报告_20260701_122121.json';
+            var bots = chatContainer.querySelectorAll('.bot-message');
+            for (var i = bots.length - 1; i >= 0; i--) {
+                if (bots[i].innerHTML.indexOf(fn) !== -1 && bots[i].innerHTML.indexOf('report-file-link') === -1) {
+                    bots[i].innerHTML = bots[i].innerHTML.replace(fn,
+                        '<span class="report-file-link" onclick="fillReportCmd()" title="点击后再点“发送”即可在对话中查看完整报告">' + fn + '</span>');
+                    return;
+                }
+            }
+        }
+
+        function fillReportCmd() {
+            userInput.value = '显示完整报告内容';
+            userInput.focus();
+        }
+
+        async function renderFullReportInChat() {
+            userInput.disabled = true;
+            sendBtn.disabled = true;
+            showTyping();
+            await sleep(700);
+            hideTyping();
+            var html = '';
+            for (var i = 0; i < window.reportSections.length; i++) {
+                html += renderSectionByIndex(i);
+            }
+            for (var k = 0; k < window.vulnList.length; k++) {
+                html += buildVulnCard(window.vulnList[k]);
+            }
+            addReportBubble(html);
+            // 末尾附上"打开完整报告"（新窗口，可打印 / 另存为 PDF）
+            await showDownloadBtn();
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            userInput.focus();
+        }
+
+        function handleSend() {
+            const text = userInput.value.trim();
+            if (text === '') return;
+
+            addMessage(text, true);
+
+            if (text.includes('开始执行')) {
+                startExecution();
+            } else if (text.includes('报告')) {
+                userInput.value = '';
+                renderFullReportInChat();
+            } else {
+                userInput.value = '';
+                showTyping();
+                setTimeout(() => {
+                    hideTyping();
+                    addMessage("未识别的执行命令。您可以输入包含 '开始执行' 的指令来启动自动化流水线演示。");
+                }, 800);
+            }
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSend();
+            }
+        });
+    </script>
+</body>
+</html>
