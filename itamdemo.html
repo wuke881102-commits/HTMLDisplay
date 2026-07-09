@@ -1,0 +1,1291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Identity Hub - Demo</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
+
+/* ===== antd 5 base ===== */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  font-size: 14px;
+  color: rgba(0,0,0,0.88);
+  background: #f5f5f5;
+  line-height: 1.5714;
+}
+a { color: #1677ff; text-decoration: none; cursor: pointer; }
+a:hover { color: #4096ff; }
+
+/* ===== Header ===== */
+.app-header {
+  height: 64px; background: #001529; display: flex; justify-content: space-between;
+  align-items: center; padding: 0 24px; position: sticky; top: 0; z-index: 100;
+}
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-title { color: #fff; font-size: 20px; font-weight: bold; letter-spacing: 0.5px; }
+.header-right { display: flex; align-items: center; gap: 16px; }
+.header-bell { color: #fff; font-size: 20px; cursor: pointer; display: flex; }
+.header-user { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.header-avatar {
+  width: 32px; height: 32px; border-radius: 50%; background: #1890ff;
+  display: flex; align-items: center; justify-content: center; color: #fff;
+}
+.header-username { color: #fff; }
+
+/* ===== Layout ===== */
+.app-body { display: flex; }
+.app-sider {
+  width: 220px; min-width: 220px; background: #fff; height: calc(100vh - 64px);
+  position: sticky; top: 64px; display: flex; flex-direction: column;
+  box-shadow: none; border-right: 1px solid rgba(5,5,5,0.06); overflow: auto;
+  transition: width .2s, min-width .2s;
+}
+.app-sider.collapsed { width: 60px; min-width: 60px; }
+.app-sider.collapsed .menu-label { display: none; }
+.app-sider.collapsed .menu-item { padding: 0 20px; justify-content: center; }
+.app-sider.collapsed .menu-item .menu-icon { margin-right: 0; }
+.sider-menu { flex: 1; padding: 4px; }
+.menu-item {
+  display: flex; align-items: center; height: 40px; padding: 0 16px; margin: 4px;
+  border-radius: 8px; cursor: pointer; color: rgba(0,0,0,0.88);
+  transition: background .2s, color .2s; white-space: nowrap; user-select: none;
+}
+.menu-item:hover { background: rgba(0,0,0,0.06); }
+.menu-item.active { background: #e6f4ff; color: #1677ff; font-weight: 500; }
+.menu-item .menu-icon { margin-right: 10px; display: flex; font-size: 14px; flex: none; }
+.menu-divider { height: 1px; background: rgba(5,5,5,0.06); margin: 8px 16px; }
+.sider-trigger {
+  padding: 16px 0; text-align: center; border-top: 1px solid #f0f0f0;
+  cursor: pointer; font-size: 20px; color: rgba(0,0,0,0.65);
+}
+.sider-trigger:hover { color: #1677ff; }
+
+.app-content { flex: 1; min-width: 0; margin: 16px; background: #fff; padding: 24px; min-height: calc(100vh - 64px - 32px); border-radius: 8px; }
+
+/* ===== Page ===== */
+.page { display: none; }
+.page.active { display: block; }
+.page-title { font-size: 20px; font-weight: 600; margin: 0 0 4px; }
+.page-sub { color: rgba(0,0,0,0.45); margin-bottom: 16px; }
+.toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.toolbar .spacer { flex: 1; }
+
+/* ===== Cards ===== */
+.ant-card {
+  background: #fff; border: 1px solid #f0f0f0; border-radius: 8px; position: relative;
+}
+.ant-card-head {
+  padding: 0 24px; min-height: 56px; display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid #f0f0f0; font-weight: 600; font-size: 16px;
+}
+.ant-card-body { padding: 24px; }
+.ant-card.small .ant-card-body { padding: 12px; }
+
+/* ===== Statistic ===== */
+.stat-title { color: rgba(0,0,0,0.45); font-size: 14px; margin-bottom: 4px; font-weight: 600; }
+.stat-value { font-size: 28px; line-height: 1.2; display: flex; align-items: center; gap: 6px; }
+
+/* ===== Grid ===== */
+.row { display: flex; flex-wrap: wrap; margin: -6px; }
+.row > * { padding: 6px; }
+.col-4 { width: 16.6667%; } .col-6 { width: 25%; } .col-8 { width: 33.333%; }
+.col-10 { width: 41.6667%; } .col-12 { width: 50%; } .col-14 { width: 58.333%; }
+.col-24 { width: 100%; } .col-5th { width: 20%; }
+@media (max-width: 1200px) { .col-4 { width: 33.333%; } .col-5th { width: 33.333%; } }
+@media (max-width: 768px) { .col-4, .col-6, .col-8, .col-10, .col-12, .col-14, .col-5th { width: 50%; } }
+
+/* ===== Dashboard shell (from Dashboard.css) ===== */
+.dashboard-shell {
+  padding: 16px; margin: -8px;
+  background:
+    radial-gradient(1200px 420px at 10% -10%, rgba(24,144,255,0.12), transparent 60%),
+    radial-gradient(900px 360px at 90% -5%, rgba(250,173,20,0.12), transparent 55%),
+    linear-gradient(180deg, #fbfcff 0%, #f6f8fb 100%);
+  border-radius: 12px;
+}
+.dashboard-shell .ant-card {
+  border-radius: 12px; box-shadow: 0 6px 18px rgba(20,28,45,0.06); border: 1px solid rgba(15,23,42,0.06);
+}
+.dashboard-shell .ant-card.hoverable:hover {
+  transform: translateY(-2px); transition: transform .2s ease, box-shadow .2s ease;
+  box-shadow: 0 10px 24px rgba(20,28,45,0.10); cursor: pointer;
+}
+.dashboard-header { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-bottom: 18px; padding: 8px 4px 4px; }
+.dashboard-title { margin: 0; font-family: 'Space Grotesk','Manrope',sans-serif; font-size: 28px; font-weight: 700; color: #1f2937; letter-spacing: -0.3px; }
+.dashboard-subtitle { margin-top: 4px; color: #6b7280; font-size: 13px; font-weight: 500; }
+.dashboard-section-title { font-family: 'Space Grotesk','Manrope',sans-serif; letter-spacing: -0.2px; color: #1f2937; font-size: 16px; font-weight: 600; margin: 24px 0 16px; display: flex; align-items: center; gap: 8px; }
+.stat-card { position: relative; overflow: hidden; height: 100%; }
+.stat-card .stat-title { font-family: 'Manrope',sans-serif; color: #374151; }
+.stat-card .stat-value { font-family: 'Space Grotesk','Manrope',sans-serif; }
+.stat-card::after {
+  content: ''; position: absolute; right: -30px; top: -30px; width: 90px; height: 90px;
+  border-radius: 50%; opacity: 0.12; background: #1890ff;
+}
+.stat-card--users::after { background: #52c41a; }
+.stat-card--accounts::after { background: #1890ff; }
+.stat-card--groups::after { background: #cf1322; }
+.stat-card--apps::after { background: #722ed1; }
+.stat-card--devices::after { background: #13c2c2; }
+.stat-card--software::after { background: #fa8c16; }
+.stat-card--critical::after { background: #cf1322; }
+.stat-card--high::after { background: #fa541c; }
+.stat-card--medium::after { background: #faad14; }
+.stat-card--low::after { background: #52c41a; }
+
+/* risk user carousel cards */
+.risk-user-card {
+  border-radius: 8px; padding: 12px; height: 140px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  transition: all .2s ease; border: 1px solid;
+}
+.risk-user-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+.risk-user-card.critical { background: #fff2f0; border-color: #ffccc7; }
+.risk-user-card.high { background: #fff7e6; border-color: #ffd591; }
+.ruc-level { font-size: 22px; font-weight: bold; display: flex; align-items: center; gap: 4px; }
+.ruc-level-label { font-size: 11px; font-weight: 500; margin-top: -2px; }
+.risk-user-card.critical .ruc-level, .risk-user-card.critical .ruc-level-label { color: #cf1322; }
+.risk-user-card.high .ruc-level, .risk-user-card.high .ruc-level-label { color: #d46b08; }
+.ruc-name { font-size: 12px; font-weight: bold; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 4px; }
+.ruc-upn { color: #666; font-size: 10px; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* risk factor list */
+.risk-factor-item {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  padding: 8px 10px; border-radius: 4px; border: 1px solid #f0f0f0; margin-bottom: 6px;
+  cursor: pointer; transition: all .2s ease;
+}
+.risk-factor-item:hover { background: #e6f4ff !important; }
+.rf-name { font-size: 12px; font-weight: 500; }
+.rf-count { font-weight: 600; color: #fa541c; white-space: nowrap; font-size: 12px; }
+
+/* expiring credential cards */
+.cred-card {
+  border-radius: 8px; padding: 12px; height: 140px; cursor: pointer; border: 1px solid;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+  transition: all .2s ease;
+}
+.cred-card:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+.cred-card.expired { background: #fff2f0; border-color: #ffccc7; }
+.cred-card.expiring { background: #fffbe6; border-color: #ffe58f; }
+.cc-days { font-size: 20px; font-weight: bold; }
+.cred-card.expired .cc-days { color: #cf1322; }
+.cred-card.expiring .cc-days { color: #d48806; }
+.cc-name { font-size: 12px; font-weight: 600; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-date { color: #666; font-size: 10px; }
+
+/* ===== Table ===== */
+.ant-table { width: 100%; overflow-x: auto; }
+.ant-table table { width: 100%; border-collapse: separate; border-spacing: 0; min-width: 900px; }
+.ant-table th {
+  background: #fafafa; padding: 12px 12px; text-align: left; font-weight: 600;
+  border-bottom: 1px solid #f0f0f0; white-space: nowrap; position: relative; font-size: 14px;
+}
+.ant-table th:not(:last-child)::after {
+  content: ''; position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  width: 1px; height: 1.6em; background: #f0f0f0;
+}
+.ant-table td { padding: 12px 12px; border-bottom: 1px solid #f0f0f0; white-space: nowrap; }
+.ant-table tbody tr { transition: background .2s; }
+.ant-table tbody tr:hover { background: #fafafa; }
+.ellipsis { max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
+
+/* pagination */
+.ant-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 16px; font-size: 14px; }
+.pag-total { color: rgba(0,0,0,0.88); margin-right: 8px; }
+.pag-item {
+  min-width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center;
+  justify-content: center; cursor: pointer; border: 1px solid transparent; padding: 0 6px;
+}
+.pag-item:hover { background: rgba(0,0,0,0.06); }
+.pag-item.active { border-color: #1677ff; color: #1677ff; font-weight: 600; }
+.pag-item.disabled { color: rgba(0,0,0,0.25); cursor: not-allowed; }
+
+/* ===== Tag ===== */
+.ant-tag {
+  display: inline-flex; align-items: center; gap: 4px; padding: 0 7px; font-size: 12px;
+  line-height: 20px; border-radius: 4px; border: 1px solid #d9d9d9; background: #fafafa;
+  margin-right: 4px; white-space: nowrap;
+}
+.tag-green { color: #389e0d; background: #f6ffed; border-color: #b7eb8f; }
+.tag-red { color: #cf1322; background: #fff1f0; border-color: #ffa39e; }
+.tag-volcano { color: #d4380d; background: #fff2e8; border-color: #ffbb96; }
+.tag-orange { color: #d46b08; background: #fff7e6; border-color: #ffd591; }
+.tag-gold { color: #d48806; background: #fffbe6; border-color: #ffe58f; }
+.tag-blue { color: #0958d9; background: #e6f4ff; border-color: #91caff; }
+.tag-purple { color: #531dab; background: #f9f0ff; border-color: #d3adf7; }
+.tag-cyan { color: #08979c; background: #e6fffb; border-color: #87e8de; }
+.tag-geekblue { color: #1d39c4; background: #f0f5ff; border-color: #adc6ff; }
+
+/* ===== Badge dot ===== */
+.badge-dot { display: inline-flex; align-items: center; gap: 8px; }
+.badge-dot::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #d9d9d9; }
+.badge-success::before { background: #52c41a; }
+.badge-error::before { background: #ff4d4f; }
+.badge-warning::before { background: #faad14; }
+.badge-processing::before { background: #1677ff; }
+
+/* ===== Buttons / inputs ===== */
+.ant-btn {
+  height: 32px; padding: 4px 15px; border-radius: 6px; border: 1px solid #d9d9d9; background: #fff;
+  cursor: pointer; font-size: 14px; display: inline-flex; align-items: center; gap: 6px;
+  transition: all .2s; color: rgba(0,0,0,0.88); font-family: inherit;
+}
+.ant-btn:hover { border-color: #4096ff; color: #4096ff; }
+.ant-btn-primary { background: #1677ff; border-color: #1677ff; color: #fff; }
+.ant-btn-primary:hover { background: #4096ff; color: #fff; }
+.ant-input {
+  height: 32px; padding: 4px 11px; border-radius: 6px; border: 1px solid #d9d9d9;
+  font-size: 14px; outline: none; transition: all .2s; font-family: inherit; min-width: 220px;
+}
+.ant-input:hover { border-color: #4096ff; }
+.ant-input:focus { border-color: #1677ff; box-shadow: 0 0 0 2px rgba(5,145,255,0.1); }
+.ant-select {
+  height: 32px; padding: 4px 11px; border-radius: 6px; border: 1px solid #d9d9d9; background: #fff;
+  font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; color: rgba(0,0,0,0.88);
+}
+.ant-select .arrow { color: rgba(0,0,0,0.25); font-size: 10px; }
+.ant-switch {
+  width: 44px; height: 22px; border-radius: 11px; background: rgba(0,0,0,0.25); position: relative;
+  cursor: pointer; transition: background .2s; border: none; flex: none;
+}
+.ant-switch::after {
+  content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: #fff; transition: left .2s;
+}
+.ant-switch.on { background: #1677ff; }
+.ant-switch.on::after { left: 24px; }
+
+/* ===== Tabs ===== */
+.ant-tabs { display: flex; gap: 24px; border-bottom: 1px solid #f0f0f0; margin-bottom: 20px; overflow-x: auto; }
+.ant-tab { padding: 10px 0; cursor: pointer; white-space: nowrap; color: rgba(0,0,0,0.88); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.ant-tab:hover { color: #1677ff; }
+.ant-tab.active { color: #1677ff; border-bottom-color: #1677ff; font-weight: 500; }
+
+/* ===== Descriptions / settings ===== */
+.form-item { margin-bottom: 20px; max-width: 480px; }
+.form-label { margin-bottom: 6px; font-weight: 500; }
+.form-help { color: rgba(0,0,0,0.45); font-size: 12px; margin-top: 4px; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #f0f0f0; }
+
+/* ===== Alert banner ===== */
+.ant-alert {
+  border-radius: 8px; padding: 8px 12px; display: flex; gap: 8px; align-items: flex-start;
+  font-size: 14px; margin-bottom: 16px; border: 1px solid;
+}
+.alert-info { background: #e6f4ff; border-color: #91caff; }
+.alert-warning { background: #fffbe6; border-color: #ffe58f; }
+
+/* ===== charts ===== */
+.chart-tooltip-hint { font-size: 12px; color: rgba(0,0,0,0.45); text-align: center; margin-top: 4px; }
+.bar { transition: opacity .2s; cursor: pointer; }
+.bar:hover { opacity: 0.75; }
+
+/* ===== Identity Risk settings ===== */
+.ir-header { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 16px; }
+.ir-header h3 { margin: 0; font-size: 20px; font-weight: 600; }
+.ir-header .sub { color: rgba(0,0,0,0.45); margin-top: 2px; }
+.count-badge {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px;
+  padding: 0 6px; border-radius: 10px; font-size: 12px; color: #fff; background: #1677ff; margin-left: 6px;
+}
+.count-badge.gray { background: #fff; color: rgba(0,0,0,0.65); border: 1px solid #d9d9d9; }
+.count-badge.red { background: #ff4d4f; }
+.count-badge.teal { background: #13c2c2; }
+.weight-row { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 260px; }
+.weight-name { display: flex; align-items: center; gap: 8px; font-weight: 600; white-space: nowrap; }
+.weight-name .sq { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+.slider { position: relative; flex: 1; height: 4px; background: #f0f0f0; border-radius: 2px; min-width: 120px; }
+.slider .fill { position: absolute; left: 0; top: 0; height: 4px; border-radius: 2px; }
+.slider .knob {
+  position: absolute; top: 50%; transform: translate(-50%,-50%); width: 14px; height: 14px;
+  border-radius: 50%; background: #fff; border: 2px solid; box-shadow: 0 1px 4px rgba(0,0,0,0.15); cursor: grab;
+}
+.weight-pct { font-weight: 600; white-space: nowrap; }
+.rule-subtabs { display: flex; gap: 28px; border-bottom: 1px solid #f0f0f0; margin-bottom: 0; padding: 0 4px; }
+.rule-subtab { padding: 10px 0; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; font-weight: 500; }
+.rule-subtab.active { border-bottom-color: #1677ff; }
+.icon-btn {
+  width: 28px; height: 28px; border: 1px solid #d9d9d9; border-radius: 6px; background: #fff;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.icon-btn:hover { border-color: #4096ff; color: #4096ff; }
+
+/* demo watermark */
+.demo-badge {
+  position: fixed; right: 14px; bottom: 14px; z-index: 999; background: rgba(0,21,41,0.85);
+  color: #fff; font-size: 12px; padding: 6px 12px; border-radius: 999px; letter-spacing: 0.4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25); pointer-events: none;
+}
+
+/* icon helper */
+.i { display: inline-flex; vertical-align: -0.125em; }
+.i svg { width: 1em; height: 1em; fill: currentColor; }
+</style>
+</head>
+<body>
+
+<!-- ============ HEADER ============ -->
+<header class="app-header">
+  <div class="header-brand">
+    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2L35 11V29L20 38L5 29V11L20 2Z" stroke="url(#g1)" stroke-width="2" fill="none"/>
+      <circle cx="20" cy="20" r="4" fill="#52c41a"/>
+      <circle cx="14" cy="12" r="2.5" fill="#1890ff"/><circle cx="26" cy="12" r="2.5" fill="#1890ff"/>
+      <circle cx="14" cy="28" r="2.5" fill="#722ed1"/><circle cx="26" cy="28" r="2.5" fill="#722ed1"/>
+      <line x1="20" y1="20" x2="14" y2="12" stroke="#52c41a" stroke-width="1.5" opacity="0.6"/>
+      <line x1="20" y1="20" x2="26" y2="12" stroke="#52c41a" stroke-width="1.5" opacity="0.6"/>
+      <line x1="20" y1="20" x2="14" y2="28" stroke="#52c41a" stroke-width="1.5" opacity="0.6"/>
+      <line x1="20" y1="20" x2="26" y2="28" stroke="#52c41a" stroke-width="1.5" opacity="0.6"/>
+      <defs><linearGradient id="g1" x1="5" y1="2" x2="35" y2="38" gradientUnits="userSpaceOnUse">
+        <stop offset="0%" stop-color="#1890ff"/><stop offset="50%" stop-color="#52c41a"/><stop offset="100%" stop-color="#722ed1"/>
+      </linearGradient></defs>
+    </svg>
+    <div class="header-title">Identity Hub</div>
+  </div>
+  <div class="header-right">
+    <span class="header-bell"><span class="i"><svg viewBox="64 64 896 896"><path d="M816 768h-24V428c0-141.1-104.3-257.7-240-277.1V112c0-22.1-17.9-40-40-40s-40 17.9-40 40v38.9c-135.7 19.4-240 136-240 277.1v340h-24c-17.7 0-32 14.3-32 32v32c0 4.4 3.6 8 8 8h216c0 61.8 50.2 112 112 112s112-50.2 112-112h216c4.4 0 8-3.6 8-8v-32c0-17.7-14.3-32-32-32zM512 888c-26.5 0-48-21.5-48-48h96c0 26.5-21.5 48-48 48z"/></svg></span></span>
+    <div class="header-user">
+      <div class="header-avatar"><span class="i"><svg viewBox="64 64 896 896"><path d="M858.5 763.6a374 374 0 00-80.6-119.5 375.63 375.63 0 00-119.5-80.6c-.4-.2-.8-.3-1.2-.5C719.5 518 760 444.7 760 362c0-137-111-248-248-248S264 225 264 362c0 82.7 40.5 156 102.8 201.1-.4.2-.8.3-1.2.5-44.8 18.9-85 46-119.5 80.6a375.63 375.63 0 00-80.6 119.5A371.7 371.7 0 00136 901.8a8 8 0 008 8.2h60c4.4 0 7.9-3.5 8-7.8 2-77.2 33-149.5 87.8-204.3 56.7-56.7 132-87.9 212.2-87.9s155.5 31.2 212.2 87.9C779 752.7 810 825 812 902.2c.1 4.4 3.6 7.8 8 7.8h60a8 8 0 008-8.2c-1-47.8-10.9-94.3-29.5-138.2z"/></svg></span></div>
+      <span class="header-username">Demo Admin</span>
+    </div>
+  </div>
+</header>
+
+<div class="app-body">
+<!-- ============ SIDEBAR ============ -->
+<aside class="app-sider" id="sider">
+  <nav class="sider-menu" id="menu"></nav>
+  <div class="sider-trigger" onclick="toggleSider()" id="siderTrigger">
+    <span class="i"><svg viewBox="64 64 896 896"><path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V389c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 000 13.8z"/></svg></span>
+  </div>
+</aside>
+
+<!-- ============ CONTENT ============ -->
+<main class="app-content" id="content"></main>
+</div>
+
+<div class="demo-badge">DEMO · Fake data</div>
+
+<script>
+/* ================================================================
+   Identity Hub — static demo. All data below is FAKE.
+   ================================================================ */
+
+/* ---------- antd-like outlined icon paths (viewBox 64 64 896 896) ---------- */
+const IC = {
+  dashboard: 'M924.8 385.6a446.7 446.7 0 00-96-142.4 446.7 446.7 0 00-142.4-96C631.1 123.8 572.5 112 512 112s-119.1 11.8-174.4 35.2a446.7 446.7 0 00-142.4 96 446.7 446.7 0 00-96 142.4C75.8 440.9 64 499.5 64 560c0 132.7 58.3 257.7 159.9 343.1l1.7 1.4c5.8 4.8 13.1 7.5 20.6 7.5h531.7c7.5 0 14.8-2.7 20.6-7.5l1.7-1.4C901.7 817.7 960 692.7 960 560c0-60.5-11.9-119.1-35.2-174.4zM761.4 836H262.6A371.12 371.12 0 01140 560c0-99.4 38.7-192.8 109-263 70.3-70.3 163.7-109 263-109 99.4 0 192.8 38.7 263 109 70.3 70.3 109 163.7 109 263 0 105.6-44.5 205.5-122.6 276zM623.5 421.5a8.03 8.03 0 00-11.3 0L527.7 506c-18.7-5-39.4-.2-54.1 14.5a55.95 55.95 0 000 79.2 55.95 55.95 0 0079.2 0 55.87 55.87 0 0014.5-54.1l84.5-84.5c3.1-3.1 3.1-8.2 0-11.3l-28.3-28.3zM490 320h44c4.4 0 8-3.6 8-8v-80c0-4.4-3.6-8-8-8h-44c-4.4 0-8 3.6-8 8v80c0 4.4 3.6 8 8 8z',
+  user: 'M858.5 763.6a374 374 0 00-80.6-119.5 375.63 375.63 0 00-119.5-80.6c-.4-.2-.8-.3-1.2-.5C719.5 518 760 444.7 760 362c0-137-111-248-248-248S264 225 264 362c0 82.7 40.5 156 102.8 201.1-.4.2-.8.3-1.2.5-44.8 18.9-85 46-119.5 80.6a375.63 375.63 0 00-80.6 119.5A371.7 371.7 0 00136 901.8a8 8 0 008 8.2h60c4.4 0 7.9-3.5 8-7.8 2-77.2 33-149.5 87.8-204.3 56.7-56.7 132-87.9 212.2-87.9s155.5 31.2 212.2 87.9C779 752.7 810 825 812 902.2c.1 4.4 3.6 7.8 8 7.8h60a8 8 0 008-8.2c-1-47.8-10.9-94.3-29.5-138.2zM512 534c-45.9 0-89.1-17.9-121.6-50.4S340 407.9 340 362c0-45.9 17.9-89.1 50.4-121.6S466.1 190 512 190s89.1 17.9 121.6 50.4S684 316.1 684 362c0 45.9-17.9 89.1-50.4 121.6S557.9 534 512 534z',
+  filesearch: 'M688 312v-48c0-4.4-3.6-8-8-8H296c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h384c4.4 0 8-3.6 8-8zm-392 88c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h184c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8H296zm144 452H208V148h560v344c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V108c0-17.7-14.3-32-32-32H168c-17.7 0-32 14.3-32 32v784c0 17.7 14.3 32 32 32h272c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm445.7 51.5l-93.3-93.3C814.7 780.7 828 743.9 828 704c0-97.2-78.8-176-176-176s-176 78.8-176 176 78.8 176 176 176c35.8 0 69-10.7 96.8-29l94.7 94.7c1.6 1.6 3.6 2.3 5.6 2.3s4.1-.8 5.6-2.3l31-31a7.9 7.9 0 000-11.2zM652 816c-61.9 0-112-50.1-112-112s50.1-112 112-112 112 50.1 112 112-50.1 112-112 112z',
+  team: 'M824.2 699.9a301.55 301.55 0 00-86.4-60.4C783.1 602.8 812 546.8 812 484c0-110.8-92.4-201.7-203.2-200-109.1 1.7-197 90.6-197 200 0 62.8 29 118.8 74.2 155.5a300.95 300.95 0 00-86.4 60.4C345 754.6 314 826.8 312 903.8a8 8 0 008 8.2h56c4.3 0 7.9-3.4 8-7.7 1.9-58 25.4-112.3 66.7-153.5A226.62 226.62 0 01612 684c60.9 0 118.2 23.7 161.3 66.8C814.5 792 838 846.3 840 904.3c.1 4.3 3.7 7.7 8 7.7h56a8 8 0 008-8.2c-2-77-33-149.2-87.8-203.9zM612 612c-34.2 0-66.4-13.3-90.5-37.5a126.86 126.86 0 01-37.5-91.8c.3-32.8 13.4-64.5 36.3-88 24-24.6 56.1-38.3 90.4-38.7 33.9-.3 66.8 12.9 91 36.6 24.8 24.3 38.4 56.8 38.4 91.4 0 34.2-13.3 66.3-37.5 90.5A127.3 127.3 0 01612 612zM361.5 510.4c-.9-8.7-1.4-17.5-1.4-26.4 0-15.9 1.5-31.4 4.3-46.5.7-3.6-1.2-7.3-4.5-8.8-13.6-6.1-26.1-14.5-36.9-25.1a127.54 127.54 0 01-38.7-95.4c.9-32.1 13.8-62.6 36.3-85.6 24.7-25.3 57.9-39.1 93.2-38.7 31.9.3 62.7 12.6 86 34.4 7.9 7.4 14.7 15.6 20.4 24.4 2 3.1 5.9 4.4 9.3 3.2 17.6-6.1 36.2-10.4 55.3-12.4 5.6-.6 8.8-6.6 6.3-11.6-32.5-64.3-98.9-108.7-175.7-109.9-110.9-1.7-203.3 89.2-203.3 199.9 0 62.8 28.9 118.8 74.2 155.5-31.8 14.7-61.1 35-86.5 60.4-54.8 54.7-85.8 126.9-87.8 204a8 8 0 008 8.2h56.1c4.3 0 7.9-3.4 8-7.7 1.9-58 25.4-112.3 66.7-153.5 29.4-29.4 65.4-49.8 104.7-59.7 3.9-1 6.5-4.7 6-8.7z',
+  appstore: 'M464 144H160c-8.8 0-16 7.2-16 16v304c0 8.8 7.2 16 16 16h304c8.8 0 16-7.2 16-16V160c0-8.8-7.2-16-16-16zm-52 268H212V212h200v200zm452-268H560c-8.8 0-16 7.2-16 16v304c0 8.8 7.2 16 16 16h304c8.8 0 16-7.2 16-16V160c0-8.8-7.2-16-16-16zm-52 268H612V212h200v200zM464 544H160c-8.8 0-16 7.2-16 16v304c0 8.8 7.2 16 16 16h304c8.8 0 16-7.2 16-16V560c0-8.8-7.2-16-16-16zm-52 268H212V612h200v200zm452-268H560c-8.8 0-16 7.2-16 16v304c0 8.8 7.2 16 16 16h304c8.8 0 16-7.2 16-16V560c0-8.8-7.2-16-16-16zm-52 268H612V612h200v200z',
+  api: 'M917.7 148.8l-42.4-42.4c-1.6-1.6-3.6-2.3-5.7-2.3s-4.1.8-5.7 2.3l-76.1 76.1a199.27 199.27 0 00-112.1-34.3c-51.2 0-102.4 19.5-141.5 58.6L432.3 308.7a8.03 8.03 0 000 11.3L704 591.7c1.6 1.6 3.6 2.3 5.7 2.3 2 0 4.1-.8 5.7-2.3l101.9-101.9c68.9-69 77-175.7 24.3-253.5l76.1-76.1c3.1-3.2 3.1-8.3 0-11.4zM769.1 441.7l-59.4 59.4-186.8-186.8 59.4-59.4c24.9-24.9 58.1-38.7 93.4-38.7 35.3 0 68.4 13.7 93.4 38.7 24.9 24.9 38.7 58.1 38.7 93.4 0 35.3-13.8 68.4-38.7 93.4zm-190.2 105a8.03 8.03 0 00-11.3 0L501 613.3 410.7 523l66.7-66.7c3.1-3.1 3.1-8.2 0-11.3L441 408.6a8.03 8.03 0 00-11.3 0L363 475.3l-43-43a7.85 7.85 0 00-5.7-2.3c-2 0-4.1.8-5.7 2.3L206.8 534.2c-68.9 69-77 175.7-24.3 253.5l-76.1 76.1a8.03 8.03 0 000 11.3l42.4 42.4c1.6 1.6 3.6 2.3 5.7 2.3s4.1-.8 5.7-2.3l76.1-76.1c33.7 22.9 72.9 34.3 112.1 34.3 51.2 0 102.4-19.5 141.5-58.6l101.9-101.9c3.1-3.1 3.1-8.2 0-11.3l-43-43 66.7-66.7c3.1-3.1 3.1-8.2 0-11.3l-36.6-36.2zM441.7 769.1a131.32 131.32 0 01-93.4 38.7c-35.3 0-68.4-13.7-93.4-38.7a131.32 131.32 0 01-38.7-93.4c0-35.3 13.7-68.4 38.7-93.4l59.4-59.4 186.8 186.8-59.4 59.4z',
+  login: 'M521.7 82c-152.5-.4-286.7 78.5-363.4 197.7-3.4 5.3.4 12.3 6.7 12.3h70.3c4.8 0 9.3-2.1 12.3-5.8 7-8.5 14.5-16.7 22.4-24.5 32.6-32.5 70.5-58.1 112.7-75.9 43.6-18.4 90-27.8 137.9-27.8 47.9 0 94.3 9.3 137.9 27.8 42.2 17.8 80.1 43.4 112.7 75.9 32.6 32.5 58.1 70.4 76 112.5C865.7 417.8 875 464.1 875 512c0 47.9-9.4 94.2-27.8 137.8-17.8 42.1-43.4 80-76 112.5s-70.5 58.1-112.7 75.9A352.8 352.8 0 01520.6 866c-47.9 0-94.3-9.4-137.9-27.8A353.84 353.84 0 01270 762.3c-7.9-7.9-15.3-16.1-22.4-24.5-3-3.7-7.6-5.8-12.3-5.8H165c-6.3 0-10.2 7-6.7 12.3C234.9 863.2 368.5 942 520.6 942c236.2 0 428-190.1 430.4-425.6C953.4 277.1 761.3 82.6 521.7 82zM395.02 624v-76h-314c-4.4 0-8-3.6-8-8v-56c0-4.4 3.6-8 8-8h314v-76c0-6.7 7.8-10.5 13-6.3l141.9 112a8 8 0 010 12.6l-141.9 112c-5.2 4.1-13 .4-13-6.3z',
+  audit: 'M296 250c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h384c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8H296zm184 144H296c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h184c4.4 0 8-3.6 8-8v-48c0-4.4-3.6-8-8-8zm-48 458H208V148h560v320c0 4.4 3.6 8 8 8h56c4.4 0 8-3.6 8-8V108c0-17.7-14.3-32-32-32H168c-17.7 0-32 14.3-32 32v784c0 17.7 14.3 32 32 32h264c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm440-88H728v-36.6c46.3-13.8 80-56.6 80-107.4 0-61.9-50.1-112-112-112s-112 50.1-112 112c0 50.7 33.7 93.6 80 107.4V764H520c-8.8 0-16 7.2-16 16v152c0 8.8 7.2 16 16 16h352c8.8 0 16-7.2 16-16V780c0-8.8-7.2-16-16-16zM646 620c0-27.6 22.4-50 50-50s50 22.4 50 50-22.4 50-50 50-50-22.4-50-50zm180 266H568v-60h258v60z',
+  alert: 'M193 796c0 17.7 14.3 32 32 32h574c17.7 0 32-14.3 32-32V563c0-176.2-142.8-319-319-319S193 386.8 193 563v233zm72-233c0-136.4 110.6-247 247-247s247 110.6 247 247v193H265V563zm-48 327h670c4.4 0 8 3.6 8 8v60c0 4.4-3.6 8-8 8H217c-4.4 0-8-3.6-8-8v-60c0-4.4 3.6-8 8-8z',
+  safety: 'M512 64L128 192v384c0 212.1 171.9 384 384 384s384-171.9 384-384V192L512 64zm312 512c0 172.3-139.7 312-312 312S200 748.3 200 576V246l312-110 312 110v330zM378.4 475.1a35.91 35.91 0 00-50.9 0 35.91 35.91 0 000 50.9l129.4 129.4 2.1 2.1a33.98 33.98 0 0048.1 0L730.6 434a33.98 33.98 0 000-48.1l-2.8-2.8a33.98 33.98 0 00-48.1 0L483 579.7 378.4 475.1z',
+  laptop: 'M956.9 845.1L896.4 632V168c0-17.7-14.3-32-32-32h-704c-17.7 0-32 14.3-32 32v464L67.9 845.1C60.4 866 75.8 888 98 888h828.8c22.2 0 37.6-22 30.1-42.9zM200.4 208h624v395h-624V208zm228.3 608l8.1-37h150.3l8.1 37H428.7zm224 0l-19.1-86.7c-.8-3.7-4.1-6.3-7.8-6.3H398.2c-3.8 0-7 2.6-7.8 6.3L371.3 816H151l42.3-149h637.3l42.3 149H652.7z',
+  desktop: 'M928 140H96c-17.7 0-32 14.3-32 32v496c0 17.7 14.3 32 32 32h380v112H304c-8.8 0-16 7.2-16 16v48c0 4.4 3.6 8 8 8h432c4.4 0 8-3.6 8-8v-48c0-8.8-7.2-16-16-16H548V700h380c17.7 0 32-14.3 32-32V172c0-17.7-14.3-32-32-32zm-40 488H136V212h752v416z',
+  sync: 'M168 504.2c1-43.7 10-86.1 26.9-126 17.3-41 42.1-77.7 73.7-109.4S337 212.3 378 195c42.4-17.9 87.4-27 133.9-27s91.5 9.1 133.8 27A341.5 341.5 0 01755 268.8c9.9 9.9 19.2 20.4 27.8 31.4l-60.2 47a8 8 0 003 14.1l175.7 43c5 1.2 9.9-2.6 9.9-7.7l.8-180.9c0-6.7-7.7-10.5-12.9-6.3l-56.4 44.1C765.8 155.1 646.2 92 511.8 92 282.7 92 96.3 275.6 92 503.8a8 8 0 008 8.2h60c4.4 0 7.9-3.5 8-7.8zm756 7.8h-60c-4.4 0-7.9 3.5-8 7.8-1 43.7-10 86.1-26.9 126-17.3 41-42.1 77.8-73.7 109.4A342.45 342.45 0 01512.1 856a342.24 342.24 0 01-243.2-100.8c-9.9-9.9-19.2-20.4-27.8-31.4l60.2-47a8 8 0 00-3-14.1l-175.7-43c-5-1.2-9.9 2.6-9.9 7.7l-.7 181c0 6.7 7.7 10.5 12.9 6.3l56.4-44.1C258.2 868.9 377.8 932 512.2 932c229.2 0 415.5-183.7 419.8-411.8a8 8 0 00-8-8.2z',
+  setting: 'M924.8 625.7l-65.5-56c3.1-19 4.7-38.4 4.7-57.8s-1.6-38.8-4.7-57.8l65.5-56a32.03 32.03 0 009.3-35.2l-.9-2.6a443.74 443.74 0 00-79.7-137.9l-1.8-2.1a32.12 32.12 0 00-35.1-9.5l-81.3 28.9c-30-24.6-63.5-44-99.7-57.6l-15.7-85a32.05 32.05 0 00-25.8-25.7l-2.7-.5c-52.1-9.4-106.9-9.4-159 0l-2.7.5a32.05 32.05 0 00-25.8 25.7l-15.8 85.4a351.86 351.86 0 00-99 57.4l-81.9-29.1a32 32 0 00-35.1 9.5l-1.8 2.1a446.02 446.02 0 00-79.7 137.9l-.9 2.6c-4.5 12.5-.8 26.5 9.3 35.2l66.3 56.6c-3.1 18.8-4.6 38-4.6 57.1 0 19.2 1.5 38.4 4.6 57.1L99 625.5a32.03 32.03 0 00-9.3 35.2l.9 2.6c18.1 50.4 44.9 96.9 79.7 137.9l1.8 2.1a32.12 32.12 0 0035.1 9.5l81.9-29.1c29.8 24.5 63.1 43.9 99 57.4l15.8 85.4a32.05 32.05 0 0025.8 25.7l2.7.5a449.4 449.4 0 00159 0l2.7-.5a32.05 32.05 0 0025.8-25.7l15.7-85a350 350 0 0099.7-57.6l81.3 28.9a32 32 0 0035.1-9.5l1.8-2.1c34.8-41.1 61.6-87.5 79.7-137.9l.9-2.6c4.5-12.3.8-26.3-9.3-35zM788.3 465.9c2.5 15.1 3.8 30.6 3.8 46.1s-1.3 31-3.8 46.1l-6.6 40.1 74.7 63.9a370.03 370.03 0 01-42.6 73.6L721 702.8l-31.4 25.8c-23.9 19.6-50.5 35-79.3 45.8l-38.1 14.3-17.9 97a377.5 377.5 0 01-85 0l-17.9-97.2-37.8-14.5c-28.5-10.8-55-26.2-78.7-45.7l-31.4-25.9-93.4 33.2c-17-22.9-31.2-47.6-42.6-73.6l75.5-64.5-6.5-40c-2.4-14.9-3.7-30.3-3.7-45.5 0-15.3 1.2-30.6 3.7-45.5l6.5-40-75.5-64.5c11.3-26.1 25.6-50.7 42.6-73.6l93.4 33.2 31.4-25.9c23.7-19.5 50.2-34.9 78.7-45.7l37.9-14.3 17.9-97.2c28.1-3.2 56.8-3.2 85 0l17.9 97 38.1 14.3c28.7 10.8 55.4 26.2 79.3 45.8l31.4 25.8 92.8-32.9c17 22.9 31.2 47.6 42.6 73.6L781.8 386l6.5 39.9zM512 326c-97.2 0-176 78.8-176 176s78.8 176 176 176 176-78.8 176-176-78.8-176-176-176zm79.2 255.2A111.6 111.6 0 01512 614c-29.9 0-58-11.7-79.2-32.8A111.6 111.6 0 01400 502c0-29.9 11.7-58 32.8-79.2C454 401.6 482.1 390 512 390c29.9 0 58 11.6 79.2 32.8A111.6 111.6 0 01624 502c0 29.9-11.7 58-32.8 79.2z',
+  search: 'M909.6 854.5L649.9 594.8C690.2 542.7 712 479 712 412c0-80.2-31.3-155.4-87.9-212.1-56.6-56.7-132-87.9-212.1-87.9s-155.5 31.3-212.1 87.9C143.2 256.5 112 331.8 112 412c0 80.1 31.3 155.5 87.9 212.1C256.5 680.8 331.8 712 412 712c67 0 130.6-21.8 182.7-62l259.7 259.6a8.2 8.2 0 0011.6 0l43.6-43.5a8.2 8.2 0 000-11.6zM570.4 570.4C528 612.7 471.8 636 412 636s-116-23.3-158.4-65.6C211.3 528 188 471.8 188 412s23.3-116.1 65.6-158.4C296 211.3 352.2 188 412 188s116.1 23.2 158.4 65.6S636 352.2 636 412s-23.3 116.1-65.6 158.4z',
+  warning: 'M955.7 856l-416-720c-6.2-10.7-16.9-16-27.7-16s-21.6 5.3-27.7 16l-416 720C56 877.4 71.4 904 96 904h832c24.6 0 40-26.6 27.7-48zM480 416c0-4.4 3.6-8 8-8h48c4.4 0 8 3.6 8 8v184c0 4.4-3.6 8-8 8h-48c-4.4 0-8-3.6-8-8V416zm32 352a48.01 48.01 0 010-96 48.01 48.01 0 010 96z',
+  exclam: 'M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372zm-32-232c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V456c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v196zm32-344a48.01 48.01 0 000 96 48.01 48.01 0 000-96z',
+  info: 'M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372zm32-588c0-4.4-3.6-8-8-8h-48c-4.4 0-8 3.6-8 8v48c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8v-48zm-8 132h-48c-4.4 0-8 3.6-8 8v272c0 4.4 3.6 8 8 8h48c4.4 0 8-3.6 8-8V436c0-4.4-3.6-8-8-8z',
+  check: 'M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zm0 820c-205.4 0-372-166.6-372-372s166.6-372 372-372 372 166.6 372 372-166.6 372-372 372zm193.5-547.7l-210.6 292a31.8 31.8 0 01-51.7 0L318.5 484.9c-3.8-5.3 0-12.7 6.5-12.7h46.9c10.2 0 19.9 4.9 25.9 13.3l71.2 98.8 157.2-218c6-8.3 15.6-13.3 25.9-13.3H699c6.5 0 10.3 7.4 6.5 12.7z',
+  chart: 'M888 792H200V168c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v688c0 4.4 3.6 8 8 8h752c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM288 604h56c4.4 0 8-3.6 8-8V460c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v136c0 4.4 3.6 8 8 8zm152 0h56c4.4 0 8-3.6 8-8V236c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v360c0 4.4 3.6 8 8 8zm152 0h56c4.4 0 8-3.6 8-8V344c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v252c0 4.4 3.6 8 8 8zm152 0h56c4.4 0 8-3.6 8-8V172c0-4.4-3.6-8-8-8h-56c-4.4 0-8 3.6-8 8v424c0 4.4 3.6 8 8 8z'
+};
+function icon(name, style) { return `<span class="i" ${style?`style="${style}"`:''}><svg viewBox="64 64 896 896"><path d="${IC[name]}"/></svg></span>`; }
+
+/* ---------- FAKE DATA ---------- */
+const fakeUsers = [
+  { name:'Chen, Alice',    upn:'achen@demo-corp.com',    email:'achen@demo-corp.com',    dept:'Finance',        risk:'Critical', score:28, status:true,  mfa:3, groups:12, perms:18, roles:1, dev:1, pwd:'2025-11-02' },
+  { name:'Wang, Brian',    upn:'bwang@demo-corp.com',    email:'bwang@demo-corp.com',    dept:'IT',             risk:'High',     score:47, status:true,  mfa:2, groups:23, perms:41, roles:3, dev:2, pwd:'2026-01-15' },
+  { name:'Liu, Cathy',     upn:'cliu@demo-corp.com',     email:'cliu@demo-corp.com',     dept:'HR',             risk:'High',     score:52, status:true,  mfa:1, groups:8,  perms:12, roles:0, dev:1, pwd:'2024-09-20' },
+  { name:'Zhang, David',   upn:'dzhang@demo-corp.com',   email:'dzhang@demo-corp.com',   dept:'Legal',          risk:'Medium',   score:66, status:true,  mfa:2, groups:6,  perms:9,  roles:0, dev:1, pwd:'2026-03-11' },
+  { name:'Sun, Emily',     upn:'esun@demo-corp.com',     email:'esun@demo-corp.com',     dept:'Marketing',      risk:'Medium',   score:71, status:true,  mfa:2, groups:9,  perms:15, roles:0, dev:1, pwd:'2026-02-27' },
+  { name:'Zhao, Frank',    upn:'fzhao@demo-corp.com',    email:'fzhao@demo-corp.com',    dept:'Operations',     risk:'Low',      score:88, status:true,  mfa:3, groups:11, perms:20, roles:1, dev:2, pwd:'2026-05-04' },
+  { name:'Wu, Grace',      upn:'gwu@demo-corp.com',      email:'gwu@demo-corp.com',      dept:'Finance',        risk:'Low',      score:92, status:true,  mfa:3, groups:7,  perms:11, roles:0, dev:1, pwd:'2026-06-18' },
+  { name:'Huang, Henry',   upn:'hhuang@demo-corp.com',   email:'hhuang@demo-corp.com',   dept:'IT',             risk:'Low',      score:95, status:true,  mfa:4, groups:19, perms:33, roles:2, dev:2, pwd:'2026-04-09' },
+  { name:'Guo, Iris',      upn:'iguo@demo-corp.com',     email:'iguo@demo-corp.com',     dept:'Procurement',    risk:'Medium',   score:69, status:false, mfa:0, groups:4,  perms:5,  roles:0, dev:0, pwd:'2023-12-01' },
+  { name:'Lin, Jason',     upn:'jlin@demo-corp.com',     email:'jlin@demo-corp.com',     dept:'Data & Analytics', risk:'High',   score:44, status:true,  mfa:1, groups:14, perms:26, roles:1, dev:1, pwd:'2025-08-30' },
+];
+const fakeIncidents = [
+  { id:'INC-20260709-008', user:'Chen, Alice',  sum:'High risk user detected: Chen, Alice',  sev:'Critical', st:'New',         email:true,  res:'-',              created:'2026-07-09 09:49', upd:'2026-07-09 09:52' },
+  { id:'INC-20260709-007', user:'Lin, Jason',   sum:'Impossible travel: Shanghai → Warsaw within 40 min', sev:'High', st:'In Progress', email:true, res:'-',   created:'2026-07-09 09:49', upd:'2026-07-09 10:15' },
+  { id:'INC-20260709-006', user:'Liu, Cathy',   sum:'Multiple failed sign-ins followed by success', sev:'High', st:'L2 Check', email:true, res:'-',            created:'2026-07-09 09:49', upd:'2026-07-09 11:02' },
+  { id:'INC-20260709-005', user:'Wang, Brian',  sum:'High risk user detected: Wang, Brian',  sev:'Critical', st:'Resolved',    email:true,  res:'False Positive', created:'2026-07-09 09:49', upd:'2026-07-09 10:04' },
+  { id:'INC-20260709-004', user:'Guo, Iris',    sum:'Dormant account sign-in attempt',        sev:'Critical', st:'Resolved',   email:true,  res:'True Positive',  created:'2026-07-09 09:49', upd:'2026-07-09 12:40' },
+  { id:'INC-20260709-003', user:'Sun, Emily',   sum:'Sign-in from anonymized IP address',     sev:'Critical', st:'Resolved',   email:false, res:'False Positive', created:'2026-07-09 09:49', upd:'2026-07-09 09:59' },
+  { id:'INC-20260709-002', user:'Zhang, David', sum:'Unfamiliar sign-in properties detected', sev:'High',     st:'Resolved',   email:true,  res:'Benign',         created:'2026-07-09 09:43', upd:'2026-07-09 09:53' },
+  { id:'INC-20260708-001', user:'Zhao, Frank',  sum:'MFA fatigue pattern: 8 push denials',    sev:'High',     st:'Resolved',   email:true,  res:'True Positive',  created:'2026-07-08 22:10', upd:'2026-07-09 08:31' },
+];
+const fakeGroups = [
+  { name:'SG-Finance-All',        desc:'All finance department members',        type:'Security',  members:186, apps:7 },
+  { name:'SG-VPN-Users',          desc:'Remote access VPN entitlement',         type:'Security',  members:1240, apps:2 },
+  { name:'DL-Company-Announce',   desc:'Company-wide announcements',            type:'Distribution', members:8213, apps:0 },
+  { name:'SG-GitHub-Developers',  desc:'GitHub Enterprise seat assignment',     type:'Security',  members:342, apps:1 },
+  { name:'M365-Project-Phoenix',  desc:'Project Phoenix workspace',             type:'Microsoft 365', members:56, apps:4 },
+  { name:'SG-Admin-Workstations', desc:'Privileged workstation policy scope',   type:'Security',  members:24, apps:3 },
+  { name:'SG-HR-Confidential',    desc:'HR restricted content access',          type:'Security',  members:38, apps:5 },
+  { name:'M365-Sales-APAC',       desc:'APAC sales collaboration',              type:'Microsoft 365', members:410, apps:6 },
+];
+const fakeApps = [
+  { name:'Workday HR',          pub:'Workday Inc.',      type:'SAML App',  svc:'Application',        tp:true,  users:5210, saml:'2026-09-12', secret:'-',          direct:180, group:5030, consent:0,  sync:'2026-07-09 08:00' },
+  { name:'Salesforce CRM',      pub:'Salesforce',        type:'SAML App',  svc:'Application',        tp:true,  users:1650, saml:'2026-07-28', secret:'-',          direct:150, group:1500, consent:0,  sync:'2026-07-09 08:00' },
+  { name:'GitHub Enterprise',   pub:'GitHub',            type:'OIDC App',  svc:'Application',        tp:true,  users:342,  saml:'-',          secret:'2026-08-02', direct:12,  group:330,  consent:0,  sync:'2026-07-09 08:00' },
+  { name:'Expense Portal',      pub:'Demo Corp IT',      type:'Enterprise App', svc:'Application',   tp:false, users:7800, saml:'2027-01-15', secret:'-',          direct:0,   group:7800, consent:0,  sync:'2026-07-09 08:00' },
+  { name:'Grammarly',           pub:'Grammarly Inc.',    type:'OAuth2',    svc:'Application',        tp:true,  users:96,   saml:'-',          secret:'-',          direct:0,   group:0,    consent:96, sync:'2026-07-09 08:00' },
+  { name:'Zoom',                pub:'Zoom Video',        type:'OIDC App',  svc:'Application',        tp:true,  users:6100, saml:'-',          secret:'2026-07-19', direct:100, group:6000, consent:0,  sync:'2026-07-09 08:00' },
+  { name:'Tableau Cloud',       pub:'Salesforce',        type:'SAML App',  svc:'Application',        tp:true,  users:220,  saml:'2026-07-14', secret:'-',          direct:20,  group:200,  consent:0,  sync:'2026-07-09 08:00' },
+  { name:'Legacy Timesheet',    pub:'Demo Corp IT',      type:'Enterprise App', svc:'Legacy',        tp:false, users:15,   saml:'2026-06-30', secret:'2026-06-25', direct:15,  group:0,    consent:0,  sync:'2026-07-09 08:00' },
+];
+const fakeSignins = [
+  { upn:'achen@demo-corp.com',  user:'Chen, Alice',  app:'Microsoft Teams',   ts:'2026-07-09 14:22:31', ip:'203.0.113.24',  loc:'Shanghai, CN',  named:'CN Office - PDC',   trusted:true,  status:'Success', mfa:'Satisfied', err:'-' },
+  { upn:'jlin@demo-corp.com',   user:'Lin, Jason',   app:'Azure Portal',      ts:'2026-07-09 14:18:02', ip:'198.51.100.77', loc:'Warsaw, PL',    named:'-',                 trusted:false, status:'Failure', mfa:'Required',  err:'50126' },
+  { upn:'bwang@demo-corp.com',  user:'Wang, Brian',  app:'Exchange Online',   ts:'2026-07-09 14:15:47', ip:'203.0.113.86',  loc:'Beijing, CN',   named:'CN Office - BJO',   trusted:true,  status:'Success', mfa:'Satisfied', err:'-' },
+  { upn:'cliu@demo-corp.com',   user:'Liu, Cathy',   app:'Workday HR',        ts:'2026-07-09 14:02:11', ip:'192.0.2.201',   loc:'Singapore, SG', named:'-',                 trusted:false, status:'Failure', mfa:'Not Applied', err:'50053' },
+  { upn:'cliu@demo-corp.com',   user:'Liu, Cathy',   app:'Workday HR',        ts:'2026-07-09 14:03:40', ip:'192.0.2.201',   loc:'Singapore, SG', named:'-',                 trusted:false, status:'Success', mfa:'Satisfied', err:'-' },
+  { upn:'esun@demo-corp.com',   user:'Sun, Emily',   app:'Salesforce CRM',    ts:'2026-07-09 13:58:29', ip:'203.0.113.150', loc:'Shanghai, CN',  named:'CN Office - PDC',   trusted:true,  status:'Success', mfa:'Satisfied', err:'-' },
+  { upn:'iguo@demo-corp.com',   user:'Guo, Iris',    app:'Exchange Online',   ts:'2026-07-09 13:41:05', ip:'198.51.100.12', loc:'Unknown (Tor)', named:'-',                 trusted:false, status:'Failure', mfa:'Required',  err:'53003' },
+  { upn:'hhuang@demo-corp.com', user:'Huang, Henry', app:'GitHub Enterprise', ts:'2026-07-09 13:37:56', ip:'203.0.113.61',  loc:'Shenzhen, CN',  named:'CN Office - SZO',   trusted:true,  status:'Success', mfa:'Satisfied', err:'-' },
+];
+const fakeAudit = [
+  { when:'2026-07-09 14:20:18', who:'admin@demo-corp.com',  what:'Update user',                target:'Guo, Iris',            result:'success', type:'Directory', cat:'UserManagement', ip:'203.0.113.5' },
+  { when:'2026-07-09 14:11:03', who:'Microsoft Approval Management', what:'Consent to application', target:'Grammarly',      result:'success', type:'Directory', cat:'ApplicationManagement', ip:'-' },
+  { when:'2026-07-09 13:58:44', who:'admin@demo-corp.com',  what:'Add member to group',        target:'SG-GitHub-Developers', result:'success', type:'Directory', cat:'GroupManagement', ip:'203.0.113.5' },
+  { when:'2026-07-09 13:30:12', who:'hhuang@demo-corp.com', what:'Reset user password',        target:'Zhang, David',         result:'success', type:'Directory', cat:'UserManagement', ip:'203.0.113.61' },
+  { when:'2026-07-09 12:55:40', who:'Azure AD Identity Protection', what:'Disable account',    target:'Guo, Iris',            result:'success', type:'Directory', cat:'UserManagement', ip:'-' },
+  { when:'2026-07-09 12:14:09', who:'bwang@demo-corp.com',  what:'Update conditional access policy', target:'CA-Block-LegacyAuth', result:'failure', type:'Policy', cat:'Policy', ip:'203.0.113.86' },
+];
+const fakeAlerts = [
+  { sev:'High',   name:'Anonymous IP address involving one user',       cat:'InitialAccess',   user:'Guo, Iris',    ts:'2026-07-09 13:41', src:'Azure AD Identity Protection' },
+  { sev:'High',   name:'Impossible travel activity',                    cat:'InitialAccess',   user:'Lin, Jason',   ts:'2026-07-09 14:18', src:'Microsoft Defender for Cloud Apps' },
+  { sev:'Medium', name:'Suspicious inbox manipulation rule',            cat:'Exfiltration',    user:'Liu, Cathy',   ts:'2026-07-09 11:05', src:'Microsoft Defender for Office 365' },
+  { sev:'Medium', name:'Mass download by a single user',                cat:'Exfiltration',    user:'Sun, Emily',   ts:'2026-07-09 10:22', src:'Microsoft Defender for Cloud Apps' },
+  { sev:'Low',    name:'Unfamiliar sign-in properties',                 cat:'InitialAccess',   user:'Zhang, David', ts:'2026-07-09 09:40', src:'Azure AD Identity Protection' },
+  { sev:'Informational', name:'User consented to a new OAuth app',      cat:'Persistence',     user:'Wu, Grace',    ts:'2026-07-08 17:12', src:'Microsoft Defender for Cloud Apps' },
+];
+const fakeRoles = [
+  { name:'Global Administrator',            desc:'Full access to all administrative features', type:'Built-in', on:true, cnt:3  },
+  { name:'User Administrator',              desc:'Manage users and groups',                    type:'Built-in', on:true, cnt:6  },
+  { name:'Helpdesk Administrator',          desc:'Reset passwords for non-administrators',     type:'Built-in', on:true, cnt:12 },
+  { name:'Security Reader',                 desc:'Read security information and reports',      type:'Built-in', on:true, cnt:9  },
+  { name:'Exchange Administrator',          desc:'Manage Exchange Online',                     type:'Built-in', on:true, cnt:4  },
+  { name:'Conditional Access Administrator',desc:'Manage conditional access policies',         type:'Built-in', on:true, cnt:2  },
+];
+const fakeDevices = [
+  { name:'PC-FIN-0231', upn:'achen@demo-corp.com',  user:'Chen, Alice',  ip:'10.20.31.44', mac:'00:1B:44:11:3A:B7', mid:'ioa-8f2e13', piracy:'None',  grp:'Finance/Shanghai', ioa:'achen',  sw:86 },
+  { name:'MBP-IT-0067', upn:'hhuang@demo-corp.com', user:'Huang, Henry', ip:'10.20.18.12', mac:'F0:18:98:2C:55:01', mid:'-',          piracy:'-',     grp:'IT/Shenzhen',      ioa:'-',      sw:64 },
+  { name:'PC-HR-0110',  upn:'cliu@demo-corp.com',   user:'Liu, Cathy',   ip:'10.20.42.98', mac:'00:1B:44:9A:21:C3', mid:'ioa-4d9a01', piracy:'Found', grp:'HR/Shanghai',      ioa:'cliu',   sw:112 },
+  { name:'PC-IT-0342',  upn:'bwang@demo-corp.com',  user:'Wang, Brian',  ip:'10.20.18.77', mac:'00:1B:44:F2:08:5D', mid:'ioa-77c2b8', piracy:'None',  grp:'IT/Beijing',       ioa:'bwang',  sw:143 },
+  { name:'MBP-MKT-0021',upn:'esun@demo-corp.com',   user:'Sun, Emily',   ip:'10.20.55.31', mac:'F0:18:98:77:AB:E2', mid:'-',          piracy:'-',     grp:'Marketing/Shanghai', ioa:'-',    sw:51 },
+  { name:'PC-OPS-0405', upn:'fzhao@demo-corp.com',  user:'Zhao, Frank',  ip:'10.20.63.09', mac:'00:1B:44:31:99:AA', mid:'ioa-1b0f66', piracy:'None',  grp:'Operations/Suzhou', ioa:'fzhao', sw:97 },
+];
+const fakeSoftware = [
+  { name:'Google Chrome',        cnt:1245, ver:8 },
+  { name:'Microsoft Office 365', cnt:1198, ver:3 },
+  { name:'7-Zip',                cnt:876,  ver:5 },
+  { name:'Tencent iOA Agent',    cnt:812,  ver:2 },
+  { name:'Visual Studio Code',   cnt:344,  ver:11 },
+  { name:'WeCom (企业微信)',      cnt:1050, ver:4 },
+  { name:'Adobe Acrobat Reader', cnt:690,  ver:6 },
+  { name:'Postman',              cnt:120,  ver:7 },
+];
+const riskFactors = [
+  { name:'MFA not registered', cnt:2340 }, { name:'Password older than 180 days', cnt:1876 },
+  { name:'Sign-in from untrusted location', cnt:942 }, { name:'Dormant account (90+ days)', cnt:715 },
+  { name:'Legacy authentication used', cnt:520 }, { name:'Excessive group memberships', cnt:388 },
+  { name:'Privileged role without PIM', cnt:145 }, { name:'Risky OAuth consent', cnt:96 },
+  { name:'Disabled but licensed', cnt:74 }, { name:'Shared mailbox sign-in enabled', cnt:31 },
+];
+const scoreDist = [
+  { bucket:'0-9', n:12 }, { bucket:'10-19', n:35 }, { bucket:'20-29', n:88 }, { bucket:'30-39', n:214 },
+  { bucket:'40-49', n:520 }, { bucket:'50-59', n:1130 }, { bucket:'60-69', n:2890 }, { bucket:'70-79', n:5480 },
+  { bucket:'80-89', n:7620 }, { bucket:'90-100', n:4327 },
+];
+const expiringSaml = [
+  { app:'Legacy Timesheet', days:-9,  date:'2026-06-30' },
+  { app:'Tableau Cloud',    days:5,   date:'2026-07-14' },
+  { app:'Salesforce CRM',   days:19,  date:'2026-07-28' },
+  { app:'Workday HR',       days:65,  date:'2026-09-12' },
+];
+const expiringSecrets = [
+  { app:'Legacy Timesheet',  days:-14, date:'2026-06-25' },
+  { app:'Zoom',              days:10,  date:'2026-07-19' },
+  { app:'GitHub Enterprise', days:24,  date:'2026-08-02' },
+];
+
+/* ---------- helpers ---------- */
+const riskTag = r => ({Critical:'tag-red',High:'tag-volcano',Medium:'tag-gold',Low:'tag-green'})[r] || '';
+const sevTag  = s => ({Critical:'tag-red',High:'tag-volcano',Medium:'tag-gold',Low:'tag-green',Informational:'tag-blue'})[s] || '';
+const stTag   = s => ({'New':'tag-blue','In Progress':'tag-orange','L2 Check':'tag-purple','Resolved':'tag-green'})[s] || '';
+function tag(cls, txt) { return `<span class="ant-tag ${cls}">${txt}</span>`; }
+function pagination(total) {
+  return `<div class="ant-pagination"><span class="pag-total">Total ${total.toLocaleString()} items</span>
+    <span class="pag-item disabled">&lsaquo;</span><span class="pag-item active">1</span>
+    <span class="pag-item">2</span><span class="pag-item">3</span><span class="pag-item">4</span>
+    <span class="pag-item">5</span><span class="pag-item">&hellip;</span><span class="pag-item">&rsaquo;</span>
+    <span class="ant-select" style="height:28px">20 / page <span class="arrow">&#9660;</span></span></div>`;
+}
+function searchBox(ph) { return `<input class="ant-input" placeholder="${ph}">`; }
+function selectBox(txt) { return `<span class="ant-select">${txt} <span class="arrow">&#9660;</span></span>`; }
+function statCard(cls, title, value, color, ic) {
+  return `<div class="ant-card small stat-card ${cls} hoverable"><div class="ant-card-body">
+    <div class="stat-title">${title}</div>
+    <div class="stat-value" style="color:${color}">${ic?icon(ic,'font-size:22px'):''} ${value}</div>
+  </div></div>`;
+}
+
+/* ---------- Dashboard ---------- */
+function barChart() {
+  const W=640,H=260,pad={l:52,r:16,t:14,b:34};
+  const max=8000, cw=(W-pad.l-pad.r)/scoreDist.length;
+  let bars='', labels='', grid='';
+  [0,2000,4000,6000,8000].forEach(v=>{
+    const y=pad.t+(H-pad.t-pad.b)*(1-v/max);
+    grid+=`<line x1="${pad.l}" y1="${y}" x2="${W-pad.r}" y2="${y}" stroke="#f0f0f0"/><text x="${pad.l-8}" y="${y+4}" text-anchor="end" font-size="11" fill="rgba(0,0,0,.45)">${v>=1000?(v/1000)+'k':v}</text>`;
+  });
+  scoreDist.forEach((d,i)=>{
+    const h=(H-pad.t-pad.b)*d.n/max, x=pad.l+i*cw+cw*0.18, y=H-pad.b-h;
+    const color = i<3 ? '#cf1322' : i<5 ? '#fa541c' : i<7 ? '#faad14' : '#52c41a';
+    bars+=`<rect class="bar" x="${x}" y="${y}" width="${cw*0.64}" height="${h}" rx="3" fill="${color}"><title>${d.bucket}: ${d.n.toLocaleString()} users</title></rect>`;
+    labels+=`<text x="${pad.l+i*cw+cw/2}" y="${H-pad.b+18}" text-anchor="middle" font-size="11" fill="rgba(0,0,0,.65)">${d.bucket}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:300px">${grid}${bars}${labels}
+    <line x1="${pad.l}" y1="${H-pad.b}" x2="${W-pad.r}" y2="${H-pad.b}" stroke="#d9d9d9"/></svg>
+    <div class="chart-tooltip-hint">Score buckets (0 = highest risk, 100 = healthy) — hover bars for counts</div>`;
+}
+function credCards(list, kind) {
+  return list.map(c=>{
+    const cls = c.days<0?'expired':'expiring';
+    const dtxt = c.days<0?`Expired ${-c.days}d ago`:`${c.days} days left`;
+    return `<div style="width:20%;padding:6px;min-width:150px"><div class="cred-card ${cls}">
+      <div class="cc-days">${dtxt}</div>
+      <div class="cc-name">${c.app}</div>
+      <div class="cc-date">${kind}: ${c.date}</div>
+    </div></div>`;
+  }).join('');
+}
+function pageDashboard() {
+  const riskUsers = [
+    {n:'Chen, Alice',u:'achen@demo-corp.com',l:'Critical',i:0},{n:'Guo, Iris',u:'iguo@demo-corp.com',l:'Critical',i:8},
+    {n:'Wang, Brian',u:'bwang@demo-corp.com',l:'High',i:1},{n:'Liu, Cathy',u:'cliu@demo-corp.com',l:'High',i:2},
+    {n:'Lin, Jason',u:'jlin@demo-corp.com',l:'High',i:9},
+  ];
+  return `<div class="dashboard-shell">
+    <div class="dashboard-header"><div>
+      <h1 class="dashboard-title">Dashboard</h1>
+      <div class="dashboard-subtitle">Identity, risk, and asset visibility in one place.</div>
+    </div></div>
+    <div class="row">
+      <div class="col-4">${statCard('stat-card--users','Total Users','22,316','#3f8600','user')}</div>
+      <div class="col-4">${statCard('stat-card--accounts','Accounts in Use','18,204','#1890ff','user')}</div>
+      <div class="col-4">${statCard('stat-card--groups','Total Groups','6,778','#cf1322','team')}</div>
+      <div class="col-4">${statCard('stat-card--apps','Applications','2,609','rgba(0,0,0,0.88)','appstore')}</div>
+      <div class="col-4">${statCard('stat-card--devices','Total Devices','1,286','#722ed1','desktop')}</div>
+      <div class="col-4">${statCard('stat-card--software','Installed Softwares','4,152','#13c2c2','desktop')}</div>
+    </div>
+    <div class="dashboard-section-title">${icon('safety')} Identity Risk Overview</div>
+    <div class="row">
+      <div class="col-4">${statCard('stat-card--critical','Critical Risk','2','#cf1322','exclam')}</div>
+      <div class="col-4">${statCard('stat-card--high','High Risk','3','#fa541c','warning')}</div>
+      <div class="col-4">${statCard('stat-card--medium','Medium Risk','241','#faad14','info')}</div>
+      <div class="col-4">${statCard('stat-card--low','Low Risk','21,880','#52c41a','check')}</div>
+    </div>
+    <div class="row" style="margin-top:18px"><div class="col-24">
+      <div class="ant-card"><div class="ant-card-head">
+        <span>${icon('exclam','color:#cf1322;margin-right:8px')} Critical &amp; High Risk Users (5)</span>
+        <span style="font-size:12px;color:#666;font-weight:400">Showing 5 users (Critical: 2, High: 3)</span>
+      </div><div class="ant-card-body"><div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
+        ${riskUsers.map(u=>`<div style="flex:1 1 0;max-width:calc(20% - 13px);min-width:150px">
+          <div class="risk-user-card ${u.l.toLowerCase()}" onclick="showUser(${u.i})">
+            <div class="ruc-level">${icon('exclam','font-size:18px')} ${u.l}</div>
+            <div class="ruc-level-label">Risk Level</div>
+            <div class="ruc-name">${icon('user','font-size:11px;color:#666')} ${u.n}</div>
+            <div class="ruc-upn">${u.u}</div>
+          </div></div>`).join('')}
+      </div></div></div>
+    </div></div>
+    <div class="row" style="margin-top:6px">
+      <div class="col-14"><div class="ant-card">
+        <div class="ant-card-head"><span>${icon('chart','color:#1890ff;margin-right:8px')} Risk Score Distribution</span></div>
+        <div class="ant-card-body">${barChart()}</div>
+      </div></div>
+      <div class="col-10"><div class="ant-card">
+        <div class="ant-card-head"><span>${icon('warning','color:#fa541c;margin-right:8px')} Top 10 Risk Factors by User Count</span></div>
+        <div class="ant-card-body" style="padding:12px 24px"><div class="row">
+          <div class="col-12">${riskFactors.slice(0,5).map((f,i)=>`<div class="risk-factor-item" style="background:${i%2===0?'#fafafa':'#fff'}"><span class="rf-name">${f.name}</span><span class="rf-count">${f.cnt.toLocaleString()}</span></div>`).join('')}</div>
+          <div class="col-12">${riskFactors.slice(5).map((f,i)=>`<div class="risk-factor-item" style="background:${i%2===0?'#fafafa':'#fff'}"><span class="rf-name">${f.name}</span><span class="rf-count">${f.cnt.toLocaleString()}</span></div>`).join('')}</div>
+        </div></div>
+      </div></div>
+    </div>
+    <div class="row" style="margin-top:6px"><div class="col-24">
+      <div class="ant-card"><div class="ant-card-head">
+        <span>${icon('warning','color:#d48806;margin-right:8px')} Expiring Credentials</span>
+        <span style="font-size:12px;color:#666;font-weight:400">SAML certificates &amp; client secrets within 90 days</span>
+      </div><div class="ant-card-body">
+        <div style="font-weight:600;margin-bottom:8px">SAML Certificates</div>
+        <div style="display:flex;flex-wrap:wrap;margin:-6px">${credCards(expiringSaml,'Expires')}</div>
+        <div style="font-weight:600;margin:16px 0 8px">Client Secrets</div>
+        <div style="display:flex;flex-wrap:wrap;margin:-6px">${credCards(expiringSecrets,'Expires')}</div>
+      </div></div>
+    </div></div>
+  </div>`;
+}
+
+/* ---------- Users ---------- */
+function pageUsers() {
+  const rows = fakeUsers.map((u,ui)=>`<tr>
+    <td><a onclick="showUser(${ui})">${u.name}</a></td><td>${u.upn}</td><td>${u.email}</td><td>${u.dept}</td>
+    <td>${tag(riskTag(u.risk), u.risk+' · '+u.score)}</td>
+    <td>${u.status?tag('tag-green','Active'):tag('tag-red','Disabled')}</td>
+    <td>${tag('tag-blue','Source')}</td>
+    <td>${u.pwd}</td>
+    <td>${u.mfa>0?tag('tag-green',u.mfa+' methods'):tag('tag-red','None')}</td>
+    <td><a>${u.groups}</a></td><td><a>${u.perms}</a></td><td><a>${u.roles}</a></td><td><a>${u.dev}</a></td>
+    <td><a onclick="showUser(${ui})">View</a></td></tr>`).join('');
+  return `<h2 class="page-title">Users</h2>
+  <div class="page-sub">Azure AD user inventory with identity risk scoring</div>
+  <div class="toolbar">${searchBox('Search name / UPN / email')}
+    ${selectBox('Risk: All')} ${selectBox('Status: All')} ${selectBox('Department: All')}
+    <span class="spacer"></span>
+    <button class="ant-btn">${icon('sync')} Sync</button>
+    <button class="ant-btn ant-btn-primary">Export CSV</button></div>
+  <div class="ant-table"><table><thead><tr>
+    <th>Display Name</th><th>UPN</th><th>Email</th><th>Department</th><th>Risk</th><th>Status</th>
+    <th>Migration</th><th>Last Password Change</th><th>MFA Methods</th><th>Groups</th>
+    <th>Permissions</th><th>Roles</th><th>Device</th><th>Actions</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(22316)}`;
+}
+
+/* ---------- Incidents ---------- */
+function pageIncidents() {
+  const rows = fakeIncidents.map((i,ii)=>`<tr>
+    <td><a onclick="showIncident(${ii})">${i.id}</a></td><td>${i.user}</td>
+    <td class="ellipsis" title="${i.sum}">${i.sum}</td>
+    <td>${tag(sevTag(i.sev), i.sev)}</td>
+    <td>${tag(stTag(i.st), i.st)}</td>
+    <td>${i.email?tag('tag-green','Sent'):tag('','Not Sent')}</td>
+    <td>${i.res==='-'?'-':tag(i.res==='True Positive'?'tag-red':i.res==='False Positive'?'tag-green':'tag-blue', i.res)}</td>
+    <td>${i.created}</td><td>${i.upd}</td></tr>`).join('');
+  return `<h2 class="page-title">Incidents</h2>
+  <div class="page-sub">Auto-generated security incidents with SOC workflow</div>
+  <div class="row" style="margin-bottom:16px">
+    <div class="col-5th">${statCard('','Total Incidents','128','rgba(0,0,0,0.88)')}</div>
+    <div class="col-5th">${statCard('','New','1','#1677ff')}</div>
+    <div class="col-5th">${statCard('','In Progress','1','#fa8c16')}</div>
+    <div class="col-5th">${statCard('','L2 Check','1','#722ed1')}</div>
+    <div class="col-5th">${statCard('','Resolved','125','#52c41a')}</div>
+  </div>
+  <div class="toolbar">${searchBox('Search ticket # / user / summary')}
+    ${selectBox('Severity: All')} ${selectBox('Status: All')}
+    <span class="spacer"></span><button class="ant-btn ant-btn-primary">Send SOC Notification</button></div>
+  <div class="ant-table"><table><thead><tr>
+    <th>Ticket #</th><th>Affected User</th><th>Summary</th><th>Severity</th><th>Status</th>
+    <th>Email Sent</th><th>Resolution</th><th>Created At</th><th>Last Updated</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(128)}`;
+}
+
+/* ---------- Groups ---------- */
+function pageGroups() {
+  const rows = fakeGroups.map(g=>`<tr>
+    <td><a>${g.name}</a></td><td class="ellipsis">${g.desc}</td>
+    <td>${tag(g.type==='Security'?'tag-blue':g.type==='Distribution'?'tag-cyan':'tag-purple', g.type)}</td>
+    <td><a>${g.members.toLocaleString()}</a></td><td><a>${g.apps}</a></td><td><a>View</a></td></tr>`).join('');
+  return `<h2 class="page-title">Groups</h2>
+  <div class="page-sub">Security, distribution and Microsoft 365 groups</div>
+  <div class="toolbar">${searchBox('Search group name')}${selectBox('Type: All')}
+    <span class="spacer"></span><button class="ant-btn">${icon('sync')} Sync Memberships</button></div>
+  <div class="ant-table"><table><thead><tr>
+    <th>Display Name</th><th>Description</th><th>Type</th><th>Members</th><th>Assigned Apps</th><th>Actions</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(6778)}`;
+}
+
+/* ---------- Applications ---------- */
+function pageApplications() {
+  const credCell = d => d==='-'?'-':(new Date(d) < new Date('2026-07-09') ? tag('tag-red',d+' (expired)') : (new Date(d) < new Date('2026-10-07') ? tag('tag-orange',d) : tag('tag-green',d)));
+  const rows = fakeApps.map(a=>`<tr>
+    <td><a>${a.name}</a></td><td>${a.pub}</td>
+    <td>${tag('tag-geekblue',a.type)}</td><td>${a.svc}</td>
+    <td>${a.tp?tag('tag-orange','Third Party'):tag('tag-green','First Party')}</td>
+    <td><a>${a.users.toLocaleString()}</a></td>
+    <td>${credCell(a.saml)}</td><td>${credCell(a.secret)}</td>
+    <td>${a.direct.toLocaleString()}</td><td>${a.group.toLocaleString()}</td><td>${a.consent}</td>
+    <td>${a.sync}</td><td><a>View</a></td></tr>`).join('');
+  return `<h2 class="page-title">Applications</h2>
+  <div class="page-sub">Enterprise applications, service principals and credential expiry</div>
+  <div class="toolbar">${searchBox('Search application / publisher')}
+    ${selectBox('App Type: All')} ${selectBox('Third Party: All')} ${selectBox('Expiry: All')}
+    <span class="spacer"></span><button class="ant-btn">${icon('sync')} Sync</button></div>
+  <div class="ant-table"><table><thead><tr>
+    <th>Application Name</th><th>Publisher</th><th>App Type</th><th>Service Type</th><th>Third Party</th>
+    <th>Total Users</th><th>SAML Cert</th><th>Client Secret</th><th>Direct Access</th><th>Group-Based</th>
+    <th>User Consent</th><th>Last Synced</th><th>Actions</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(2609)}`;
+}
+
+/* ---------- Identity Explorer ---------- */
+function pageExplorer() {
+  return `<h2 class="page-title">Identity Explorer</h2>
+  <div class="page-sub">Third-party OAuth consents and permission relationships</div>
+  <div class="ant-alert alert-info">${icon('info','color:#1677ff')}<div>Explore which users consented to third-party applications and the scopes they granted.</div></div>
+  <div class="toolbar">${searchBox('Search application')}${selectBox('Scope risk: All')}</div>
+  <div class="row">
+    ${[['Grammarly','96 users','Mail.Read, User.Read','tag-orange'],
+       ['Zoom Marketplace','61 users','User.Read, Calendars.ReadWrite','tag-gold'],
+       ['Miro','24 users','User.Read, offline_access','tag-green'],
+       ['ChatGPT Connector','12 users','Files.Read.All, Mail.Read','tag-red']].map(([n,u,s,c])=>`
+    <div class="col-6"><div class="ant-card hoverable"><div class="ant-card-body">
+      <div style="font-weight:600;font-size:15px;margin-bottom:6px">${icon('api','color:#722ed1')} ${n}</div>
+      <div style="color:rgba(0,0,0,.45);margin-bottom:8px">${u} consented</div>
+      <div>${tag(c,'Scopes')} <span style="font-size:12px;color:rgba(0,0,0,.65)">${s}</span></div>
+    </div></div></div>`).join('')}
+  </div>
+  <div class="ant-table" style="margin-top:16px"><table><thead><tr><th>User</th><th>Scopes Consented</th></tr></thead>
+  <tbody>${fakeUsers.slice(0,6).map(u=>`<tr><td><a>${u.name}</a> <span style="color:rgba(0,0,0,.45)">${u.upn}</span></td>
+    <td>${tag('tag-blue','User.Read')}${tag('tag-orange','Mail.Read')}${u.risk==='Critical'?tag('tag-red','Files.Read.All'):''}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* ---------- Sign-In Activity ---------- */
+function pageSignins() {
+  const rows = fakeSignins.map(s=>`<tr>
+    <td>${s.upn}</td><td><a>${s.user}</a></td><td>${s.app}</td><td>${s.ts}</td>
+    <td>${s.ip}</td><td>${s.loc}</td>
+    <td>${s.named==='-'?'-':tag('tag-cyan',s.named)}</td>
+    <td>${s.trusted?tag('tag-green','Trusted'):tag('tag-orange','Untrusted')}</td>
+    <td><span class="badge-dot ${s.status==='Success'?'badge-success':'badge-error'}">${s.status}</span></td>
+    <td>${s.mfa==='Satisfied'?tag('tag-green',s.mfa):s.mfa==='Required'?tag('tag-gold',s.mfa):tag('',s.mfa)}</td>
+    <td>${s.err==='-'?'-':`<a>${s.err}</a>`}</td>
+    <td style="color:rgba(0,0,0,.45)">bb26…${Math.abs(s.ts.length*7)%90+10}</td>
+    <td class="ellipsis" style="max-width:160px">Windows 10 · Edge 126</td></tr>`).join('');
+  return `<h2 class="page-title">Sign-In Activity</h2>
+  <div class="page-sub">Azure AD interactive sign-in logs (last 30 days · 74,311 records)</div>
+  <div class="row" style="margin-bottom:16px">
+    <div class="col-6">${statCard('','Total Sign-Ins (24h)','8,412','rgba(0,0,0,0.88)')}</div>
+    <div class="col-6">${statCard('','Success Rate','96.8%','#52c41a')}</div>
+    <div class="col-6">${statCard('','Failures (24h)','269','#cf1322')}</div>
+    <div class="col-6">${statCard('','MFA Coverage','91.2%','#1890ff')}</div>
+  </div>
+  <div class="toolbar">${searchBox('Search UPN / IP / application')}
+    ${selectBox('Status: All')} ${selectBox('MFA: All')} ${selectBox('Named Location: All')} ${selectBox('Last 24 hours')}
+  </div>
+  <div class="ant-table"><table><thead><tr>
+    <th>UPN</th><th>Username</th><th>Application</th><th>Timestamp</th><th>IP Address</th><th>Location</th>
+    <th>Named Location</th><th>Trusted IP</th><th>Status</th><th>MFA</th><th>Error Code</th>
+    <th>Correlation ID</th><th>Device Info</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(74311)}`;
+}
+
+/* ---------- Audit Log ---------- */
+function pageAudit() {
+  const rows = fakeAudit.map(a=>`<tr>
+    <td>${a.when}</td><td>${a.who}</td><td>${a.what}</td><td>${a.target}</td>
+    <td><span class="badge-dot ${a.result==='success'?'badge-success':'badge-error'}">${a.result}</span></td>
+    <td>${tag('tag-blue',a.type)}</td><td>${a.cat}</td>
+    <td style="color:rgba(0,0,0,.45)">7d31…${a.when.slice(-2)}</td><td>${a.ip}</td></tr>`).join('');
+  return `<h2 class="page-title">Audit Log</h2>
+  <div class="page-sub">Azure AD directory &amp; policy audit events (5,311 records)</div>
+  <div class="toolbar">${searchBox('Search actor / action / target')}${selectBox('Category: All')}${selectBox('Result: All')}${selectBox('Last 7 days')}</div>
+  <div class="ant-table"><table><thead><tr>
+    <th>When</th><th>Who (Actor)</th><th>Action (What)</th><th>Affected (Target)</th><th>Result</th>
+    <th>Type</th><th>Category</th><th>Correlation ID</th><th>IP Address</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(5311)}`;
+}
+
+/* ---------- Defender ---------- */
+function pageDefender() {
+  const rows = fakeAlerts.map(a=>`<tr>
+    <td>${tag(sevTag(a.sev),a.sev)}</td><td class="ellipsis"><a>${a.name}</a></td>
+    <td>${tag('tag-purple',a.cat)}</td><td>${a.user}</td><td>${a.ts}</td><td>${a.src}</td>
+    <td><a>AI Analysis</a> · <a>View</a></td></tr>`).join('');
+  return `<h2 class="page-title">Defender</h2>
+  <div class="page-sub">Microsoft Defender XDR security alerts (527 synced)</div>
+  <div class="row" style="margin-bottom:16px">
+    <div class="col-6">${statCard('','High','34','#fa541c')}</div>
+    <div class="col-6">${statCard('','Medium','161','#faad14')}</div>
+    <div class="col-6">${statCard('','Low','218','#52c41a')}</div>
+    <div class="col-6">${statCard('','Informational','114','#1890ff')}</div>
+  </div>
+  <div class="ant-alert alert-warning">${icon('warning','color:#d48806')}<div><b>AI-Powered analysis</b> — click "AI Analysis" on any alert to generate a GPT-4o threat assessment with MITRE ATT&amp;CK mapping.</div></div>
+  <div class="toolbar">${searchBox('Search alert / user')}${selectBox('Severity: All')}${selectBox('Status: New')}${selectBox('Source: All')}</div>
+  <div class="ant-table"><table><thead><tr>
+    <th>Severity</th><th>Alert Name</th><th>Category</th><th>Impacted User</th><th>Timestamp</th><th>Detection Source</th><th>Actions</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(527)}`;
+}
+
+/* ---------- AAD Roles ---------- */
+function pageRoles() {
+  const rows = fakeRoles.map(r=>`<tr>
+    <td><a>${r.name}</a></td><td class="ellipsis">${r.desc}</td>
+    <td>${tag('tag-blue',r.type)}</td>
+    <td>${r.on?tag('tag-green','Enabled'):tag('','Disabled')}</td>
+    <td><a>${r.cnt}</a></td><td>2026-07-09 14:10</td><td><a>View</a></td></tr>`).join('');
+  return `<h2 class="page-title">AAD Roles</h2>
+  <div class="page-sub">Azure AD directory roles and privileged assignments (71 roles · 521 assignments)</div>
+  <div class="toolbar">${searchBox('Search role')}<span class="spacer"></span><button class="ant-btn">${icon('sync')} Sync Assignments</button></div>
+  <div class="ant-table"><table><thead><tr>
+    <th>Display Name</th><th>Description</th><th>Type</th><th>Status</th><th>Assignments</th><th>Last Synced</th><th>Actions</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(71)}`;
+}
+
+/* ---------- Devices ---------- */
+function pageDevices() {
+  const rows = fakeDevices.map(d=>`<tr>
+    <td><a>${d.name}</a></td><td>${d.upn}</td><td>${d.user}</td><td>${d.ip}</td><td>${d.mac}</td>
+    <td>${d.mid}</td>
+    <td>${d.piracy==='-'?'-':d.piracy==='Found'?tag('tag-red','Found'):tag('tag-green','None')}</td>
+    <td>${d.grp}</td><td>${d.ioa}</td><td><a>${d.sw}</a></td><td><a>View</a></td></tr>`).join('');
+  return `<h2 class="page-title">Devices</h2>
+  <div class="page-sub">Endpoints from Tencent iOA (Windows) and Kandji (macOS) — 1,286 devices</div>
+  <div class="row" style="margin-bottom:16px">
+    <div class="col-6">${statCard('','Windows (iOA)','1,118','#1890ff')}</div>
+    <div class="col-6">${statCard('','macOS (Kandji)','168','#722ed1')}</div>
+    <div class="col-6">${statCard('','Piracy Risks','7','#cf1322')}</div>
+    <div class="col-6">${statCard('','Unlinked to User','23','#faad14')}</div>
+  </div>
+  <div class="toolbar">${searchBox('Search device / user / IP')}${selectBox('Source: All')}${selectBox('Piracy: All')}
+    <span class="spacer"></span><button class="ant-btn">${icon('sync')} Sync iOA</button><button class="ant-btn">${icon('sync')} Sync Kandji</button></div>
+  <div class="ant-table"><table><thead><tr>
+    <th>Device Name</th><th>UPN</th><th>User</th><th>IP Address</th><th>MAC Address</th><th>Mid (IOA ID)</th>
+    <th>Piracy Risk</th><th>Group Name</th><th>IOA User</th><th>Software Count</th><th>Actions</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(1286)}`;
+}
+
+/* ---------- Client Software ---------- */
+function pageSoftware() {
+  const rows = fakeSoftware.map(s=>`<tr>
+    <td><a>${s.name}</a></td><td><a>${s.cnt.toLocaleString()}</a></td><td>${tag('tag-blue',s.ver+' versions')}</td><td><a>View Devices</a></td></tr>`).join('');
+  return `<h2 class="page-title">Client Software</h2>
+  <div class="page-sub">Software inventory aggregated across managed endpoints (4,152 titles)</div>
+  <div class="toolbar">${searchBox('Search software name')}${selectBox('Sort: Installed Count')}</div>
+  <div class="ant-table"><table><thead><tr>
+    <th>Software Name</th><th>Installed Count</th><th>Versions</th><th>Actions</th>
+  </tr></thead><tbody>${rows}</tbody></table></div>${pagination(4152)}`;
+}
+
+/* ---------- Tenant Migration ---------- */
+function pageMigration() {
+  return `<h2 class="page-title">Tenant Migration</h2>
+  <div class="page-sub">Cross-tenant correlation, merge and decommission workflow</div>
+  <div class="ant-alert alert-info">${icon('info','color:#1677ff')}<div>Migration mode is <b>disabled</b> in this demo. When enabled, the sync pipeline runs once per active tenant and correlates objects across source and target tenants.</div></div>
+  <div class="row">
+    <div class="col-6">${statCard('','Correlated Users','0','rgba(0,0,0,0.88)')}</div>
+    <div class="col-6">${statCard('','Pending Merge','0','#faad14')}</div>
+    <div class="col-6">${statCard('','Merged','0','#52c41a')}</div>
+    <div class="col-6">${statCard('','Decommissioned','0','#cf1322')}</div>
+  </div>
+  <div class="ant-card" style="margin-top:16px"><div class="ant-card-head">Migration Pipeline</div>
+  <div class="ant-card-body" style="display:flex;gap:0;align-items:center;justify-content:space-between;flex-wrap:wrap">
+    ${['Configure Tenants','Sync Both Tenants','Correlate Objects','Review & Merge','Decommission Source'].map((s,i)=>`
+      <div style="display:flex;align-items:center;gap:8px;padding:8px 0">
+        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+          background:${i===0?'#1677ff':'#fff'};color:${i===0?'#fff':'rgba(0,0,0,.45)'};border:1px solid ${i===0?'#1677ff':'#d9d9d9'};font-size:13px">${i+1}</div>
+        <span style="color:${i===0?'rgba(0,0,0,.88)':'rgba(0,0,0,.45)'};font-weight:${i===0?600:400}">${s}</span>
+        ${i<4?'<span style="color:#d9d9d9;margin:0 14px">──</span>':''}
+      </div>`).join('')}
+  </div></div>`;
+}
+
+/* ---------- Settings ---------- */
+function settingsField(label, value, help, sensitive) {
+  return `<div class="form-item"><div class="form-label">${label}</div>
+    <input class="ant-input" style="width:100%" value="${sensitive?'••••••••••••••••':value}" readonly>
+    ${help?`<div class="form-help">${help}</div>`:''}</div>`;
+}
+/* Identity Risk rules (fake) */
+const irRules = [
+  { on:true, dim:'Compliance Behavior', cat:'Account',    name:'Account Disabled',            builtin:true, score:0,   param:'-' },
+  { on:true, dim:'Compliance Behavior', cat:'Account',    name:'Inactive Account',            builtin:true, score:10,  param:'No login for 30 days' },
+  { on:true, dim:'Compliance Behavior', cat:'Password',   name:'Password Not Changed',        builtin:true, score:8,   param:'Older than 180 days' },
+  { on:true, dim:'Compliance Behavior', cat:'MFA',        name:'MFA Not Registered',          builtin:true, score:15,  param:'-' },
+  { on:true, dim:'UEBA Rules',          cat:'SignIn',     name:'Impossible Travel',           builtin:true, score:25,  param:'Window: 60 min' },
+  { on:true, dim:'UEBA Rules',          cat:'SignIn',     name:'Unfamiliar Location Sign-In', builtin:true, score:15,  param:'Baseline: 30 days' },
+  { on:true, dim:'UEBA Rules',          cat:'SignIn',     name:'MFA Fatigue Pattern',         builtin:true, score:20,  param:'5 denials / 10 min' },
+  { on:true, dim:'UEBA Rules',          cat:'SignIn',     name:'Off-Hours Activity Spike',    builtin:true, score:10,  param:'Outside 07:00-21:00' },
+  { on:false,dim:'UEBA Rules',          cat:'Device',     name:'New Device First Seen',       builtin:true, score:5,   param:'-' },
+  { on:true, dim:'Sensitive Operation', cat:'Permission', name:'Privileged Role Assignment',  builtin:true, score:20,  param:'Roles: GA, UA, CAA' },
+  { on:true, dim:'Sensitive Operation', cat:'Permission', name:'Risky OAuth Consent',         builtin:true, score:15,  param:'Scopes: Mail.Read+' },
+  { on:true, dim:'Sensitive Operation', cat:'Account',    name:'Admin Password Reset',        builtin:true, score:10,  param:'-' },
+];
+const dimTag = d => d==='UEBA Rules'?'tag-blue':d==='Sensitive Operation'?'tag-volcano':'tag-cyan';
+function irSlider(color, name, pct) {
+  return `<div class="weight-row">
+    <span class="weight-name"><span class="sq" style="background:${color}"></span>${name}</span>
+    <span class="slider"><span class="fill" style="width:${pct}%;background:${color}"></span><span class="knob" style="left:${pct}%;border-color:${color}"></span></span>
+    <span class="weight-pct" style="color:${color}">${pct}%</span>
+  </div>`;
+}
+function irRuleRows(filter) {
+  return irRules.filter(r=>filter==='all'||r.dim===filter).map(r=>`<tr>
+    <td><button class="ant-switch ${r.on?'on':''}" onclick="this.classList.toggle('on')"></button></td>
+    <td>${tag(dimTag(r.dim), r.dim)}</td>
+    <td>${tag('tag-cyan', r.cat)}</td>
+    <td>${r.name} ${r.builtin?'<span class="ant-tag" style="font-size:11px">Built-in</span>':''}</td>
+    <td>${r.score===0?'0':`<span style="color:#cf1322;font-weight:600">+${r.score}</span>`}</td>
+    <td style="color:rgba(0,0,0,.45)">${r.param}</td>
+    <td><span class="icon-btn">${icon('setting','font-size:13px')}</span></td>
+  </tr>`).join('');
+}
+function irSwitchRuleTab(el, filter) {
+  document.querySelectorAll('.rule-subtab').forEach(t=>{t.classList.remove('active');t.style.color='';});
+  el.classList.add('active');
+  document.getElementById('irRuleBody').innerHTML = irRuleRows(filter);
+}
+function identityRiskTab() {
+  return `
+  <div class="ir-header">${icon('safety','font-size:28px;color:#1677ff')}<div>
+    <h3>Identity Risk Score Settings</h3>
+    <div class="sub">Configure risk scoring rules and formula for identity risk assessment</div>
+  </div></div>
+  <div class="row" style="margin-bottom:12px">
+    <div class="col-4">${statCard('stat-card--critical','Critical Risk','2','#cf1322','exclam')}</div>
+    <div class="col-4">${statCard('stat-card--high','High Risk','3','#fa541c','warning')}</div>
+    <div class="col-4">${statCard('stat-card--medium','Medium Risk','241','#faad14','info')}</div>
+    <div class="col-4">${statCard('stat-card--low','Low Risk','21,880','#52c41a','check')}</div>
+    <div class="col-4">${statCard('stat-card--accounts','Avg Score','12.4','rgba(0,0,0,0.88)')}</div>
+    <div class="col-4">${statCard('stat-card--apps','Highest Score','86','#cf1322')}</div>
+  </div>
+  <div class="ant-card" style="margin-bottom:16px"><div class="ant-card-head">
+    <span>&#9889; Dimension Weights</span>
+    <span style="display:flex;gap:8px;align-items:center;font-weight:400">
+      <span style="color:#389e0d;font-weight:600">Total: 100% &#10003;</span>
+      <button class="ant-btn">Reset to Default</button>
+      <button class="ant-btn ant-btn-primary">Save Weights</button>
+    </span></div>
+    <div class="ant-card-body" style="display:flex;gap:32px;flex-wrap:wrap">
+      ${irSlider('#1677ff','UEBA Rules',45)}
+      ${irSlider('#fa541c','Sensitive Operation',35)}
+      ${irSlider('#13c2c2','Compliance Behavior',20)}
+    </div></div>
+  <div class="ant-card"><div class="ant-card-head">
+    <span>Risk Rules Configuration</span>
+    <span style="display:flex;gap:8px;font-weight:400">
+      <button class="ant-btn ant-btn-primary">${icon('safety')} Recalculate All</button>
+      <button class="ant-btn">${icon('sync')} Refresh</button>
+      <button class="ant-btn">Reset Defaults</button>
+    </span></div>
+    <div class="ant-card-body" style="padding-top:0">
+      <div class="rule-subtabs">
+        <span class="rule-subtab active" style="color:#1677ff" onclick="irSwitchRuleTab(this,'all')">All Rules<span class="count-badge gray">${irRules.length}</span></span>
+        <span class="rule-subtab" style="color:#1677ff" onclick="irSwitchRuleTab(this,'UEBA Rules')">UEBA Rules<span class="count-badge">${irRules.filter(r=>r.dim==='UEBA Rules').length}</span></span>
+        <span class="rule-subtab" style="color:#fa541c" onclick="irSwitchRuleTab(this,'Sensitive Operation')">Sensitive Operation<span class="count-badge red">${irRules.filter(r=>r.dim==='Sensitive Operation').length}</span></span>
+        <span class="rule-subtab" style="color:#13c2c2" onclick="irSwitchRuleTab(this,'Compliance Behavior')">Compliance Behavior<span class="count-badge teal">${irRules.filter(r=>r.dim==='Compliance Behavior').length}</span></span>
+      </div>
+      <div class="ant-table"><table><thead><tr>
+        <th>Enabled</th><th>Dimension</th><th>Category</th><th>Rule Name</th><th>Score &#8645;</th><th>Parameters</th><th>Actions</th>
+      </tr></thead><tbody id="irRuleBody">${irRuleRows('all')}</tbody></table></div>
+    </div></div>`;
+}
+function pageSettings() {
+  return `<h2 class="page-title">Settings</h2>
+  <div class="page-sub">System configuration — credentials are encrypted and stored in the database</div>
+  <div class="ant-tabs" id="settingsTabs">
+    ${[[icon('sync')+' Sync Management','stab5'],[icon('user')+' User Management','stab6'],[icon('safety')+' Identity Risk','stab7'],[icon('setting')+' System Settings','stab8'],[icon('check')+' Auth Providers','stab9']].map(([t,id],i)=>`<div class="ant-tab ${i===2?'active':''}" onclick="switchTab(this,'${id}')">${t}</div>`).join('')}
+  </div>
+  <div class="stab" id="stab7">${identityRiskTab()}</div>
+  <div class="stab" id="stab8" style="display:none">
+    <div class="ant-tabs" style="margin-top:-8px">
+      ${['Azure AD','Azure OpenAI','Tencent iOA','Kandji','Incident'].map((t,i)=>`<div class="ant-tab ${i===4?'active':''}" onclick="switchSubTab(this,'stab${i}')">${t}</div>`).join('')}
+    </div>
+  <div class="ssub" id="stab0" style="display:none">
+    ${settingsField('Tenant ID','00000000-1111-2222-3333-444444444444','Directory (tenant) ID of your Azure AD')}
+    ${settingsField('Client ID','aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee','Application (client) ID of the app registration')}
+    ${settingsField('Client Secret','','Encrypted at rest',true)}
+    <button class="ant-btn ant-btn-primary">Save &amp; Test Connection</button></div>
+  <div class="ssub" id="stab1" style="display:none">
+    ${settingsField('Endpoint','https://demo-openai.openai.azure.com','Azure OpenAI resource endpoint')}
+    ${settingsField('API Key','','',true)}
+    ${settingsField('Deployment Name','gpt-4o','Model deployment for alert analysis')}
+    <button class="ant-btn ant-btn-primary">Save</button></div>
+  <div class="ssub" id="stab2" style="display:none">
+    ${settingsField('Endpoint','ioa.ap-shanghai.tencentcloudapi.com','')}
+    ${settingsField('Secret ID','AKID****************','')}
+    ${settingsField('Secret Key','','',true)}
+    <button class="ant-btn ant-btn-primary">Save</button></div>
+  <div class="ssub" id="stab3" style="display:none">
+    ${settingsField('API Base URL','https://demo.api.kandji.io','')}
+    ${settingsField('API Token','','',true)}
+    <button class="ant-btn ant-btn-primary">Save</button></div>
+  <div class="ssub" id="stab4">
+    <div class="settings-row"><div><b>Auto Email on Incident Creation</b><div class="form-help">Send SOC notification automatically when an incident is created</div></div><button class="ant-switch on"></button></div>
+    ${settingsField('Sender Email','soc-noreply@demo-corp.com','Mailbox mail is sent as (From)')}
+    ${settingsField('Default Recipient','securityteam@demo-corp.com','Default To for auto incident emails')}
+    ${settingsField('Default CC','it-ops@demo-corp.com','Comma separated, may be blank')}
+    <div class="settings-row" style="max-width:480px"><div><b>Use Dedicated OAuth</b><div class="form-help">Use a separate app registration for sending mail</div></div><button class="ant-switch" onclick="this.classList.toggle('on')"></button></div>
+    <button class="ant-btn ant-btn-primary">Save Incident Settings</button></div>
+  </div>
+  <div class="stab" id="stab5" style="display:none">
+    ${[['Core Data (Users/Groups/Apps)','240 min',true],['Sign-In Logs','60 min',true],['Audit Logs','60 min',true],
+       ['Security Alerts','30 min',true],['iOA Devices','360 min',true],['Kandji Devices','360 min',true],
+       ['Identity Risk Calculation','1440 min',true],['Incident Auto-Generate','5 min',false]].map(([n,iv,on])=>`
+      <div class="settings-row"><div><b>${n}</b><div class="form-help">Interval: ${iv}</div></div>
+      <button class="ant-switch ${on?'on':''}" onclick="this.classList.toggle('on')"></button></div>`).join('')}
+  </div>
+  <div class="stab" id="stab6" style="display:none">
+    <div class="ant-table"><table><thead><tr><th>Username</th><th>Display Name</th><th>Provider</th><th>Roles</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
+    <tbody>
+      <tr><td>admin</td><td>Administrator</td><td>${tag('tag-blue','Local')}</td><td>${tag('tag-purple','Admin')}</td><td>${tag('tag-green','Active')}</td><td>2026-07-09 14:33</td><td><a>Reset</a> · <a>Disable</a></td></tr>
+      <tr><td>demo.user</td><td>Demo User</td><td>${tag('tag-blue','Local')}</td><td>${tag('tag-blue','Viewer')}</td><td>${tag('tag-green','Active')}</td><td>2026-07-08 09:12</td><td><a>Reset</a> · <a>Disable</a></td></tr>
+      <tr><td>soc.analyst</td><td>SOC Analyst</td><td>${tag('tag-cyan','OIDC')}</td><td>${tag('tag-purple','Admin')}</td><td>${tag('tag-green','Active')}</td><td>2026-07-09 08:47</td><td><a>Reset</a> · <a>Disable</a></td></tr>
+    </tbody></table></div></div>
+  <div class="stab" id="stab9" style="display:none">
+    <div class="row">
+      <div class="col-12"><div class="ant-card"><div class="ant-card-head"><span>${icon('user','margin-right:8px')} Local Authentication</span><button class="ant-switch on"></button></div>
+        <div class="ant-card-body"><div style="color:rgba(0,0,0,.65);font-size:13px;line-height:1.8">Username / password accounts stored in the local database with JWT tokens. Supports lockout after failed attempts and forced password change on first login.</div>
+        <div style="margin-top:12px">${tag('tag-green','Enabled')} ${tag('tag-blue','3 users')}</div></div></div></div>
+      <div class="col-12"><div class="ant-card"><div class="ant-card-head"><span>${icon('safety','margin-right:8px')} OIDC (Microsoft Entra ID)</span><button class="ant-switch on"></button></div>
+        <div class="ant-card-body">
+          ${settingsField('Authority','https://login.microsoftonline.com/00000000-…','')}
+          ${settingsField('Client ID','aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee','')}
+          ${settingsField('Redirect URI','https://demo-corp.example/api/auth/oidc/callback','')}
+          <div style="margin-top:4px">${tag('tag-green','Enabled')} ${tag('tag-blue','Scopes: openid profile email')}</div>
+        </div></div></div>
+      <div class="col-12"><div class="ant-card"><div class="ant-card-head"><span>LDAP</span><button class="ant-switch"></button></div>
+        <div class="ant-card-body" style="color:rgba(0,0,0,.45);font-size:13px">Not configured. Enable to authenticate against Active Directory via LDAP bind.</div></div></div>
+      <div class="col-12"><div class="ant-card"><div class="ant-card-head"><span>SAML 2.0</span><button class="ant-switch"></button></div>
+        <div class="ant-card-body" style="color:rgba(0,0,0,.45);font-size:13px">Not configured. Enable to accept SAML assertions from an external IdP.</div></div></div>
+    </div>
+  </div>`;
+}
+function switchTab(el, id) {
+  document.querySelectorAll('#settingsTabs .ant-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.stab').forEach(s=>s.style.display='none');
+  document.getElementById(id).style.display='block';
+}
+function switchSubTab(el, id) {
+  el.parentElement.querySelectorAll('.ant-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.ssub').forEach(s=>s.style.display='none');
+  document.getElementById(id).style.display='block';
+}
+
+/* ---------- User Detail ---------- */
+const riskBoxColors = { Critical:['#fff2f0','#ffccc7','#cf1322'], High:['#fff7e6','#ffd591','#d46b08'], Medium:['#fffbe6','#ffe58f','#d48806'], Low:['#f6ffed','#b7eb8f','#389e0d'] };
+function backBtn(target) { return `<div style="margin-bottom:16px"><button class="ant-btn" onclick="nav('${target}')">&larr; Back</button></div>`; }
+function identityGraphSvg(u) {
+  const nodes = [
+    {x:300,y:130,label:u.name,c:'#1890ff',r:34,main:true},
+    {x:120,y:40,label:'SG-Finance-All',c:'#52c41a',r:24},{x:120,y:130,label:'SG-VPN-Users',c:'#52c41a',r:24},
+    {x:120,y:220,label:'M365-Phoenix',c:'#52c41a',r:24},
+    {x:480,y:40,label:'Workday HR',c:'#722ed1',r:24},{x:480,y:130,label:'Zoom',c:'#722ed1',r:24},
+    {x:480,y:220,label:'PC-'+u.dept.slice(0,3).toUpperCase()+'-0231',c:'#13c2c2',r:24},
+  ];
+  const edges = nodes.slice(1).map(n=>`<line x1="300" y1="130" x2="${n.x}" y2="${n.y}" stroke="#d9d9d9" stroke-width="1.5"/>`).join('');
+  const circles = nodes.map(n=>`
+    <g style="cursor:pointer"><circle cx="${n.x}" cy="${n.y}" r="${n.r}" fill="${n.c}" opacity="${n.main?1:0.85}"/>
+    <text x="${n.x}" y="${n.y+n.r+14}" text-anchor="middle" font-size="11" fill="rgba(0,0,0,.65)">${n.label}</text>
+    ${n.main?`<text x="${n.x}" y="${n.y+5}" text-anchor="middle" font-size="12" fill="#fff" font-weight="600">USER</text>`:''}</g>`).join('');
+  return `<svg viewBox="0 0 600 280" style="width:100%;height:300px">${edges}${circles}</svg>
+  <div class="chart-tooltip-hint">Groups (green) · Applications (purple) · Devices (cyan)</div>`;
+}
+function pageUserDetail(idx) {
+  const u = fakeUsers[idx];
+  const [bg,bd,fg] = riskBoxColors[u.risk];
+  const factors = u.risk==='Critical'||u.risk==='High'
+    ? ['MFA not registered','Sign-in from untrusted location','Password older than 180 days']
+    : u.risk==='Medium' ? ['Password older than 180 days'] : [];
+  const ueba = u.risk==='Critical'
+    ? `<b style="color:#0c9f09">Behavior Summary:</b> Over the past 30 days, this account exhibited <b style="color:#d46b08">3 abnormal behaviors</b>: sign-ins from 2 previously unseen locations, a spike of 14 failed sign-ins on Jul 5, and first-time access to the HR application outside business hours. Baseline shows typical activity from Shanghai offices between 08:30–19:00 CST. <b style="color:#0c9f09">Recommendation:</b> verify recent travel, enforce MFA re-registration, and review HR app access.`
+    : `<b style="color:#0c9f09">Behavior Summary:</b> Activity over the past 30 days is consistent with this user's baseline: sign-ins from trusted office locations during business hours, MFA satisfied on all interactive sign-ins, no unusual application access detected. <b style="color:#0c9f09">Recommendation:</b> no action required.`;
+  const failed = u.risk==='Critical'?23:u.risk==='High'?9:1;
+  const total = 412;
+  const alerts = u.risk==='Critical'?{t:6,h:2,m:3,l:1}:u.risk==='High'?{t:3,h:1,m:1,l:1}:{t:0,h:0,m:0,l:0};
+  return `${backBtn('users')}
+  <div class="ant-card" style="margin-bottom:16px"><div class="ant-card-body">
+    <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        ${icon('user','font-size:32px;color:#1890ff')}
+        <div><h2 style="margin:0 0 4px;font-size:24px;font-weight:600">${u.name}</h2>
+        <span style="color:#666;font-size:14px">${u.upn}</span> ${u.status?tag('tag-green','Active'):tag('tag-red','Inactive')}</div>
+      </div>
+      <div style="text-align:center;padding:12px 24px;border-radius:8px;background:${bg};border:1px solid ${bd}">
+        <div style="margin-bottom:8px;font-size:12px;font-weight:500">${icon('safety')} Identity Risk</div>
+        <div style="font-size:20px;font-weight:700;color:${fg}">${u.risk}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;line-height:20px"><div class="row" style="margin:-3px">
+      <div class="col-6"><b>Email:</b> ${u.email}</div>
+      <div class="col-6"><b>Job Title:</b> Senior Analyst</div>
+      <div class="col-6"><b>Department:</b> ${u.dept}</div>
+      <div class="col-6"><b>Manager:</b> <a style="text-decoration:underline">Huang, Henry</a></div>
+      <div class="col-6"><b>Created:</b> 2021-03-15</div>
+      <div class="col-6"><b>Last Synced:</b> 2026-07-09 14:10</div>
+      <div class="col-6"><b>Password Change:</b> ${u.pwd}</div>
+      <div class="col-6"><b>MFA:</b> ${u.mfa>0?tag('tag-green','Authenticator')+(u.mfa>1?tag('tag-blue','SMS'):''):tag('tag-red','No MFA')}</div>
+      <div class="col-6"><b>Sign-In Pattern:</b> ${tag('tag-purple','Weekday 08:30-19:00 CST')}</div>
+      ${factors.length?`<div class="col-24"><b>${icon('warning')} Risk Factors:</b> ${factors.map(f=>tag('tag-volcano',f)).join('')}</div>`:''}
+      <div class="col-24"><b>Direct Reports:</b> ${u.roles>0?'<a style="text-decoration:underline">Sun, Emily</a>, <a style="text-decoration:underline">Zhao, Frank</a>':'<span style="color:#999">None</span>'}</div>
+      <div class="col-24"><b>${icon('laptop')} Devices:</b> ${u.dev>0?'<a style="text-decoration:underline">PC-'+u.dept.slice(0,3).toUpperCase()+'-0231</a>':'<span style="color:#999">No devices</span>'}</div>
+    </div></div>
+  </div></div>
+  <div class="ant-card" style="margin-bottom:16px"><div class="ant-card-head">
+    <span>${icon('api','color:#722ed1;margin-right:8px')} UEBA for Identity ${tag('tag-purple','AI-Powered')}</span></div>
+    <div class="ant-card-body" style="line-height:1.8;font-size:13px">${ueba}</div></div>
+  <div class="row" style="margin-bottom:4px">
+    <div class="col-12"><div class="ant-card" style="height:100%"><div class="ant-card-head"><span>${icon('api','margin-right:8px')} Identity Graph</span></div>
+      <div class="ant-card-body">${identityGraphSvg(u)}</div></div></div>
+    <div class="col-12">
+      <div class="ant-card" style="margin-bottom:12px"><div class="ant-card-head"><span>${icon('appstore','margin-right:8px')} App Assignments (${u.perms})</span></div>
+        <div class="ant-card-body" style="max-height:130px;overflow:auto;padding:12px 24px">
+          ${['Workday HR — Group-Based','Zoom — Group-Based','Expense Portal — Group-Based','Salesforce CRM — Direct'].map((a,i)=>`<div style="padding:6px 0;border-bottom:${i<3?'1px solid #f0f0f0':'none'};font-size:13px">${a}</div>`).join('')}
+        </div></div>
+      <div class="ant-card"><div class="ant-card-head"><span>${icon('team','margin-right:8px')} Groups (${u.groups})</span></div>
+        <div class="ant-card-body" style="max-height:130px;overflow:auto;padding:12px 24px">
+          ${fakeGroups.slice(0,4).map((g,i)=>`<div style="padding:6px 0;border-bottom:${i<3?'1px solid #f0f0f0':'none'};font-size:13px"><a>${g.name}</a> ${tag(g.type==='Security'?'tag-blue':'tag-purple',g.type)}</div>`).join('')}
+        </div></div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-12"><div class="ant-card" style="height:100%"><div class="ant-card-head"><span>${icon('login','margin-right:8px')} Failed Sign-Ins (90 days) (${failed})</span></div>
+      <div class="ant-card-body">
+        <div class="row" style="margin-bottom:12px">
+          <div class="col-8"><div class="ant-card small"><div class="ant-card-body"><div class="stat-title">Total</div><div class="stat-value" style="font-size:22px">${total}</div></div></div></div>
+          <div class="col-8"><div class="ant-card small"><div class="ant-card-body"><div class="stat-title">Failed</div><div class="stat-value" style="font-size:22px;color:#cf1322">${failed}</div></div></div></div>
+          <div class="col-8"><div class="ant-card small"><div class="ant-card-body"><div class="stat-title">Rate</div><div class="stat-value" style="font-size:22px">${((total-failed)/total*100).toFixed(1)}%</div></div></div></div>
+        </div>
+        ${failed>1?`<div class="ant-table"><table style="min-width:0"><thead><tr><th>Time</th><th>App</th><th>Location</th><th>Error</th></tr></thead><tbody>
+          <tr><td>2026-07-05 03:12</td><td>Exchange Online</td><td>Unknown (Tor)</td><td><a>50126</a></td></tr>
+          <tr><td>2026-07-05 03:14</td><td>Exchange Online</td><td>Unknown (Tor)</td><td><a>50126</a></td></tr>
+          <tr><td>2026-07-04 22:41</td><td>Azure Portal</td><td>Warsaw, PL</td><td><a>53003</a></td></tr>
+        </tbody></table></div>`:'<div style="color:#999;text-align:center;padding:20px">No recent failures</div>'}
+      </div></div></div>
+    <div class="col-12"><div class="ant-card" style="height:100%"><div class="ant-card-head"><span>${icon('warning','margin-right:8px')} Security Alerts (${alerts.t})</span></div>
+      <div class="ant-card-body">
+        <div class="row" style="margin-bottom:12px">
+          <div class="col-6"><div class="ant-card small"><div class="ant-card-body"><div class="stat-title">Total</div><div class="stat-value" style="font-size:22px">${alerts.t}</div></div></div></div>
+          <div class="col-6"><div class="ant-card small"><div class="ant-card-body"><div class="stat-title">High</div><div class="stat-value" style="font-size:22px;color:#cf1322">${alerts.h}</div></div></div></div>
+          <div class="col-6"><div class="ant-card small"><div class="ant-card-body"><div class="stat-title">Medium</div><div class="stat-value" style="font-size:22px;color:#fa8c16">${alerts.m}</div></div></div></div>
+          <div class="col-6"><div class="ant-card small"><div class="ant-card-body"><div class="stat-title">Low</div><div class="stat-value" style="font-size:22px;color:#1890ff">${alerts.l}</div></div></div></div>
+        </div>
+        ${alerts.t>0?fakeAlerts.slice(0,3).map((a,i)=>`<div style="padding:8px 0;border-bottom:${i<2?'1px solid #f0f0f0':'none'};font-size:13px">${tag(sevTag(a.sev),a.sev)} <a>${a.name}</a></div>`).join(''):'<div style="color:#999;text-align:center;padding:20px">No alerts for this user</div>'}
+      </div></div></div>
+  </div>`;
+}
+
+/* ---------- Incident Detail ---------- */
+function pageIncidentDetail(idx) {
+  const inc = fakeIncidents[idx];
+  const uidx = fakeUsers.findIndex(u=>u.name===inc.user);
+  const u = fakeUsers[uidx>=0?uidx:0];
+  const [bg,bd,fg] = riskBoxColors[u.risk];
+  const resolved = inc.st==='Resolved';
+  const aiSummary = `<p style="color:#0c9f09;font-weight:600;margin:0 0 12px">**Incident Summary:**</p>
+    <p style="margin:0 0 12px;line-height:1.8">${inc.sum}. The identity risk engine flagged this account after correlating recent sign-in telemetry with the user's 30-day behavioral baseline.</p>
+    <p style="color:#d46b08;font-weight:600;margin:0 0 12px">**Abnormal Behaviors Detected:**</p>
+    <ul style="margin:0 0 12px;padding-left:24px;line-height:1.8"><li>Sign-in from previously unseen network location</li><li>Elevated failed sign-in rate versus baseline</li><li>Access outside established working-hours pattern</li></ul>
+    <p style="color:#0c9f09;font-weight:600;margin:0 0 12px">**Risk Assessment:**</p>
+    <p style="margin:0 0 12px;line-height:1.8">Severity assessed as <b style="color:#0c9f09">${inc.sev}</b>. ${resolved?'Post-validation checks matched benign patterns (trusted location success), supporting closure.':'Continued monitoring during the stabilization hold is recommended.'}</p>
+    <p style="color:#0c9f09;font-weight:600;margin:0 0 12px">**Recommended Actions:**</p>
+    <ul style="margin:0;padding-left:24px;line-height:1.8"><li>Confirm activity with the user or their manager</li><li>Review MFA registration and recent consent grants</li><li>${resolved?'No further action — resolved as '+inc.res:'Escalate to L2 if additional alerts correlate'}</li></ul>`;
+  const timeline = [
+    ['blue', inc.created, `Incident created by System — rule "High risk user detected" matched`],
+    ['red',  inc.created.slice(0,17)+'5', `Stabilization hold started (10 min observation window)`],
+    ...(resolved ? [
+      ['green', inc.upd, `Benign sign-in detected: successful login from trusted location [CN Office - PDC]`],
+      ['green', inc.upd, `Auto-resolved as ${inc.res} · notification email sent`],
+    ] : [
+      ['blue', inc.upd, `Status changed to ${inc.st} by soc.analyst`],
+    ]),
+  ];
+  return `${backBtn('incidents')}
+  <div class="ant-card" style="margin-bottom:16px"><div class="ant-card-body" style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap">
+    <div style="display:flex;gap:12px;align-items:center;min-width:0">
+      ${icon('warning','font-size:28px;color:#fa8c16')}
+      <h2 style="margin:0;font-size:22px">${inc.id} &nbsp;${inc.sum}</h2>
+      ${resolved&&inc.res!=='-'?tag(inc.res==='True Positive'?'tag-red':'tag-blue',inc.res):''}
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <div style="display:flex;gap:16px;align-items:center">
+        <span style="font-size:12px;color:#666">Status:</span> ${tag(stTag(inc.st),inc.st)}
+        <span style="font-size:12px;color:#666">Severity:</span> ${tag(sevTag(inc.sev),inc.sev)}
+      </div>
+      <div style="font-size:12px;color:#999;text-align:right">Opened: ${inc.created}:36<br>Last updated: ${inc.upd}:51</div>
+      <button class="ant-btn ant-btn-primary">Notify SOC</button>
+    </div>
+  </div></div>
+  ${resolved?`<div class="ant-alert alert-info">${icon('api','color:#1677ff')}<div><b>Auto-Resolved</b><br>Benign sign-in detected: successful login from trusted location [China, Internet IPs used in PDC]</div></div>`:''}
+  <div class="ant-card" style="margin-bottom:16px"><div class="ant-card-body">
+    <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid #f0f0f0;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+      <div style="display:flex;gap:16px;align-items:flex-start">
+        ${icon('user','font-size:32px;color:#1890ff')}
+        <div><h2 style="margin:0 0 4px;font-size:24px;font-weight:600"><a onclick="showUser(${uidx>=0?uidx:0})">${u.name}</a></h2>
+        <span style="color:#666;font-size:14px">${u.upn}</span> ${u.status?tag('tag-green','Active'):tag('tag-red','Inactive')}</div>
+      </div>
+      <div style="position:relative;width:120px;height:120px;border-radius:8px;background:${bg};border:1px solid ${bd};display:flex;flex-direction:column;justify-content:center;align-items:center">
+        <div style="position:absolute;top:8px;left:8px;font-size:12px;font-weight:700">${icon('safety','font-size:12px')} Risk Level</div>
+        <div style="font-size:24px;font-weight:700;color:${fg};margin-top:8px">${u.risk}</div>
+      </div>
+    </div>
+    <div style="font-size:12px;line-height:20px"><div class="row" style="margin:-3px">
+      <div class="col-6"><b>Email:</b> ${u.email}</div>
+      <div class="col-6"><b>Department:</b> ${u.dept}</div>
+      <div class="col-6"><b>MFA:</b> ${u.mfa>0?tag('tag-green','Authenticator'):tag('tag-red','No MFA')}</div>
+      <div class="col-6"><b>Password Change:</b> ${u.pwd}</div>
+      <div class="col-24"><b>${icon('warning')} Risk Factors:</b> ${tag('tag-volcano','MFA not registered')}${tag('tag-volcano','Sign-in from untrusted location')}</div>
+      <div class="col-24"><b>${icon('laptop')} Devices:</b> <a style="text-decoration:underline">PC-${u.dept.slice(0,3).toUpperCase()}-0231</a></div>
+    </div></div>
+  </div></div>
+  <div class="ant-card" style="margin-bottom:16px"><div class="ant-card-head">
+    <span>${icon('api','color:#722ed1;margin-right:8px')} AI Analysis Summary ${tag('tag-purple','ai-powered')}</span></div>
+    <div class="ant-card-body"><div style="padding:16px;background:#fff;border:1px solid #d9d9d9;border-radius:4px;max-height:400px;overflow:auto;font-size:13px">${aiSummary}</div></div></div>
+  <div class="ant-card"><div class="ant-card-head">
+    <span style="display:flex;gap:24px;font-size:13px;font-weight:400">
+      <span style="color:#1890ff;border-bottom:2px solid #1890ff;padding-bottom:2px;cursor:pointer">History</span>
+      <span style="color:#666;cursor:pointer">Comment</span>
+    </span></div>
+    <div class="ant-card-body" style="max-height:280px;overflow:auto">
+      ${timeline.map(([c,t,txt])=>`<div style="display:flex;gap:12px;padding-bottom:20px;position:relative">
+        <div style="flex:none;width:10px;padding-top:5px"><div style="width:10px;height:10px;border-radius:50%;border:2px solid ${c==='red'?'#ff4d4f':c==='green'?'#52c41a':'#1677ff'};background:#fff"></div>
+        <div style="width:2px;background:#f0f0f0;margin:4px auto 0;height:calc(100% - 14px)"></div></div>
+        <div style="min-width:0"><div style="font-size:12px;color:#999;margin-bottom:4px">${t}</div><div style="font-size:13px">${txt}</div></div>
+      </div>`).join('')}
+    </div></div>`;
+}
+function showUser(i) { document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active')); const mi=document.getElementById('mi-users'); if(mi)mi.classList.add('active'); contentEl.innerHTML=pageUserDetail(i); window.scrollTo(0,0); }
+function showIncident(i) { document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active')); const mi=document.getElementById('mi-incidents'); if(mi)mi.classList.add('active'); contentEl.innerHTML=pageIncidentDetail(i); window.scrollTo(0,0); }
+
+/* ---------- router ---------- */
+const PAGES = [
+  { key:'dashboard', icon:'dashboard', label:'Dashboard', render:pageDashboard },
+  { key:'users', icon:'user', label:'Users', render:pageUsers },
+  { key:'incidents', icon:'filesearch', label:'Incidents', render:pageIncidents },
+  { key:'groups', icon:'team', label:'Groups', render:pageGroups },
+  { key:'applications', icon:'appstore', label:'Applications', render:pageApplications },
+  { key:'explorer', icon:'api', label:'Identity Explorer', render:pageExplorer },
+  { key:'signin', icon:'login', label:'Sign-In Activity', render:pageSignins },
+  { key:'audit', icon:'audit', label:'Audit Log', render:pageAudit },
+  { key:'defender', icon:'alert', label:'Defender', render:pageDefender },
+  { key:'roles', icon:'safety', label:'AAD Roles', render:pageRoles },
+  { key:'devices', icon:'laptop', label:'Devices', render:pageDevices },
+  { key:'software', icon:'desktop', label:'Client Software', render:pageSoftware },
+  { divider:true },
+  { key:'migration', icon:'sync', label:'Tenant Migration', render:pageMigration },
+  { key:'settings', icon:'setting', label:'Settings', render:pageSettings },
+];
+const menuEl = document.getElementById('menu');
+const contentEl = document.getElementById('content');
+PAGES.forEach(p=>{
+  if (p.divider) { const d=document.createElement('div'); d.className='menu-divider'; menuEl.appendChild(d); return; }
+  const el=document.createElement('div');
+  el.className='menu-item'; el.id='mi-'+p.key;
+  el.innerHTML=`<span class="menu-icon">${icon(p.icon)}</span><span class="menu-label">${p.label}</span>`;
+  el.onclick=()=>nav(p.key);
+  menuEl.appendChild(el);
+});
+function nav(key) {
+  const p = PAGES.find(x=>x.key===key);
+  document.querySelectorAll('.menu-item').forEach(m=>m.classList.remove('active'));
+  document.getElementById('mi-'+key).classList.add('active');
+  contentEl.innerHTML = p.render();
+  contentEl.scrollTop = 0; window.scrollTo(0,0);
+}
+function toggleSider() { document.getElementById('sider').classList.toggle('collapsed'); }
+nav('dashboard');
+</script>
+</body>
+</html>
