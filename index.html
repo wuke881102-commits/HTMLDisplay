@@ -26,10 +26,11 @@
   "use strict";
 
   var STATUS = {
-    "self-innovate": { zh:"自研", en:"SELF-INNOVATE", desc:{ zh:"自主研发", en:"Built in-house" } },
-    "principle":     { zh:"原则", en:"PRINCIPLE",     desc:{ zh:"指导原则", en:"Guiding principle" } },
-    "practice":      { zh:"实践", en:"PRACTICE",      desc:{ zh:"应用实践", en:"Applied practice" } },
-    "commercial":    { zh:"商业产品", en:"COMMERCIAL", desc:{ zh:"商业方案", en:"Vendor solution" } }
+    "self-innovate": { zh:"自研", en:"SELF-INNOVATE", desc:{ zh:"自主研发", en:"Built In-house" } },
+    "commercial-self-innovate": { zh:"商业/自研", en:"COMMERCIAL/SELF-INNOVATE", desc:{ zh:"商业方案 + 自主研发", en:"Vendor + in-house" } },
+    "principle":     { zh:"原则", en:"PRINCIPLE",     desc:{ zh:"指导原则", en:"Guiding Principle" } },
+    "practice":      { zh:"实践", en:"PRACTICE",      desc:{ zh:"应用实践", en:"Applied Practice" } },
+    "commercial":    { zh:"商业产品", en:"COMMERCIAL", desc:{ zh:"商业方案", en:"Vendor Solution" } }
   };
 
   var left = [
@@ -55,14 +56,14 @@
     ]},
     { num:"02", t:{ zh:"AI 安全风险管理", en:"AI Security Risk Management" }, products:[
       { id:"ai-risk-framework", n:{ zh:"AI 安全风险框架", en:"AI Security Risk Framework" }, s:"principle" },
-      { id:"digital-human",     n:{ zh:"AI 数字员工安全", en:"AI Security for Digital Employee" }, s:"principle" },
-      { id:"security-openclaw", n:{ zh:"安全养虾", en:"Security for OpenClaw" }, s:"practice" }
+      { id:"digital-human",     n:{ zh:"AI 数字员工安全", en:"AI Security for Digital Employee" }, s:"principle" }
     ]},
     { num:"03", t:{ zh:"AI 安全防护", en:"AI Security Guardrail (+ Gateway)" }, products:[
-      { id:"ai-guardrails", n:{ zh:"AI 安全护栏（+ AI 网关）", en:"AI Guardrails" }, s:"commercial" }
+      { id:"ai-guardrails", n:{ zh:"AI 安全护栏", en:"AI Guardrails" }, s:"commercial" },
+      { id:"ai-gateway", n:{ zh:"AI 网关", en:"AI Gateway" }, s:"commercial" }
     ]},
     { num:"04", t:{ zh:"面向 AI 编码的安全智能体", en:"AI Agent for AI Coding" }, products:[
-      { id:"pentest-openclaw", n:{ zh:"基于 OpenClaw 的渗透测试", en:"Penetration Testing via OpenClaw" }, s:"self-innovate" }
+      { id:"pentest-openclaw", n:{ zh:"AI智能体参与渗透测试", en:"Penetration Testing via AI Agent" }, s:"commercial-self-innovate" }
     ]}
   ];
 
@@ -76,8 +77,8 @@
     "ai-safety-platform": "https://aisafe.glp.com.cn/",
     "ai-risk-framework": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/AIRisk",
     "digital-human": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/AgentRisk",
-    "security-openclaw": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/securityopenclaw",
     "ai-guardrails": "#",
+    "ai-gateway": "#",
     "pentest-openclaw": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/catclaw"
   };
 
@@ -116,7 +117,8 @@
       "self-innovate": "background:#E3F5EA;color:#008E43;border:1px solid #6BC592;",
       "principle":     "background:rgba(0,149,212,0.10);color:#0072A6;border:1px solid #57B6E0;",
       "practice":      "background:rgba(240,168,0,0.14);color:#9A6B00;border:1px solid #E8B33A;",
-      "commercial":    "background:#00AA4F;color:#FFFFFF;border:1px solid #00AA4F;font-weight:700;"
+      "commercial":    "background:#00AA4F;color:#FFFFFF;border:1px solid #00AA4F;font-weight:700;",
+      "commercial-self-innovate": "background:#EDEFF1;color:#5C6167;border:1px solid #C7CCD1;"
     };
     return base + (map[key] || map["self-innovate"]);
   }
@@ -180,7 +182,7 @@
     var leftDomains = mapDomains(left);
     var rightDomains = mapDomains(right);
 
-    var legend = ["self-innovate","principle","practice","commercial"].map(function(k){
+    var legend = ["self-innovate","principle","commercial"].map(function(k){
       return { badgeLabel: L(STATUS[k]), badgeStyle: statusStyle(k), desc: STATUS[k].desc[lang] };
     });
     var legendHtml = legend.map(function(l){
