@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitDLP 公开泄露检测台 · 带注释的交互式演示</title>
+<style>
+/* ============================================================
+   GitDLP — 公开 GitHub 敏感数据泄露检测系统
+   交互式演示（内容严格对齐实际功能；样式仿 UserAct demo 脚手架）
+   设计令牌取自 GitDLP theme.js · GLP 绿
+   ============================================================ */
+:root{
+  --canvas:#F5FAF6; --surface:#FFFFFF; --surface-2:#FCFDFE; --surface-sunken:#F0F4F1; --softer:#F4F9F5;
+  --border:#E2ECE5; --border-strong:#C8D8CE; --hairline:#EEF4F0; --linefaint:#E2ECE5;
+  --ink-900:#15241C; --ink-800:#2A3D33; --ink-700:#3F5449; --ink-600:#5F7468;
+  --ink-500:#6B7D72; --ink-400:#8AA295; --ink-300:#B4C4BA;
+  --primary:#1A8A55; --primary-700:#0F5C39; --primary-600:#15885F; --green-ink:#123B28;
+  --primary-soft:#E0F0E6; --primary-soft-2:#F0F8F4; --primary-ink:#0F5C39;
+  --risk-high:#C23A2F; --risk-high-soft:#FBE4E1; --risk-high-ink:#9E2A21;
+  --risk-med:#B98207; --risk-med-soft:#FBF3D8; --risk-med-ink:#8A5A00;
+  --ok:#1A8A55; --ok-soft:#E7F4EC; --warn:#B98207; --warn-soft:#FBF3D8; --warn-deep:#A5710A;
+  --orange:#C2621F; --orange-soft:#FAE6D6; --orange-ink:#A5510F; --orange-deep:#A5510F;
+  --info:#2B6BB5; --info-soft:#E4EEFB; --info-ink:#235B9C;
+  --neutral:#7A8C81; --neutral-bg:#EEF1EF;
+  --cat-secret:#C23A2F; --cat-secret-soft:#FBE4E1; --cat-pii:#C2621F; --cat-pii-soft:#FAE6D6;
+  --cat-source:#2B6BB5; --cat-source-soft:#E4EEFB; --cat-config:#B98207; --cat-config-soft:#FBF3D8;
+  --cat-other:#6B7D72; --cat-other-soft:#F0F4F1;
+  --font-sans:"Manrope","Noto Sans SC","Source Han Sans SC","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+  --font-mono:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+  --r-sm:4px; --r-md:6px; --r-lg:8px; --r-xl:12px; --r-2xl:16px;
+  --shadow-xs:0 1px 2px rgba(20,80,50,.05); --shadow-sm:0 1px 3px rgba(20,80,50,.08),0 0 0 1px rgba(20,80,50,.03);
+  --shadow-soft:0 6px 18px rgba(20,80,50,.05); --shadow-card:0 10px 30px rgba(20,80,50,.06);
+  --shadow-md:0 4px 12px rgba(20,80,50,.10),0 0 0 1px rgba(20,80,50,.04); --shadow-lg:0 8px 24px rgba(20,80,50,.14);
+  --maxw:1200px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;color:var(--ink-800);font-family:var(--font-sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+body{background:linear-gradient(180deg,#F5FAF6 0%,#EAF4EC 100%);}
+button{font-family:inherit;cursor:pointer;}input{font-family:inherit;}
+.mono{font-family:var(--font-mono);font-feature-settings:"tnum" 1;}
+::selection{background:var(--primary-soft);}
+@keyframes g-fade{from{opacity:0}to{opacity:1}}
+@keyframes g-fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes g-spin{to{transform:rotate(360deg)}}
+@keyframes anno-ping{0%{box-shadow:0 0 0 0 rgba(26,138,85,.5)}70%{box-shadow:0 0 0 8px rgba(26,138,85,0)}100%{box-shadow:0 0 0 0 rgba(26,138,85,0)}}
+.spin{animation:g-spin .9s linear infinite;display:inline-block;}
+.fade{animation:g-fade-up .35s ease;}
+svg{flex:none;}
+
+/* demo chrome */
+.demo-bar{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:18px;padding:10px 20px;background:#0c1f18;color:#dcefe3;border-bottom:1px solid #163b2c;flex-wrap:wrap;}
+.demo-bar .brandwrap{display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;color:#fff;}
+.demo-bar .brandwrap .badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:rgba(34,171,118,.2);color:#9ff0c8;font-size:10.5px;font-weight:700;letter-spacing:.06em;}
+.stepper{display:flex;align-items:center;gap:6px;margin:0 auto;}
+.stepper button{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:transparent;color:#88b6a2;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;transition:all .14s;}
+.stepper button .num{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;background:rgba(255,255,255,.08);color:#9ff0c8;}
+.stepper button.on{background:rgba(34,171,118,.16);color:#eafff4;border-color:rgba(34,171,118,.4);}
+.stepper button.on .num{background:var(--primary);color:#fff;}
+.stepper .arrow{color:#3c5f4f;font-size:13px;}
+.demo-actions{display:flex;align-items:center;gap:10px;}
+.demo-actions .toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid #2a5443;background:rgba(255,255,255,.04);color:#cdeeda;font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:999px;}
+.demo-actions .toggle.on{background:var(--primary);border-color:var(--primary-600);color:#fff;}
+.demo-actions .toggle .sw{width:30px;height:16px;border-radius:999px;background:#28473a;position:relative;transition:background .15s;}
+.demo-actions .toggle.on .sw{background:#0c3b27;}
+.demo-actions .toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#9bbcae;transition:all .16s;}
+.demo-actions .toggle.on .sw::after{left:16px;background:#fff;}
+.demo-actions .ghost{border:1px solid #2a5443;background:transparent;color:#a9d2c0;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:999px;}
+.demo-actions .ghost:hover{background:rgba(255,255,255,.05);color:#fff;}
+
+/* topnav */
+.g-topnav{position:sticky;top:49px;z-index:40;background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border-bottom:1px solid var(--linefaint);}
+.g-topnav .inner{width:var(--maxw);max-width:92vw;margin:0 auto;display:flex;align-items:center;gap:16px;height:72px;}
+.brandmark{display:flex;align-items:center;gap:12px;cursor:pointer;}
+.brandmark .glyph{width:44px;height:44px;border-radius:13px;flex:none;background:linear-gradient(155deg,var(--primary),var(--primary-700));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(15,95,57,.28);color:#fff;font-family:var(--font-mono);font-weight:600;font-size:18px;letter-spacing:-1px;}
+.brandmark .t1{font-weight:800;font-size:22px;color:var(--green-ink);line-height:1.05;letter-spacing:-.3px;}
+.brandmark .t2{font-size:12px;color:var(--ink-500);font-weight:500;}
+.g-topnav nav{display:flex;align-items:center;gap:6px;margin:0 auto;}
+.g-topnav nav button{border:none;background:transparent;color:var(--ink-800);font-weight:700;font-size:15px;padding:8px 16px;border-radius:999px;white-space:nowrap;}
+.g-topnav nav button.on{background:linear-gradient(150deg,var(--primary),var(--primary-700));color:#fff;}
+.tokpill{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;background:var(--ok-soft);color:var(--ok);font-size:13px;font-weight:700;}
+.tokpill .d{width:8px;height:8px;border-radius:50%;background:var(--ok);}
+.btn-primary{display:inline-flex;align-items:center;gap:7px;border:none;background:linear-gradient(150deg,var(--primary),var(--primary-700));color:#fff;padding:11px 20px;border-radius:12px;font-weight:700;font-size:14px;white-space:nowrap;box-shadow:0 6px 14px rgba(15,92,57,.25);}
+.btn-ghost{border:1px solid var(--border-strong);background:var(--surface);color:var(--ink-700);padding:11px 18px;border-radius:12px;font-weight:700;font-size:14px;}
+
+/* home / search */
+.g-home{background:radial-gradient(circle at 10% 18%,rgba(26,138,85,.10),transparent 26%),linear-gradient(180deg,#F6FBF7,#EEF6F0);}
+.wrap{width:var(--maxw);max-width:92vw;margin:0 auto;}
+.g-home-main{display:grid;grid-template-columns:1fr 500px;gap:60px;align-items:start;padding:56px 0 80px;}
+.kicker{display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:999px;background:var(--primary-soft);color:var(--primary-ink);font-weight:700;font-size:13px;margin-bottom:24px;}
+h1.hero{font-size:52px;line-height:1.08;font-weight:900;letter-spacing:-1.5px;color:var(--green-ink);margin:0 0 22px;}
+h1.hero .g{color:var(--primary);}
+p.lede{font-size:18px;line-height:1.6;color:var(--ink-700);max-width:560px;margin:0 0 34px;}
+.searchbox{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card);}
+.searchbox .mag{width:44px;height:44px;border-radius:12px;background:var(--softer);display:grid;place-items:center;color:var(--ink-400);flex:none;}
+.searchbox input{flex:1;border:none;outline:none;font-size:16px;color:var(--ink-900);background:transparent;}
+.searchbox .go{padding:13px 24px;border-radius:12px;background:var(--primary-soft);color:var(--primary-700);border:none;font-weight:700;font-size:15px;display:inline-flex;align-items:center;gap:8px;}
+.g-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+.g-tags span{font-size:12.5px;color:var(--ink-500);background:var(--surface);border:1px solid var(--linefaint);padding:5px 12px;border-radius:999px;}
+.notice{margin-top:14px;display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;flex-wrap:wrap;font-size:13px;line-height:1.5;}
+.check{display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:999px;font-size:12.5px;font-weight:700;cursor:pointer;flex:none;}
+.check .box{width:15px;height:15px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:900;color:#fff;}
+.fieldlabel{font-size:12.5px;font-weight:600;color:var(--ink-400);}
+.rangeseg{display:inline-flex;gap:4px;background:#edf1ed;padding:5px;border-radius:14px;flex-wrap:wrap;}
+.rangeseg button{border:none;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:700;background:transparent;color:var(--ink-600);}
+.rangeseg button.on{background:#fff;color:var(--primary-700);box-shadow:0 2px 8px rgba(20,80,50,.12);}
+.chipbtn{padding:8px 16px;border-radius:999px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid var(--linefaint);background:var(--surface);color:#3f5449;}
+.chipbtn.on{background:var(--primary-soft);border-color:#b7dcc4;color:var(--primary-ink);}
+/* evidence card */
+.g-ev-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:36px;box-shadow:0 18px 44px rgba(20,80,50,.10);}
+.g-ev-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:24px;}
+.g-ev-head span{font-weight:800;font-size:20px;color:var(--green-ink);}
+.g-ev-head b{font-size:11px;font-weight:700;color:#9fb3a6;letter-spacing:1px;}
+.g-ev-tier{border-radius:16px;padding:20px 22px;display:flex;align-items:center;gap:16px;margin-bottom:14px;}
+.g-ev-tier .bar{width:5px;align-self:stretch;border-radius:999px;flex:none;}
+.g-ev-tier strong{display:block;font-weight:800;font-size:16px;margin-bottom:3px;}
+.g-ev-tier p{margin:0;font-size:13px;color:var(--ink-700);line-height:1.5;}
+.g-ev-tier .no{font-family:var(--font-mono);font-weight:800;font-size:30px;opacity:.45;}
+.home-foot{padding:16px 0 34px;text-align:center;color:var(--ink-400);font-size:12px;}
+/* expansion panel */
+.exp-trigger{display:inline-flex;align-items:center;gap:8px;padding:9px 16px;border-radius:12px;background:var(--surface);border:1px dashed var(--border);font-size:13.5px;font-weight:700;color:var(--primary-700);cursor:pointer;}
+.exp-panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;box-shadow:var(--shadow-card);}
+.cand{display:flex;align-items:center;gap:12px;padding:11px 13px;border-radius:11px;cursor:pointer;border:1px solid var(--linefaint);background:#fafbfa;}
+.cand.on{background:#f2f8f4;border-color:#c8e2d3;}
+.cand .rad{width:17px;height:17px;flex:none;border-radius:5px;border:1.5px solid #c3d3ca;display:grid;place-items:center;color:#fff;font-size:11px;font-weight:900;}
+.cand.on .rad{background:var(--primary);border-color:var(--primary);}
+.breadthtag{font-size:10.5px;font-weight:800;padding:2px 7px;border-radius:999px;}
+.recent-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--linefaint);cursor:pointer;font-size:13px;}
+
+/* workbench */
+.pageband{padding:34px 0 70px;}
+.wbhead{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:14px;}
+.eyebrow{font-size:12px;font-weight:800;color:var(--primary);letter-spacing:1px;margin-bottom:6px;}
+.h2{font-size:34px;font-weight:900;color:var(--green-ink);letter-spacing:-.5px;margin:0;}
+.statstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px;}
+.statcard{background:#fff;border:1px solid var(--border);border-radius:16px;padding:20px 22px;box-shadow:var(--shadow-soft);}
+.statcard .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.statcard .lbl{font-size:13.5px;color:var(--ink-500);font-weight:700;}
+.statcard .dot{width:10px;height:10px;border-radius:50%;}
+.statcard .val{font-size:32px;font-weight:800;color:var(--ink-900);font-family:var(--font-mono);line-height:1;}
+.statcard .delta{font-size:12.5px;font-weight:700;margin-top:6px;}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--linefaint);border-radius:12px;padding:5px;gap:3px;flex-wrap:wrap;}
+.seg button{padding:9px 16px;border-radius:9px;font-weight:700;font-size:13.5px;border:none;background:transparent;color:#3f5449;}
+.seg button.on{background:var(--primary);color:#fff;}
+.subseg{display:inline-flex;background:#eef2ef;border-radius:11px;padding:4px;gap:3px;}
+.subseg button{padding:7px 13px;border-radius:8px;font-size:13px;font-weight:700;border:none;background:transparent;color:var(--ink-600);}
+.subseg button.on{background:#fff;color:var(--primary-700);box-shadow:0 1px 4px rgba(20,80,50,.12);}
+.ftoggle{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;cursor:pointer;background:#fff;border:1px solid var(--linefaint);font-size:13px;font-weight:700;color:#3f5449;}
+.ftoggle.on{background:var(--primary-soft);border-color:#b7dcc4;color:var(--primary-ink);}
+.ftoggle .box{width:15px;height:15px;border-radius:5px;border:1.5px solid #c3d3ca;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:900;}
+.ftoggle.on .box{background:var(--primary);border-color:var(--primary);}
+.wbtable{background:#fff;border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:var(--shadow-card);}
+.wbrow{display:grid;grid-template-columns:88px 1.7fr 1.25fr 1fr 118px 92px 40px;gap:16px;padding:16px 24px;align-items:center;}
+.wbhd{background:var(--softer);border-bottom:1px solid var(--border);font-size:12.5px;font-weight:800;color:var(--ink-500);letter-spacing:.3px;}
+.wbtr{border-bottom:1px solid var(--hairline);cursor:pointer;transition:background .12s;text-align:left;background:none;border-left:none;border-right:none;border-top:none;width:100%;}
+.wbtr:hover{background:var(--softer);}
+.scorebadge{width:56px;height:56px;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;}
+.scorebadge .n{font-size:22px;font-weight:800;font-family:var(--font-mono);line-height:1;}
+.scorebadge .s{font-size:9px;font-weight:800;margin-top:1px;letter-spacing:.5px;}
+.catpill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;}
+.valpill{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-size:12.5px;font-weight:700;}
+.autofetch{background:#fff;border:1px solid #ecdca6;border-radius:14px;padding:14px 18px;box-shadow:var(--shadow-soft);margin-bottom:18px;}
+.pbar{height:8px;background:var(--surface-sunken);border-radius:6px;overflow:hidden;}
+.pbar>div{height:100%;background:linear-gradient(90deg,var(--primary-600),var(--primary-700));border-radius:6px;transition:width .3s;}
+.narrowbanner{background:var(--warn-soft);border:1px solid #ecdca6;border-radius:14px;padding:15px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+
+/* detail */
+.backlink{display:inline-flex;align-items:center;gap:7px;color:var(--ink-500);font-weight:700;font-size:14px;cursor:pointer;margin-bottom:18px;}
+.dheadcard{background:#fff;border:1px solid var(--border);border-radius:20px;padding:26px 30px;box-shadow:var(--shadow-card);margin-bottom:20px;display:flex;align-items:center;gap:26px;flex-wrap:wrap;}
+.dbig{width:92px;height:92px;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:none;}
+.dbig .n{font-size:40px;font-weight:800;font-family:var(--font-mono);line-height:1;}
+.dbig .s{font-size:11px;font-weight:800;letter-spacing:.5px;}
+.dgrid{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;}
+.tier{background:#fff;border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:16px;}
+.tier .th{padding:16px 22px;display:flex;align-items:center;justify-content:space-between;border-left:5px solid;}
+.tier .th .tt{font-weight:800;font-size:17px;}
+.tier .th .rt{font-size:12px;font-weight:700;}
+.tier .tb{padding:20px 22px;}
+.codebox{background:#132019;color:#c7d6cd;border-radius:12px;padding:16px 18px;font-family:var(--font-mono);font-size:13px;line-height:1.9;overflow:auto;max-height:260px;}
+.codebox mark{background:rgba(194,58,47,.30);color:#ff8f84;border-radius:3px;padding:0 2px;}
+.codebox mark.m{background:rgba(224,184,74,.28);color:#f0d98a;}
+.meta{min-width:0;}.meta .k{font-size:12px;color:#8aa295;font-weight:600;}.meta .v{font-weight:700;font-size:13.5px;color:var(--ink-800);font-family:var(--font-mono);word-break:break-all;}
+.dial{width:120px;height:120px;border-radius:50%;display:grid;place-items:center;flex:none;}
+.dial .in{width:96px;height:96px;border-radius:50%;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.minibox{background:var(--softer);border-radius:10px;padding:12px 14px;}
+.minibox .k{font-size:12px;color:#8aa295;font-weight:600;}.minibox .v{font-weight:700;font-size:13.5px;}
+.spreadstat{background:var(--softer);border-radius:12px;padding:14px;text-align:center;}
+.spreadstat .n{font-size:26px;font-weight:800;font-family:var(--font-mono);}
+.spreadstat .k{font-size:12px;color:var(--ink-500);font-weight:600;}
+.panel{background:#fff;border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:var(--shadow-card);margin-bottom:16px;}
+.factor{margin-bottom:13px;}
+.factor .fl{display:flex;justify-content:space-between;margin-bottom:5px;font-size:13.5px;}
+.factor .fbar{height:8px;background:var(--neutral-bg);border-radius:6px;overflow:hidden;}
+.factor .fbar>div{height:100%;border-radius:6px;}
+.runstep{display:flex;gap:12px;align-items:flex-start;padding:13px 14px;border-radius:12px;margin-bottom:10px;}
+.runstep .n{width:24px;height:24px;border-radius:50%;color:#fff;font-size:12px;font-weight:800;display:grid;place-items:center;flex:none;}
+.iconbtn{display:grid;place-items:center;width:34px;height:34px;border-radius:999px;border:1px solid var(--border);background:#fff;color:var(--ink-600);flex:none;}
+
+/* pages */
+.g-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:var(--shadow-card);}
+.g-table th{background:var(--softer);font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500);text-align:left;padding:14px;}
+.g-table td{border-bottom:1px solid var(--hairline);padding:14px;font-size:12.5px;color:var(--ink-700);vertical-align:top;}
+.g-table tr:hover td{background:var(--softer);}
+.sevpill{font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;}
+.acct-card{background:#fff;border:1px solid var(--border);border-radius:20px;overflow:hidden;box-shadow:var(--shadow-soft);}
+.src-card{background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-soft);padding:16px;}
+
+/* annotation */
+.anno-pin{display:none;}
+body.anno-on .anno-pin{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--primary);color:#fff;font-size:11px;font-weight:800;vertical-align:middle;margin:0 3px;flex:none;box-shadow:0 2px 6px -1px rgba(26,138,85,.6);animation:anno-ping 2.4s infinite;cursor:pointer;position:relative;z-index:5;}
+body.anno-on .anno-pin:hover{transform:scale(1.12);}
+.anno-anchor{position:relative;}
+body.anno-on .anno-pin.corner{position:absolute;top:-9px;left:-9px;}
+.anno-pop{position:fixed;z-index:95;width:340px;max-width:92vw;background:#0c1f18;color:#e7f6ee;border-radius:12px;box-shadow:0 18px 50px -10px rgba(0,0,0,.5);animation:g-fade-up .18s ease;border:1px solid #1d4634;}
+.anno-pop .ah{display:flex;align-items:center;gap:9px;padding:13px 15px 9px;border-bottom:1px solid #163b2c;}
+.anno-pop .ah .n{width:22px;height:22px;border-radius:50%;background:var(--primary);color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;flex:none;}
+.anno-pop .ah .ti{font-weight:800;font-size:14px;color:#fff;}
+.anno-pop .ab{padding:11px 15px 14px;font-size:12.8px;line-height:1.62;color:#c8e3d6;}
+.anno-pop .ab b{color:#9ff0c8;font-weight:700;}
+.anno-pop .src{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:600;color:#7fbfa3;background:rgba(34,171,118,.12);padding:4px 9px;border-radius:6px;}
+.anno-pop .closep{margin-left:auto;border:none;background:transparent;color:#6f9685;}
+.anno-hint{display:none;}
+body.anno-on .anno-hint{display:flex;align-items:center;gap:8px;justify-content:center;padding:9px 16px;background:var(--primary-soft);color:var(--primary-ink);font-size:12.5px;font-weight:600;border-bottom:1px solid rgba(26,138,85,.18);}
+
+/* intro / modal */
+.scrim{position:fixed;inset:0;background:rgba(12,31,24,.55);z-index:100;display:grid;place-items:center;padding:24px;animation:g-fade .2s ease;}
+.intro{width:100%;max-width:580px;background:#fff;border-radius:18px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.intro .ih{padding:26px 28px 20px;background:linear-gradient(135deg,#0f5c39,#1a8a55);color:#fff;}
+.intro .ih h2{margin:0 0 6px;font-size:21px;font-weight:900;}
+.intro .ih p{margin:0;font-size:13px;color:#d7f0e2;line-height:1.6;}
+.intro .ib{padding:22px 28px;}
+.intro .step{display:flex;gap:13px;padding:11px 0;border-bottom:1px solid var(--hairline);}
+.intro .step:last-child{border-bottom:none;}
+.intro .step .n{width:26px;height:26px;border-radius:50%;background:var(--primary-soft);color:var(--primary-ink);font-weight:800;font-size:13px;display:grid;place-items:center;flex:none;}
+.intro .step .tt{font-weight:700;color:var(--ink-900);font-size:13.5px;}
+.intro .step .dd{font-size:12.5px;color:var(--ink-600);margin-top:2px;line-height:1.55;}
+.intro .if{padding:0 28px 26px;display:flex;justify-content:flex-end;}
+
+@media(max-width:1080px){.dgrid{grid-template-columns:1fr;}.g-home-main{grid-template-columns:1fr;}.statstrip{grid-template-columns:repeat(2,1fr);}.wbrow{grid-template-columns:64px 2fr 1fr 90px;}.wbrow>.hide{display:none;}}
+</style>
+</head>
+<body class="anno-on">
+
+<div class="demo-bar">
+  <div class="brandwrap">GitDLP <span class="badge">交互式演示</span></div>
+  <div class="stepper" id="stepper">
+    <button data-step="search"><span class="num">1</span>搜寻台</button><span class="arrow">›</span>
+    <button data-step="workbench"><span class="num">2</span>检测工作台</button><span class="arrow">›</span>
+    <button data-step="detail"><span class="num">3</span>命中详情</button>
+  </div>
+  <div class="demo-actions">
+    <button class="toggle on" id="annoToggle"><span class="sw"></span>注释模式</button>
+    <button class="ghost" id="introBtn">使用说明</button>
+    <button class="ghost" id="restartBtn">重新开始</button>
+  </div>
+</div>
+<div class="anno-hint" id="annoHint">注释模式已开启 — 界面上闪烁的绿色数字 ❶❷❸ 可点击，查看每个区域的功能说明与对应能力 / 合规边界。</div>
+
+<div id="app"></div>
+<div id="overlay"></div>
+
+<script>
+/* ============================ 图标 ============================ */
+const ICONS={
+  search:"M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3",user:"M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0",
+  shield:"M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z",alert:"M12 4 2.5 20h19L12 4Z|M12 10v4|M12 17.5v.5",
+  clock:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z|M12 7v5l3 2",globe:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z|M3 12h18|M12 3c2.5 2.5 3.5 5.7 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.7-3.5-9s1-6.5 3.5-9Z",
+  key:"M14 7a4 4 0 1 0-3.4 6L4 19.6 5.5 21l1.5-1.5L8.5 21 10 19.5 8.5 18l2.5-2.5A4 4 0 0 0 14 7Z",code:"M8 6l-6 6 6 6|M16 6l6 6-6 6",file:"M6 2h8l4 4v16H6zM14 2v4h4",
+  refresh:"M21 12a9 9 0 1 1-2.6-6.3M21 4v4h-4",download:"M12 3v12m0 0 4-4m-4 4-4-4|M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2",
+  chevronD:"M6 9l6 6 6-6",chevronR:"M9 6l6 6-6 6",chevronL:"M15 6l-6 6 6 6",x:"M6 6l12 12M18 6 6 18",check:"M5 12l5 5 9-11",
+  lock:"M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3",building:"M5 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M15 9h3a1 1 0 0 1 1 1v11M9 7h2M9 11h2M9 15h2",
+  layers:"M12 3l9 5-9 5-9-5 9-5Z|M3 13l9 5 9-5",list:"M8 6h13M8 12h13M8 18h13|M3.5 6h.01M3.5 12h.01M3.5 18h.01",
+  arrowR:"M5 12h14M13 6l6 6-6 6",bolt:"M13 3 4 14h7l-1 7 9-11h-7l1-7Z",history:"M3 12a9 9 0 1 1 3 6.7M3 12H1m2 0V9|M12 8v4l3 2",
+  ticket:"M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4V7Z|M13 7v10",fork:"M6 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm12 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9M12 15v6",
+  star:"M12 3l2.7 5.9L21 9.7l-4.6 4.3L17.6 21 12 17.7 6.4 21l1.2-7L3 9.7l6.3-.8L12 3Z",eye:"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z|M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
+  calendar:"M4 5h16v16H4zM4 9h16M8 3v4M16 3v4",wrench:"M14 7a4 4 0 0 1-5.5 3.7L4 15l3 3 4.3-4.5A4 4 0 0 0 17 8l-2 2-2-2 2-2a4 4 0 0 0-1-.99",
+  plus:"M12 5v14M5 12h14",flask:"M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3",
+};
+function icon(n,s=16,st=1.7,c){const r=ICONS[n];if(!r)return"";return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c||'currentColor'}" stroke-width="${st}" stroke-linecap="round" stroke-linejoin="round">${r.split("|").map(d=>`<path d="${d}"/>`).join("")}</svg>`;}
+
+/* ============================ 数据（完全虚构） ============================ */
+const CAT={secret:{label:"密钥/凭据",c:"secret",icon:"key"},pii:{label:"PII / 客户",c:"pii",icon:"user"},source:{label:"内部源代码",c:"source",icon:"code"},config:{label:"内部配置",c:"config",icon:"file"},other:{label:"其他/关键词",c:"other",icon:"list"}};
+function sev(x){return x>=80?{k:"high",label:"高危",c:"var(--risk-high)",soft:"var(--risk-high-soft)",ink:"var(--risk-high-ink)"}:x>=60?{k:"mid",label:"中",c:"var(--risk-med)",soft:"var(--risk-med-soft)",ink:"var(--risk-med-ink)"}:{k:"low",label:"低",c:"var(--ok)",soft:"var(--ok-soft)",ink:"var(--ink-600)"};}
+
+const CANDIDATES=[
+  {id:"c1",q:'"glp.com"',label:"域名精确 · glp.com",desc:"代码中出现 glp.com（边界匹配，排除 123glp.com 之类子串）",breadth:"precise"},
+  {id:"c2",q:'"@glp.com"',label:"企业邮箱后缀 · @glp.com",desc:"提交作者 / 配置中出现 @glp.com 邮箱",breadth:"precise"},
+  {id:"c3",q:'"glp.com" filename:.env',label:"配置泄露 · glp.com + .env",desc:".env 等配置文件中出现该域名",breadth:"medium"},
+  {id:"c4",q:'"glp.com" AKIA',label:"疑似 AWS 密钥 · glp.com",desc:"域名附近出现 AWS AKIA 前缀",breadth:"medium"},
+  {id:"c5",q:"glp",label:"组织 / 仓库名 · glp",desc:"仓库名或代码含 glp（宽泛，噪声高）",breadth:"broad"},
+];
+const BREADTH={precise:{label:"精确",bg:"var(--primary-soft)",fg:"var(--primary-ink)"},medium:{label:"中等",bg:"var(--warn-soft)",fg:"var(--risk-med-ink)"},broad:{label:"宽泛",bg:"var(--orange-soft)",fg:"var(--orange-ink)"}};
+
+const HITS=[
+  {id:"H-4471",score:91,cat:"secret",type:"私钥文件",repo:"acme-labs/glp-infra",path:"deploy/keys/id_rsa",account:"acme-labs",acctType:"Organization",validity:"待验证",status:"待研判",ev:"direct",forks:12,stars:213,isNew:true,dup:1,commit:"3c9a71b",author:"ops-bot@acme-labs.io",date:"2026-04-18",conf:"高",entropy:5.7,
+   frag:['# glp.com prod bastion','host: bastion.glp.com','-----BEGIN OPENSSH PRIVATE KEY-----','b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAAB...','-----END OPENSSH PRIVATE KEY-----'],rawTerm:"-----BEGIN OPENSSH PRIVATE KEY-----",findingType:"私钥文件",findingMasked:"----****----",
+   forkList:["forks/glp-infra-mirror","cn-devops/glp-infra"],factors:[["密钥有效性：待验证",10,35],["数据敏感度：密钥/凭据",25,25],["已扩散（12 个 fork）",20,20],["账号与公司关联强度（3 次命中）",8,10],["仓库热度（213 star）",10,10]]},
+  {id:"H-4468",score:88,cat:"secret",type:"AWS 访问密钥",repo:"acme-labs/glp-infra",path:"config/prod.env",account:"acme-labs",acctType:"Organization",validity:"待验证",status:"处置中",ev:"direct",forks:12,stars:213,isNew:true,dup:2,commit:"77ac1e0",author:"ops-bot@acme-labs.io",date:"2026-05-02",conf:"高",entropy:4.6,
+   frag:['# --- glp.com production ---','AWS_REGION=ap-southeast-1','AWS_ACCESS_KEY_ID=AKIA3XVB2N9QJ7X','AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCY','DB_HOST=db.glp.com'],rawTerm:"AKIA3XVB2N9QJ7X",findingType:"AWS 访问密钥",findingMasked:"AKIA****QJ7X",
+   forkList:["forks/glp-infra-mirror","cn-devops/glp-infra"],factors:[["密钥有效性：待验证",10,35],["数据敏感度：密钥/凭据",25,25],["已扩散（12 个 fork）",20,20],["账号与公司关联强度（3 次命中）",8,10],["仓库热度（213 star）",10,10]]},
+  {id:"H-5120",score:82,cat:"secret",type:"GitHub Token",repo:"cfgh/ci-templates",path:".github/workflows/ci.yml",account:"cfgh",acctType:"User",validity:"待验证",status:"待研判",ev:"direct",forks:4,stars:31,isNew:false,dup:1,commit:"12ee9f0",author:"chen.f@glp.com",date:"2026-06-01",conf:"高",entropy:5.2,
+   frag:['env:','  GLP_REGISTRY: registry.glp.com','  token: ghp_9sXQ2mVb7Lp0RtYc8dWnE4kZ1aH6k2mA','run: deploy --to glp.com'],rawTerm:"ghp_9sXQ2mVb7Lp0RtYc8dWnE4kZ1aH6k2mA",findingType:"GitHub Token",findingMasked:"ghp_****k2mA",
+   forkList:["ci-mirror/ci-templates"],factors:[["密钥有效性：待验证",10,35],["数据敏感度：密钥/凭据",25,25],["已扩散（4 个 fork）",16,20],["账号与公司关联强度（1 次命中）",2,10],["仓库热度（31 star）",10,10]]},
+  {id:"H-3302",score:74,cat:"secret",type:"数据库连接串",repo:"devops-cn/deploy-scripts",path:"deploy/settings.py",account:"devops-cn",acctType:"User",validity:"待验证",status:"待研判",ev:"direct",forks:1,stars:9,isNew:false,dup:1,commit:"55b0d21",author:"li.m@glp.com",date:"2026-05-20",conf:"高",entropy:4.1,
+   frag:['# settings for glp.com portal','DATABASE_URL=postgres://glp_app:pgS3cr3tPwd@db.glp.com:5432/glp','REDIS_URL=redis://cache.glp.com:6379'],rawTerm:"postgres://glp_app:pgS3cr3tPwd@db.glp.com:5432/glp",findingType:"数据库连接串",findingMasked:"postgres://glp_app:pg****@db.glp.com",
+   forkList:[],factors:[["密钥有效性：待验证",10,35],["数据敏感度：密钥/凭据",25,25],["扩散：暂未见 fork",0,20],["账号与公司关联强度（1 次命中）",2,10],["仓库热度（9 star）",3,10]]},
+  {id:"H-6015",score:58,cat:"pii",type:"手机号",repo:"data-collab/analysis",path:"data/customers.csv",account:"data-collab",acctType:"Organization",validity:"无法验证",status:"待研判",ev:"direct",forks:0,stars:5,isNew:false,dup:1,commit:"9a0b1c2",author:"anon@users.noreply.github.com",date:"2026-03-11",conf:"中",entropy:null,
+   frag:['name,phone,email,city','张伟,13800002837,zhang@glp.com,上海','李娜,13900004612,li.na@glp.com,北京'],rawTerm:"13800002837",findingType:"手机号",findingMasked:"138****2837",
+   forkList:[],factors:[["数据敏感度：PII / 客户数据",22,25],["扩散：暂未见 fork",0,20],["账号与公司关联强度（1 次命中）",2,10],["仓库热度（5 star）",1,10]]},
+  {id:"H-6088",score:52,cat:"pii",type:"身份证号",repo:"data-collab/analysis",path:"data/staff.json",account:"data-collab",acctType:"Organization",validity:"无法验证",status:"待研判",ev:"direct",forks:0,stars:5,isNew:true,dup:1,commit:"9a0b1c2",author:"anon@users.noreply.github.com",date:"2026-03-11",conf:"高",entropy:null,
+   frag:['{','  "name": "王芳",','  "idcard": "310104199001011234",','  "email": "wang.f@glp.com"','}'],rawTerm:"310104199001011234",findingType:"身份证号",findingMasked:"3101**********1234",
+   forkList:[],factors:[["数据敏感度：PII / 客户数据",22,25],["扩散：暂未见 fork",0,20],["账号与公司关联强度（1 次命中）",2,10],["仓库热度（5 star）",1,10]]},
+  {id:"H-7001",score:38,cat:"config",type:"内部配置文件（仅关键词命中）",repo:"jwang/glp-portal",path:"config/app.yml",account:"jwang",acctType:"User",validity:"无法验证",status:"待研判",ev:"path",forks:0,stars:2,isNew:false,dup:1,commit:"3e4f5a6",author:"jwang@users.noreply.github.com",date:"2026-02-08",conf:"低",entropy:null,
+   frag:['app:','  name: glp-portal','  base_url: https://portal.glp.com','  theme: default'],rawTerm:"glp.com",findingType:null,findingMasked:null,
+   forkList:[],factors:[["数据敏感度：内部配置",12,25],["扩散：暂未见 fork",0,20],["账号与公司关联强度（1 次命中）",2,10],["仓库热度（2 star）",1,10]]},
+  {id:"H-8003",score:24,cat:"other",type:"关键词命中（非代码/配置）",repo:"tourblog/notes",path:"posts/glp-visit.md",account:"tourblog",acctType:"User",validity:"无法验证",status:"待研判",ev:"path",forks:0,stars:0,isNew:false,dup:1,commit:"7f8a9b0",author:"tourblog@users.noreply.github.com",date:"2025-11-30",conf:"低",entropy:null,
+   frag:['# 参观游记','今天参观了 glp.com 的物流园区，','规模非常大，感谢接待。'],rawTerm:"glp.com",findingType:null,findingMasked:null,
+   forkList:[],factors:[["数据敏感度：其他/关键词命中",4,25],["扩散：关键词命中不计扩散",0,20],["账号关联：关键词命中不计关联",0,10],["仓库热度：关键词命中不计热度",0,10]]},
+];
+
+const HISTORY=[
+  {q:"glp.com",range:"近期新增泄露排查",at:"2026-07-19 18:20",count:8,total:2716,sev:{high:3,mid:1,low:4},snap:true,sched:"每 3 天",exp:false,newc:3},
+  {q:"glpprop.com",range:"近期新增泄露排查",at:"2026-07-19 18:18",count:66,total:72,sev:{high:0,mid:0,low:66},snap:true,sched:null,exp:false,newc:0},
+  {q:"普洛斯",range:"历史存量清查",at:"2026-07-19 18:00",count:100,total:3696,sev:{high:0,mid:0,low:100},snap:false,sched:null,exp:false,newc:0},
+  {q:"AKIA glp",range:"近期新增泄露排查",at:"2026-07-18 21:04",count:48,total:120,sev:{high:2,mid:1,low:45},snap:false,sched:"每 7 天",exp:true,newc:5},
+];
+const AUDIT=[
+  {action:"扫描发起",cat:"扫描",target:"glp.com",detail:"排查语境「近期新增泄露排查」· 类型「全部」· 域名精确 + 降噪",actor:"安全分析师 · 当前用户",at:"2026-07-19 18:20:07"},
+  {action:"证据访问",cat:"证据",target:"acme-labs/glp-infra · AWS 访问密钥",detail:"授权查看命中原文（AWS 访问密钥）· 已解除脱敏",actor:"安全分析师 · 当前用户",at:"2026-07-19 18:22:41"},
+  {action:"有效性验证（演示）",cat:"验证",target:"acme-labs/glp-infra · AWS 访问密钥",detail:"演示态：未对外发起任何真实探测请求；真实只读验证需后端接入并经安全评审。",actor:"安全分析师 · 当前用户",at:"2026-07-19 18:23:05"},
+  {action:"工单派发",cat:"工单",target:"acme-labs/glp-infra · AWS 访问密钥",detail:"风险分 88 · 生成工单草稿并登记为「处置中」（演示态，未对外建单）",actor:"安全分析师 · 当前用户",at:"2026-07-19 18:23:30"},
+  {action:"配置变更",cat:"配置",target:"GitHub Token",detail:"已设置并校验通过（登录名 kwu2）",actor:"安全分析师 · 当前用户",at:"2026-07-19 17:59:02"},
+];
+const AUDIT_STYLE={"扫描发起":["🔍","var(--primary)","var(--ok-soft)","扫描"],"证据访问":["🔓","var(--warn-deep)","var(--warn-soft)","证据"],"有效性验证（演示）":["🧪","var(--orange-ink)","var(--orange-soft)","验证"],"工单派发":["📮","var(--info-ink)","var(--info-soft)","工单"],"配置变更":["⚙️","var(--ink-700)","var(--surface-sunken)","配置"]};
+
+/* ============================ 注释 ============================ */
+const ANNOS={
+  "a-search":{n:1,title:"搜索与目标解析",src:"api.js · GET /search/code",body:"支持 <b>密钥指纹、仓库、GitHub 账号、公司域名、关键词</b>。调用 GitHub 公开代码搜索，对返回的 <b>text-match 片段</b>实时运行检测引擎——不是简单展示搜索结果。"},
+  "a-domain":{n:2,title:"域名精确匹配",src:"detect.js · matchesDomainStrict",body:"用<b>边界正则</b>把裸域名收敛：<b>排除</b> 123glp.com / glp.company，<b>保留</b> mail.glp.com、@glp.com。这是纯关键词搜索最大的噪声来源。"},
+  "a-denoise":{n:3,title:"降噪限定词",src:"store.jsx · buildQuery",body:"自动追加 <b>-path:node_modules -path:vendor -filename:*lock</b> 等负向限定词，剔除依赖/锁文件噪声，收敛结果、减少翻页。被 GitHub 拒绝（422）时自动回退。可关。"},
+  "a-expand":{n:4,title:"扩展搜索（可选）",src:"detect.js · buildAssetCandidates",body:"<b>可选内联面板</b>，非必经步骤。把域名炸成多个<b>共现候选</b>（@域名、域名+.env、域名+AKIA…）勾选后各自独立查询、合并去重。宽泛候选噪声高，默认不勾。"},
+  "a-chips":{n:5,title:"按类型筛选",src:"detect.js · 五类命中",body:"密钥/凭据 · 内部源代码 · PII/客户 · 内部配置 · 其他/关键词。可选，不选＝全部。“其他/关键词”是仅靠关键词/子串命中、无实际密钥/PII 的低价值项。"},
+  "a-range":{n:6,title:"排查语境",src:"Home.jsx · 写入审计",body:"GitHub 代码搜索按相关度返回默认分支当前内容，<b>不支持按时间过滤</b>。此处仅<b>标注排查性质</b>并写入审计，不冒充时间筛选。"},
+  "a-tiers":{n:7,title:"四层证据模型",src:"命中详情 · 统一结构",body:"每条命中归纳为四层：<b>命中证据快照 → 密钥有效性 → 扩散与影响面 → 溯源账号线索</b>，避免把“结论”与“原始事实”混为一谈。"},
+  "a-recent":{n:8,title:"最近搜索",src:"store.jsx · localStorage",body:"本浏览器记录的最近搜寻，点击<b>直接复跑</b>（带原参数）。完整合规留痕在「审计追踪」。"},
+  "a-scaninfo":{n:9,title:"上次扫描信息",src:"Workbench · lastScan",body:"显示 <b>匹配总数（展示条数）</b>、<b>较上次新增</b> N 条、以及<b>域名精确剔除</b>了多少条子串误配。首次排查会建立基线，下次高亮新增。"},
+  "a-autofetch":{n:10,title:"自动渐进取全",src:"store.jsx · deepen()",body:"首屏出结果后<b>后台自动取全</b>：先“取满”翻到 GitHub 的 1000 条上限；匹配 &gt;1000 再<b>按文件类型分片</b>突破。全程<b>限速 10 次/分钟</b>、有进度条、可随时停止；离开再回来会<b>断点续跑</b>，不重头。"},
+  "a-narrow":{n:11,title:"结果过多 → 精确重搜",src:"Workbench · 一键收敛",body:"匹配数超阈值时提示：用<b>共现精确候选</b>（域名+AKIA / +.env 等）一键重搜，把范围收敛到真正相关的命中，而不是硬翻到 1000。"},
+  "a-stats":{n:12,title:"统计条",src:"Workbench · computeStats",body:"四个关键指标：<b>待研判命中 · 密钥/凭据命中 · 已扩散（有 fork）· 高危命中（≥80）</b>。仍生效的生产密钥自动获最高处置优先级。"},
+  "a-typetabs":{n:13,title:"类型筛选 + 排序",src:"Workbench · TYPE_TABS",body:"按命中类型过滤（全部 / 密钥 / 源代码 / PII / 配置 / 其他）。右侧可在<b>按风险分</b> / <b>按有效性</b>之间排序。"},
+  "a-denoiseRow":{n:14,title:"降噪筛选",src:"Workbench · filtered/meta",body:"<b>风险阈值</b>（全部 / ≥60 中危+ / ≥80 高危，与全站分档一致）、<b>只看检测到密钥/PII</b>（隐藏纯关键词命中）、<b>相同密钥去重</b>、<b>只看本次新增</b>。全部<b>复用已有检测/评分，零额外 API</b>。"},
+  "a-queue":{n:15,title:"命中队列",src:"Workbench · 命中表",body:"按风险分排序。<b>×N 处</b>＝同一密钥在多处出现（去重折叠），<b>🆕 新增</b>＝较上次排查新增，<b>⊕ 扩展来源</b>＝来自哪个扩展候选。点任意一条进入命中详情。"},
+  "a-loadmore":{n:16,title:"加载更多 / 取满 / 分片",src:"store.jsx · loadMore / 1000 cap",body:"手动补充：<b>加载更多</b>逐页翻、<b>取满</b>一键翻到 1000、<b>分片取全</b>突破 1000。单查询最高 1000 是 GitHub 硬限；“全部文件/分支/历史”需后端 clone 扫描，纯前端不做。"},
+  "a-snapshot":{n:17,title:"命中证据快照",src:"HitDetail · 证据高亮",body:"脱敏代码片段 + 行号 + commit + 作者提交邮箱 + 时间戳 + 熵值。<b>🟨 搜索匹配词</b>、<b>🟥 敏感命中（默认脱敏）</b>；完整原文需<b>按需申请授权</b>，访问全程审计留痕。"},
+  "a-sha":{n:18,title:"实时 SHA-256 存证",src:"HitDetail · crypto.subtle",body:"对证据快照<b>实时计算真实 SHA-256 摘要</b>（安全上下文内）。生产环境应把它写入<b>防篡改审计存储</b>、访问时重算比对，即可证明证据未被篡改。"},
+  "a-validity":{n:19,title:"密钥有效性验证",src:"HitDetail · runValidation",body:"真实验证需对云厂商<b>只读身份接口</b>探测（如 AWS STS GetCallerIdentity），属敏感操作，须后端接入并经安全评审。<b>本前端不发起任何真实探测</b>——触发按钮仅写审计（演示态）。"},
+  "a-spread":{n:20,title:"扩散与影响面",src:"HitDetail · listForks",body:"fork / star / 抽样副本 / 是否归档。<b>删除原仓库 ≠ 闭环</b>：已被 fork 复制时必须同步<b>吊销密钥</b>并跟踪扩散副本；密钥类即使删除也必须吊销。"},
+  "a-account":{n:21,title:"溯源账号线索",src:"HitDetail · getUser",body:"以 GitHub 账号为中心聚合<b>公开信息</b>，归属标注<b>「推测」</b>。仅供研判——不做真实身份反查、不与内部 HR 关联、不对个人下定性结论。"},
+  "a-score":{n:22,title:"可解释风险评分",src:"scoring.js · 多因子",body:"0–100 分 = <b>密钥有效性 × 数据敏感度 × 是否扩散 × 账号关联 × 仓库热度</b>，每个因子贡献<b>透明可查</b>，非黑盒。仅关键词命中不计扩散/热度/关联，自动沉底。"},
+  "a-runbook":{n:23,title:"处置 Runbook",src:"HitDetail · runbookFor",body:"按类别给标准化处置建议（密钥类：吊销→轮换→排查→清理扩散）。<b>通知最小化</b>：告警与工单不携带完整密钥原文。"},
+  "a-ticket":{n:24,title:"派发工单（可复制草稿）",src:"HitDetail · dispatchTicket",body:"生成可粘贴到 Jira / ServiceNow 的工单草稿：仓库 / 路径 / 风险分 / <b>脱敏证据</b> / Runbook / SHA-256，并把状态置「处置中」+ 写审计。<b>绝不含完整密钥/PII 原文</b>。"},
+  "a-history":{n:25,title:"查询历史 + 计划任务",src:"History.jsx",body:"记录每次扫描的目标/参数/风险分布。<b>「进入工作台」优先秒开本会话已跑结果</b>，正在取全的会继续；需要最新点「重新跑」。<b>计划任务</b>可设每 1/3/7 天于新加坡时间凌晨 3:00 自动重跑（应用打开时生效）。"},
+  "a-accounts":{n:26,title:"账号线索聚合",src:"Accounts.jsx",body:"集成本会话全部查询命中，按账号聚合<b>公开资料 + 风险分级数量</b>。归属标注「推测」，仅供研判——不指认个人、不做身份反查、不与内部 HR 比对。"},
+  "a-hits":{n:27,title:"命中列表",src:"AllHits.jsx",body:"本会话全部查询命中<b>按风险分从高到低</b>统一排序，按 仓库+路径+内容 <b>去重</b>；风险分段筛选，点击查看详情。"},
+  "a-audit":{n:28,title:"审计追踪",src:"Audit.jsx · 合规",body:"扫描/证据访问/验证/工单/配置变更<b>全量留痕</b>。演示态持久化于本浏览器；生产须写入<b>防篡改的独立审计存储</b>。审计详情不记录完整密钥/PII 原文。"},
+};
+
+/* ============================ 工具 ============================ */
+const $=(s,r=document)=>r.querySelector(s);const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function pin(k,corner){return `<span class="anno-pin${corner?' corner':''}" data-anno="${k}">${ANNOS[k].n}</span>`;}
+function catPill(c){const m=CAT[c];return `<span class="catpill" style="background:var(--cat-${m.c}-soft);color:var(--cat-${m.c})">${m.label}</span>`;}
+function avatar(name,size){const i=(name||'?').trim().charAt(0).toUpperCase();let h=0;for(const ch of name)h=(h*31+ch.charCodeAt(0))%360;
+  return `<div style="width:${size}px;height:${size}px;border-radius:${size*0.28}px;flex:none;display:grid;place-items:center;color:#fff;font-weight:700;font-size:${size*0.4}px;background:linear-gradient(150deg,hsl(${h} 45% 46%),hsl(${(h+30)%360} 42% 38%))">${i}</div>`;}
+function valColor(v){return v==="仍生效"?"var(--risk-high)":v==="已失效"?"var(--ok)":"var(--neutral)";}
+function valBg(v){return v==="仍生效"?"var(--risk-high-soft)":v==="已失效"?"var(--ok-soft)":"var(--neutral-bg)";}
+
+/* ============================ 状态 ============================ */
+let STATE={view:"search",exactDomain:true,denoise:true,cats:[],expOpen:false,sel:{c1:true,c2:true,c3:true,c4:true,c5:false},
+  tab:"全部",sort:"score",minScore:0,onlyKey:false,dedup:true,onlyNew:false,detailId:"H-4468"};
+let afTimer=null;
+
+/* ============================ 顶部导航 ============================ */
+function topnav(active){
+  const items=[["search","搜寻台"],["history","查询历史"],["accounts","账号线索"],["hits","命中列表"],["audit","审计追踪"]];
+  const nav2page={search:"search"};
+  return `<div class="g-topnav"><div class="inner">
+    <div class="brandmark" data-view="search"><div class="glyph">&lt;/&gt;</div><div><div class="t1">GitDLP</div><div class="t2">公开泄露检测台</div></div></div>
+    <nav>${items.map(([id,l])=>`<button data-view="${id}" class="${active===id||(active==='investigate'&&id==='search')?'on':''}">${l}</button>`).join("")}</nav>
+    <div class="tokpill"><span class="d"></span>已连接</div>
+  </div></div>`;
+}
+
+/* ============================ 搜寻台 ============================ */
+function renderSearch(){
+  const ranges=["近期新增泄露排查","历史存量清查"];const inputs=["密钥指纹","仓库","GitHub 账号","公司域名","关键词"];
+  const chips=[["密钥/凭据","secret"],["内部源代码","source"],["PII / 客户数据","pii"],["内部配置","config"],["其他/关键词","other"]];
+  const tiers=[["command","命中证据快照","脱敏代码片段、行号、commit、作者、时间戳 + 实时 SHA-256","01","var(--ok)","#E7F4EC"],
+    ["v","密钥有效性","只读非破坏性语义；前端绝不发起真实探测","02","var(--warn)","#FBF3D8"],
+    ["s","扩散与影响面","fork / star / 缓存；判断删除原仓库是否足以闭环","03","var(--orange)","#FAE6D6"],
+    ["a","溯源账号线索","账号资料、公开提交邮箱、关联组织，标注「推测」","04","var(--risk-high)","#F8DCD8"]];
+  const selN=Object.values(STATE.sel).filter(Boolean).length;
+  $("#app").innerHTML=`${topnav("search")}
+  <div class="g-home fade"><div class="wrap"><div class="g-home-main">
+    <div>
+      <div class="kicker">公开 GitHub 泄露检测 · LEAK DETECTION</div>
+      <h1 class="hero">你想排查<span class="g">哪一处泄露？</span>${pin("a-search")}</h1>
+      <p class="lede">输入密钥指纹、仓库、GitHub 账号、公司域名或关键词，系统会调用 GitHub 公开代码搜索，运行密钥/PII 检测引擎、拉取扩散与热度指标，并生成带证据的可解释风险研判。</p>
+      <div class="searchbox"><div class="mag">${icon("search",19,1.7)}</div>
+        <input id="q" value="glp.com" placeholder="密钥指纹 / 仓库 / GitHub 账号 / 域名 / 关键词"/>
+        <button class="go" data-view="workbench">开始扫描 ${icon("arrowR",17,2)}</button></div>
+      <div class="g-tags">${inputs.map(t=>`<span>${t}</span>`).join("")}</div>
+
+      <div class="notice" style="background:${STATE.exactDomain?'#e0f0e6':'#f4f7f5'};border:1px solid ${STATE.exactDomain?'#b7dcc4':'var(--linefaint)'}">
+        <span style="font-size:16px">🎯</span>
+        <div style="flex:1;min-width:200px;color:var(--ink-800)">检测到域名 <b style="color:var(--primary-700)">glp.com</b>。${STATE.exactDomain?'已启用<b>精确匹配</b>：排除 <code class="mono">123glp.com</code> 之类子串误配，保留 <code class="mono">mail.glp.com</code>。':'精确匹配<b>已关闭</b>：结果可能含无关域名。'}${pin("a-domain")}</div>
+        <span class="check" id="exactChk" style="background:#fff;border:1px solid ${STATE.exactDomain?'#b7dcc4':'var(--linefaint)'};color:${STATE.exactDomain?'var(--primary-ink)':'var(--muted)'}"><span class="box" style="background:${STATE.exactDomain?'var(--primary)':'#fff'};border:1.5px solid ${STATE.exactDomain?'var(--primary)':'#c3d3ca'}">${STATE.exactDomain?'✓':''}</span>精确匹配</span>
+      </div>
+
+      <div style="margin-top:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <span class="check" id="denChk" style="background:${STATE.denoise?'#e0f0e6':'#fff'};border:1px solid ${STATE.denoise?'#b7dcc4':'var(--linefaint)'};color:${STATE.denoise?'var(--primary-ink)':'var(--ink-500)'}"><span class="box" style="background:${STATE.denoise?'var(--primary)':'#fff'};border:1.5px solid ${STATE.denoise?'var(--primary)':'#c3d3ca'}">${STATE.denoise?'✓':''}</span>降噪限定词</span>
+        <span style="font-size:12px;color:var(--ink-400);flex:1;min-width:200px">自动排除 <code class="mono">node_modules / vendor / lock 文件</code> 等依赖噪声，收敛结果、减少翻页。${pin("a-denoise")}</span>
+      </div>
+
+      <div style="margin-top:14px">
+        ${STATE.expOpen?`<div class="exp-panel">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><div style="font-weight:800;font-size:15px;color:var(--green-ink)">扩展搜索候选${pin("a-expand")}</div><div id="expClose" style="font-size:13px;color:var(--ink-500);font-weight:600;cursor:pointer">收起 ✕</div></div>
+          <div style="font-size:12.5px;color:var(--ink-400);margin-bottom:14px;line-height:1.5">GitHub 无法“理解”一家公司的全部资产，这里把域名炸成多个显式查询供你勾选。宽泛候选噪声高，默认不勾。</div>
+          <div style="display:flex;flex-direction:column;gap:8px" id="candList">${CANDIDATES.map(c=>{const b=BREADTH[c.breadth];const on=STATE.sel[c.id];return `
+            <div class="cand${on?' on':''}" data-key="${c.id}"><span class="rad">${on?'✓':''}</span>
+              <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:8px"><span style="font-weight:700;font-size:13.5px;color:var(--ink-900)">${c.label}</span><span class="breadthtag" style="background:${b.bg};color:${b.fg}">${b.label}</span></div>
+                <div style="font-size:12px;color:var(--ink-500);margin-top:2px">${c.desc}</div></div>
+              <code class="mono" style="flex:none;font-size:11.5px;color:#7a9086;background:#eef2ef;padding:3px 8px;border-radius:6px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.q}</code></div>`;}).join("")}</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-top:14px;flex-wrap:wrap"><button class="btn-primary" style="padding:10px 20px" data-view="workbench">运行扩展搜索 ${icon("arrowR",15,2)}</button><span style="font-size:12.5px;color:var(--ink-400)">已选 ${selN} 个候选 ≈ ${selN} 次搜索请求（代码搜索限 10 次/分钟）</span></div>
+        </div>`:`<div class="exp-trigger" id="expOpen">${icon("plus",15,2)} 扩展搜索：把 “glp.com” 炸开成 ${CANDIDATES.length} 个候选一次排查</div>`}
+      </div>
+
+      <div style="margin-top:20px;margin-bottom:9px;font-size:12.5px;font-weight:600;color:var(--ink-400)">按类型筛选命中（可选，不选＝全部类型）${pin("a-chips")}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:9px" id="chips">${chips.map(([l,c])=>`<div class="chipbtn${STATE.cats.includes(c)?' on':''}" data-cat="${c}">${l}</div>`).join("")}</div>
+
+      <div style="margin-top:38px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><div style="font-weight:800;font-size:15px;color:var(--green-ink)">排查语境${pin("a-range")}</div><div style="padding:3px 9px;border-radius:999px;background:#edf1ed;color:var(--ink-500);font-size:11px;font-weight:700">语境标注 · 非结果过滤</div></div>
+        <div class="rangeseg" id="rangeseg">${ranges.map(r=>`<button data-r="${r}" class="${STATE.range===r?'on':''}">${r}</button>`).join("")}</div>
+        <div style="font-size:12px;color:var(--ink-400);margin-top:8px;line-height:1.6">说明：GitHub 代码搜索按相关度返回默认分支当前内容，<b>不支持按时间过滤结果</b>；此处仅标注排查性质并写入审计。</div>
+      </div>
+
+      <div style="margin-top:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:9px"><div style="font-size:12.5px;color:var(--ink-400);font-weight:700">最近搜索（点击可复跑）${pin("a-recent")}</div></div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">${HISTORY.slice(0,4).map(h=>`<div class="recent-chip" data-view="workbench"><span style="color:#8aa295">↺</span><span style="font-weight:700;color:var(--ink-900)">${h.q}</span><span style="font-size:11.5px;color:var(--ink-400)">· ${h.count} 命中${h.newc>0?` · 🆕${h.newc}`:''}</span></div>`).join("")}</div>
+      </div>
+    </div>
+
+    <aside class="g-ev-card anno-anchor" style="position:sticky;top:130px">${pin("a-tiers","corner")}
+      <div class="g-ev-head"><span>四层证据，一眼看懂</span><b>FOUR EVIDENCE TIERS</b></div>
+      ${tiers.map(([_,t,d,no,c,bg])=>`<div class="g-ev-tier" style="background:${bg}"><span class="bar" style="background:${c}"></span><div style="flex:1"><strong style="color:${c}">${t}</strong><p>${d}</p></div><div class="no" style="color:${c}">${no}</div></div>`).join("")}
+      <div style="margin-top:18px;padding-top:18px;border-top:1px dashed var(--linefaint);display:flex;gap:20px">
+        ${[["只读","密钥验证红线","var(--warn)"],["脱敏","通知最小化","var(--orange)"],["留痕","证据访问审计","var(--ok)"]].map(([n,l,c])=>`<div><div style="font-size:17px;font-weight:800;color:${c}">${n}</div><div style="font-size:11px;color:var(--ink-500);margin-top:2px">${l}</div></div>`).join("")}
+      </div>
+    </aside>
+  </div>
+  <div class="home-foot">风险提示为搜寻线索，非最终安全 / 合规结论 · 所有查询与证据访问均记入审计 · 仅采集公开可见信息</div>
+  </div></div>`;
+
+  $("#exactChk").onclick=()=>{STATE.exactDomain=!STATE.exactDomain;renderSearch();};
+  $("#denChk").onclick=()=>{STATE.denoise=!STATE.denoise;renderSearch();};
+  const eo=$("#expOpen");if(eo)eo.onclick=()=>{STATE.expOpen=true;renderSearch();};
+  const ec=$("#expClose");if(ec)ec.onclick=()=>{STATE.expOpen=false;renderSearch();};
+  const cl=$("#candList");if(cl)cl.onclick=e=>{const b=e.target.closest("[data-key]");if(b){STATE.sel[b.dataset.key]=!STATE.sel[b.dataset.key];renderSearch();}};
+  $("#chips").onclick=e=>{const b=e.target.closest("[data-cat]");if(b){const c=b.dataset.cat;STATE.cats=STATE.cats.includes(c)?STATE.cats.filter(x=>x!==c):[...STATE.cats,c];renderSearch();}};
+  $("#rangeseg").onclick=e=>{const b=e.target.closest("[data-r]");if(b){STATE.range=b.dataset.r;$$("#rangeseg button").forEach(x=>x.classList.toggle("on",x.dataset.r===STATE.range));}};
+  $("#q").addEventListener("keydown",e=>{if(e.key==="Enter")go("workbench");});
+  bindView();
+}
+
+/* ============================ 检测工作台 ============================ */
+function computeStats(){const pending=HITS.filter(h=>h.status==="待研判").length,secrets=HITS.filter(h=>h.cat==="secret").length,spread=HITS.filter(h=>h.forks>0).length,high=HITS.filter(h=>h.score>=80).length;
+  return [["待研判命中",pending,"var(--warn)",`共 ${HITS.length} 条命中`,"var(--orange)"],["密钥/凭据命中",secrets,"var(--risk-high)","需最高优先处置","var(--risk-high)"],["已扩散（有 fork）",spread,"var(--orange)","删除原仓库≠闭环","var(--orange)"],["高危命中（≥80）",high,"var(--ok)","按风险分排序置顶","var(--ok)"]];}
+function wbFiltered(){let base=STATE.tab==="全部"?HITS:HITS.filter(h=>CAT[h.cat].label===STATE.tab||(STATE.tab==="PII / 客户"&&h.cat==="pii"));
+  base=HITS.filter(h=>{if(STATE.tab==="全部")return true;const map={"密钥/凭据":"secret","内部源代码":"source","PII / 客户":"pii","内部配置":"config","其他/关键词":"other"};return h.cat===map[STATE.tab];});
+  let list=[...base];const total=list.length;let collapsed=0;
+  if(STATE.onlyNew)list=list.filter(h=>h.isNew);
+  if(STATE.onlyKey)list=list.filter(h=>h.findingType);
+  if(STATE.minScore>0)list=list.filter(h=>h.score>=STATE.minScore);
+  if(STATE.dedup){collapsed=HITS.filter(h=>h.dup>1).length;}
+  if(STATE.sort==="score")list.sort((a,b)=>b.score-a.score);else list.sort((a,b)=>({待验证:2,无法验证:1}[b.validity]||0)-({待验证:2,无法验证:1}[a.validity]||0));
+  return {list,total,collapsed};
+}
+function renderWorkbench(){
+  const stats=computeStats();const {list,total,collapsed}=wbFiltered();
+  const tabs=["全部","密钥/凭据","内部源代码","PII / 客户","内部配置","其他/关键词"];
+  $("#app").innerHTML=`${topnav("investigate")}
+  <div class="wrap pageband fade">
+    <div class="wbhead"><div><div class="eyebrow">检测工作台 · DETECTION WORKBENCH</div><h2 class="h2">命中队列</h2></div>
+      <div style="text-align:right">
+        <div style="font-size:12px;color:var(--ink-500);font-weight:600">上次扫描${pin("a-scaninfo")}</div>
+        <div style="font-size:14px;font-weight:700;color:var(--ink-800)">2026-07-19 18:20:26 · 匹配 2,716 项（展示 ${HITS.length}）</div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--primary);margin-top:3px">🆕 较上次排查新增 3 条</div>
+        <div style="font-size:12.5px;font-weight:700;color:var(--primary);margin-top:3px">🎯 域名精确匹配已剔除 41 条不相关域名命中</div>
+      </div></div>
+
+    <div class="autofetch anno-anchor" id="autofetch">${pin("a-autofetch","corner")}
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:10px"><span class="spin">${icon("refresh",16,2,"var(--primary)")}</span><span id="afLabel" style="font-weight:800;font-size:14.5px;color:var(--risk-med-ink)">自动取全中 · 取满 2/10 · 已 200 条</span></div>
+        <button id="afStop" style="border:1px solid var(--border-strong);background:#fff;border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;color:var(--ink-700)">停止</button></div>
+      <div class="pbar"><div id="afBar" style="width:20%"></div></div>
+      <div style="font-size:12px;color:var(--ink-400);margin-top:8px">限速 ~6.5s/次（GitHub 代码搜索 10 次/分钟）· 匹配 &gt;1000 时自动按文件类型分片突破上限 · 可随时停止，离开再回来会断点续跑</div>
+    </div>
+
+    <div class="narrowbanner anno-anchor">${pin("a-narrow","corner")}
+      <span style="font-size:20px">🔎</span>
+      <div style="flex:1;min-width:260px;font-size:13.5px;color:var(--risk-med-ink);line-height:1.6">本次「glp.com」匹配 <b>2,716</b> 项，结果偏多、噪声高。可用 <b>3</b> 个精确候选（域名+AKIA / +.env / @域名）重搜，把范围收敛到真正相关的命中。</div>
+      <button class="btn-primary" style="padding:11px 20px" data-view="search">⊕ 用精确候选重搜</button></div>
+
+    <div class="statstrip">${stats.map(([l,v,dot,delta,dc])=>`<div class="statcard"><div class="top"><div class="lbl">${l}</div><div class="dot" style="background:${dot}"></div></div><div class="val">${v}</div><div class="delta" style="color:${dc}">${delta}</div></div>`).join("")}</div>
+    <div style="margin-bottom:4px">${pin("a-stats")}</div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div class="seg" id="tabs">${tabs.map(t=>`<button data-tab="${t}" class="${STATE.tab===t?'on':''}">${t}</button>`).join("")}${pin("a-typetabs")}</div>
+      <div style="flex:1"></div>
+      <button class="btn-ghost" id="sortBtn" style="padding:10px 16px;font-size:13.5px">${STATE.sort==="score"?"按风险分排序":"按有效性排序"} ▾</button>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+      <span style="font-size:12.5px;font-weight:800;color:var(--ink-500);letter-spacing:.3px">降噪${pin("a-denoiseRow")}</span>
+      <div class="subseg" id="minseg">${[[0,"全部风险"],[60,"≥60 中危+"],[80,"≥80 高危"]].map(([v,l])=>`<button data-min="${v}" class="${STATE.minScore===v?'on':''}">${l}</button>`).join("")}</div>
+      <div class="ftoggle${STATE.onlyKey?' on':''}" data-t="onlyKey"><span class="box">${STATE.onlyKey?'✓':''}</span>只看检测到密钥/PII</div>
+      <div class="ftoggle${STATE.dedup?' on':''}" data-t="dedup"><span class="box">${STATE.dedup?'✓':''}</span>相同密钥去重</div>
+      <div class="ftoggle${STATE.onlyNew?' on':''}" data-t="onlyNew"><span class="box">${STATE.onlyNew?'✓':''}</span>只看本次新增 (3)</div>
+    </div>
+    <div style="font-size:12.5px;color:var(--ink-400);font-weight:600;margin-bottom:12px">本类型 ${total} 条${collapsed?` · 折叠重复 ${collapsed} 条`:''} · <b style="color:var(--ink-800)">当前显示 ${list.length} 条</b></div>
+
+    <div class="wbtable">
+      <div class="wbrow wbhd"><div>风险分</div><div>命中类型 / 内容</div><div>仓库</div><div>关联账号</div><div class="hide">密钥有效性</div><div class="hide">状态</div><div>${pin("a-queue")}</div></div>
+      ${list.map(h=>{const s=sev(h.score);const m=CAT[h.cat];return `<button class="wbrow wbtr" data-hit="${h.id}">
+        <div><span class="scorebadge" style="background:${s.soft}"><span class="n" style="color:${s.c}">${h.score}</span><span class="s" style="color:${s.c}">${s.label}</span></span></div>
+        <div style="min-width:0"><div style="display:flex;align-items:center;gap:7px;margin-bottom:6px;flex-wrap:wrap"><span>${icon(m.icon,15,2,`var(--cat-${m.c})`)}</span><span style="font-weight:800;font-size:15px;color:var(--ink-900)">${h.type}</span><span style="font-size:11px;color:var(--ink-400);font-weight:700">· 置信度 ${h.conf}</span>${h.isNew?`<span style="font-size:10px;font-weight:800;color:#fff;background:var(--primary);padding:2px 8px;border-radius:999px">🆕 新增</span>`:''}</div>
+          <div class="mono" style="font-size:12.5px;color:var(--ink-500);background:#f4f7f5;padding:4px 8px;border-radius:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.findingType?h.findingMasked:h.frag[Math.min(2,h.frag.length-1)]}</div></div>
+        <div style="min-width:0"><div style="display:flex;align-items:center;gap:6px"><span style="font-weight:700;font-size:13.5px;color:var(--ink-800);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.repo}</span>${h.dup>1?`<span style="flex:none;font-size:11px;font-weight:800;color:var(--orange);background:var(--orange-soft);padding:2px 7px;border-radius:999px">×${h.dup} 处</span>`:''}</div>
+          <div class="mono" style="font-size:11.5px;color:#93a69b;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.path}${h.stars?` · ★${h.stars} · ⑂${h.forks}`:''}</div></div>
+        <div style="display:flex;align-items:center;gap:8px;min-width:0">${avatar(h.account,30)}<span class="mono" style="font-size:12.5px;color:#3f5449;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.account}</span></div>
+        <div class="hide"><span class="valpill" style="background:${valBg(h.validity)};color:${valColor(h.validity)}"><span style="width:7px;height:7px;border-radius:50%;background:${valColor(h.validity)}"></span>${h.validity}</span></div>
+        <div class="hide"><span style="font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:8px;background:var(--surface-sunken);color:var(--ink-600)">${h.status}</span></div>
+        <div style="text-align:right;color:#9fb3a6;font-size:20px;font-weight:700">→</div></button>`;}).join("")}
+    </div>
+
+    <div style="margin-top:18px;display:flex;flex-direction:column;align-items:center;gap:10px">
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">${pin("a-loadmore")}
+        <div style="padding:12px 26px;border-radius:12px;background:#e3efe8;color:var(--primary-700);font-weight:700;font-size:14.5px">加载更多命中 ↓</div>
+        <div style="padding:12px 22px;border-radius:12px;background:#fff;border:1px solid var(--border-strong);color:var(--primary-700);font-weight:700;font-size:14px">⏬ 取满（最多 1,000）</div>
+        <div style="padding:12px 20px;border-radius:12px;background:#fff;border:1px dashed var(--border);color:var(--primary-700);font-weight:700;font-size:13.5px">🧩 分片取全（突破 1,000）</div></div>
+      <div style="font-size:12px;color:var(--ink-400)">已加载 8 条 · 共匹配 2,716 项 · 代码搜索限 10 次/分钟，每次翻页 = 1 次请求</div>
+    </div>
+    <div style="margin-top:14px;font-size:12.5px;color:var(--ink-400);line-height:1.6">注：GitHub 代码搜索仅索引各仓库默认分支 HEAD，无法通过 API 检索完整提交历史；“历史深挖”需后端 clone 扫描支撑。“仍生效/已失效”密钥有效性为演示态，本前端不对外发起任何真实探测。</div>
+  </div>`;
+  const af=$("#afStop");if(af)af.onclick=stopAf;
+  $("#tabs").onclick=e=>{const b=e.target.closest("[data-tab]");if(b){STATE.tab=b.dataset.tab;renderWorkbench();}};
+  $("#sortBtn").onclick=()=>{STATE.sort=STATE.sort==="score"?"validity":"score";renderWorkbench();};
+  $("#minseg").onclick=e=>{const b=e.target.closest("[data-min]");if(b){STATE.minScore=+b.dataset.min;renderWorkbench();}};
+  $$("[data-t]").forEach(b=>b.onclick=()=>{STATE[b.dataset.t]=!STATE[b.dataset.t];renderWorkbench();});
+  $$(".wbtr").forEach(b=>b.onclick=()=>{STATE.detailId=b.dataset.hit;go("detail");});
+  bindView();startAf();
+}
+function startAf(){let p=2;const l=$("#afLabel"),bar=$("#afBar");if(!l)return;stopAf();
+  afTimer=setInterval(()=>{p++;if(p<=10){l.textContent=`自动取全中 · 取满 ${p}/10 · 已 ${p*100} 条`;bar.style.width=(p*6)+"%";}
+    else if(p<=18){const s=p-10;l.textContent=`自动取全中 · 分片 ${s}/8 · 已 ${1000+s*40} 条`;bar.style.width=(60+s*5)+"%";}
+    else{stopAf();const a=$("#autofetch");if(a)a.innerHTML=`<div style="display:flex;align-items:center;gap:10px;color:var(--primary);font-weight:700;font-size:13.5px">${icon("check",16,2.6)}自动取全完成 · 已加载 1,320 条（前 1000 + 分片补充）· 匹配 2,716 项 · 均已过检测引擎</div>`;}
+  },900);}
+function stopAf(){if(afTimer){clearInterval(afTimer);afTimer=null;}}
+
+/* ============================ 命中详情 ============================ */
+async function renderDetail(){
+  const h=HITS.find(x=>x.id===STATE.detailId)||HITS[0];const s=sev(h.score);const m=CAT[h.cat];const isSecret=h.cat==="secret";
+  const lines=h.frag.map((l,i)=>{let disp=l;if(h.rawTerm&&l.includes(h.rawTerm)){disp=h.findingType?l.replace(h.rawTerm,`<mark>${h.findingMasked}</mark>`):l.replace(h.rawTerm,`<mark class="m">${h.rawTerm}</mark>`);}
+    return `<div><span style="color:#5f7468">${String(i+1).padStart(2,'0')}</span>&nbsp;&nbsp;${disp}</div>`;}).join("");
+  const closed=h.forks===0;
+  const runbook=isSecret?[["1","吊销密钥","立即在云控制台禁用并删除该访问密钥","var(--ok)"],["2","轮换凭据","签发新密钥并更新受影响服务配置","var(--info)"],["3","排查审计日志","确认该密钥泄露期间是否已被利用","var(--warn)"],["4","处理扩散副本","跟踪 fork 与第三方缓存清理","var(--risk-high)"]]
+    :h.cat==="pii"?[["1","触发隐私事件响应","按合规流程上报 PII 泄露事件","var(--risk-high)"],["2","删除/脱敏内容","推动删除公开内容或脱敏处理","var(--warn)"],["3","评估影响范围","确认涉及的数据主体与数量","var(--info)"],["4","法务/合规介入","视情况联合法务评审通报义务","var(--ok)"]]
+    :[["1","评估敏感程度","判定是否含核心逻辑/机密标识","var(--warn)"],["2","推动删除","联系账号所有者或平台下架","var(--info)"],["3","处理扩散副本","跟踪 fork 与镜像缓存","var(--risk-high)"],["4","法务介入（视情况）","涉及知识产权时评估法律手段","var(--ok)"]];
+  const rbTitle=isSecret?"密钥类":h.cat==="pii"?"PII 类":"源代码 / 配置类";
+  $("#app").innerHTML=`${topnav("investigate")}
+  <div class="wrap fade" style="padding:26px 0 70px">
+    <div class="backlink" data-view="workbench">${icon("chevronL",16,2)} 返回命中队列</div>
+    <div class="dheadcard">
+      <div class="dbig" style="background:${s.soft}"><div class="n" style="color:${s.c}">${h.score}</div><div class="s" style="color:${s.c}">${s.label} · 风险分</div></div>
+      <div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap"><span style="font-size:22px">${icon(m.icon,22,2,`var(--cat-${m.c})`)}</span>
+        <h2 style="font-size:26px;font-weight:900;color:var(--green-ink);margin:0">${h.type}${h.findingType?'泄露':''}</h2><span class="mono" style="font-size:13px;color:#93a69b;font-weight:600">${h.id}</span>
+        <span class="valpill" style="background:${valBg(h.validity)};color:${valColor(h.validity)}"><span style="width:7px;height:7px;border-radius:50%;background:${valColor(h.validity)}"></span>密钥有效性：${h.validity}</span></div>
+        <div class="mono" style="font-size:14px;color:var(--ink-600)">${h.repo} · ${h.path} · commit ${h.commit} · <a href="#" onclick="return false" style="color:var(--primary)">在 GitHub 查看 ↗</a></div></div>
+      <button class="btn-primary" id="ticketBtn">${icon("ticket",16,2,"#fff")}派发工单（生成草稿）${pin("a-ticket")}</button>
+    </div>
+
+    <div class="dgrid">
+      <div>
+        <div class="tier"><div class="th" style="background:#e7f4ec;border-left-color:var(--ok)"><span class="tt" style="color:#1a6b43">01 · 命中证据快照${pin("a-snapshot")}</span><span class="rt" style="color:#1a6b43">哈希存证 · SHA-256 摘要 · 实时计算 <span id="shaOk"></span>${pin("a-sha")}</span></div>
+          <div class="tb"><div style="display:flex;gap:16px;margin-bottom:10px;font-size:12px;color:var(--ink-500);font-weight:600">${h.findingType?'<span>🟥 敏感命中（默认脱敏）</span>':''}<span>🟨 搜索匹配词</span></div>
+            <div class="codebox">${lines}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:22px;margin-top:16px">${[["文件路径",h.path],["commit",h.commit],["作者提交邮箱",h.author],["时间戳",h.date],...(h.entropy?[["Shannon 熵值",String(h.entropy)]]:[])].map(([k,v])=>`<div class="meta"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}</div>
+            <div style="margin-top:14px;padding:11px 14px;background:var(--softer);border-radius:10px"><div style="font-size:11px;color:#8aa295;font-weight:700;margin-bottom:4px">证据 SHA-256（对上方快照实时计算）</div><code class="mono" id="shaVal" style="font-size:11.5px;color:var(--ink-700);word-break:break-all">计算中…</code></div>
+            ${h.findingType?`<div style="margin-top:16px;padding:12px 16px;background:#fbf3d8;border-radius:10px;font-size:13px;color:#8a6608;font-weight:600;display:flex;align-items:center;justify-content:space-between;gap:12px"><span>🔒 完整密钥原文默认脱敏，查看需按需申请授权，访问将全程审计留痕。</span><button id="revealBtn" style="padding:8px 14px;border:none;border-radius:9px;background:var(--warn-deep);color:#fff;font-weight:700;font-size:12.5px;white-space:nowrap">申请授权查看</button></div>`:''}</div></div>
+
+        <div class="tier"><div class="th" style="background:#fbf3d8;border-left-color:var(--warn)"><span class="tt" style="color:var(--warn-deep)">02 · 密钥有效性验证${pin("a-validity")}</span><span class="rt" style="color:var(--warn-deep)">只读 · 非破坏性探测</span></div>
+          <div class="tb"><div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap">
+            <div class="dial" style="background:conic-gradient(${valColor(h.validity)} 0deg 360deg)"><div class="in"><div style="font-size:19px;font-weight:800;color:${valColor(h.validity)}">${h.validity}</div><div style="font-size:11px;color:#8aa295;font-weight:600">${isSecret?'密钥/凭据':'非密钥类'}</div></div></div>
+            <div style="flex:1;min-width:240px"><div style="font-size:14px;color:var(--ink-700);line-height:1.6;margin-bottom:14px">${isSecret?'真实有效性验证需对云厂商<b>只读身份接口</b>探测（如 AWS STS <code class="mono">GetCallerIdentity</code>），属敏感只读操作，须后端接入并经安全评审。<b style="color:var(--risk-high)">本前端不发起任何真实探测</b>，当前为演示态。':`该命中类型（${m.label}）不适用密钥有效性验证，标记为「无法验证」。`}</div>
+              ${isSecret?`<button id="valBtn" style="padding:11px 18px;border:1px solid var(--border-strong);border-radius:12px;background:#fff;color:var(--ink-700);font-weight:700;font-size:13.5px;margin-bottom:14px">${icon("flask",15,1.8)} 触发有效性验证（演示 · 写审计）</button>`:''}
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${[["探测方式","只读 / 非破坏性"],["真实业务数据","绝不读写"],["验证对象",isSecret?h.type:"—"],["审计记录","触发后写入"]].map(([k,v])=>`<div class="minibox"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}</div></div></div></div></div>
+
+        <div class="tier"><div class="th" style="background:#fae6d6;border-left-color:var(--orange)"><span class="tt" style="color:var(--orange-deep)">03 · 泄露扩散与影响面${pin("a-spread")}</span><span class="rt" style="color:var(--orange-deep)">删除原仓库 ≠ 闭环</span></div>
+          <div class="tb"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+            ${[["Fork",h.forks,h.forks>0?"var(--orange)":"var(--ink-800)"],["Star",h.stars,"var(--ink-800)"],["已抽样副本",h.forkList.length||"—",h.forks>0?"var(--risk-high)":"var(--ink-800)"],["仓库归档","否","var(--orange)"]].map(([k,v,c])=>`<div class="spreadstat"><div class="n" style="color:${c}">${v}</div><div class="k">${k}</div></div>`).join("")}</div>
+            <div style="padding:14px 16px;background:#fae6d6;border-radius:10px;font-size:13.5px;color:#8a4510;font-weight:600;line-height:1.6">${closed?'⚠ 当前未见 fork，但删除原仓库前仍需确认<b>第三方代码搜索引擎/镜像站缓存</b>；密钥类命中即使删除也必须<b>吊销</b>。':`⚠ 内容已被 <b>${h.forks} 个 fork</b> 复制。仅删除原仓库无法消除风险——必须同步<b>吊销密钥</b>并跟踪扩散副本。`}</div>
+            ${h.forkList.length?`<div style="margin-top:14px"><div style="font-size:12px;color:#8aa295;font-weight:600;margin-bottom:8px">扩散副本（抽样）</div><div style="display:flex;flex-direction:column;gap:7px">${h.forkList.map(f=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--softer);border-radius:9px"><span style="width:8px;height:8px;border-radius:50%;background:var(--orange)"></span><span class="mono" style="font-size:12.5px;color:var(--ink-800);font-weight:600">${f}</span></div>`).join("")}</div></div>`:''}</div></div>
+
+        <div class="tier"><div class="th" style="background:#f8dcd8;border-left-color:var(--risk-high)"><span class="tt" style="color:#a32a20">04 · 溯源账号风险线索${pin("a-account")}</span><span class="rt" style="color:#a32a20">推测 · 仅供人工研判</span></div>
+          <div class="tb"><div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">${avatar(h.account,56)}
+            <div style="flex:1;min-width:200px"><div class="mono" style="font-weight:700;font-size:16px;color:var(--ink-900)">${h.account}</div><div style="font-size:13px;color:var(--ink-500);margin-top:2px">账号类型 ${h.acctType} · 关联仓库 ${h.repo}</div></div>
+            <div style="text-align:center"><div style="font-size:12px;color:#8aa295;font-weight:600">归属置信度</div><div style="font-size:15px;font-weight:800;color:var(--orange)">推测</div></div>
+            <button data-view="accounts" style="padding:11px 18px;border:1px solid var(--linefaint);border-radius:11px;font-weight:700;font-size:13.5px;color:var(--ink-700);background:#fff">查看账号线索卡片 →</button></div>
+            <div style="margin-top:14px;padding:11px 15px;background:var(--neutral-bg);border-radius:9px;font-size:12.5px;color:var(--ink-500);font-weight:600">仅聚合公开信息（账号资料、公开提交邮箱、公开活动），不与内部 HR/身份系统关联，不对任何个人下定性结论。</div></div></div>
+      </div>
+
+      <div style="position:sticky;top:130px">
+        <div class="panel"><div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px"><div style="font-weight:800;font-size:17px;color:var(--green-ink)">风险评分 · 可解释${pin("a-score")}</div><div style="font-size:30px;font-weight:800;color:${s.c};font-family:var(--font-mono)">${h.score}</div></div>
+          <div style="font-size:12.5px;color:#8aa295;font-weight:600;margin-bottom:16px">每个因子贡献透明可查，非黑盒数字</div>
+          ${h.factors.map(([l,pts,max])=>{const r=pts/max;const c=r>=.75?"var(--risk-high)":r>=.45?"var(--orange)":r>=.2?"var(--warn)":"var(--ok)";return `<div class="factor"><div class="fl"><span style="color:var(--ink-700)">${l}</span><span class="mono" style="font-weight:800;color:${c}">+${pts}</span></div><div class="fbar"><div style="width:${Math.round(r*100)}%;background:${c}"></div></div></div>`;}).join("")}
+          <div style="margin-top:16px;padding-top:14px;border-top:1px dashed var(--linefaint);font-size:12.5px;color:var(--ink-500);line-height:1.6">权重可由安全管理员配置调优。仍生效的生产密钥自动获最高处置优先级；仅关键词命中不计扩散/热度/关联。</div></div>
+
+        <div class="panel"><div style="font-weight:800;font-size:17px;color:var(--green-ink);margin-bottom:4px">处置 Runbook · ${rbTitle}${pin("a-runbook")}</div>
+          <div style="font-size:12.5px;color:#8aa295;font-weight:600;margin-bottom:16px">标准化处置建议，跟踪整改证据</div>
+          ${runbook.map(([n,t,d,c])=>`<div class="runstep" style="background:${c.replace('var(--','var(--').replace(')','')}-soft, #f4f9f5);background:color-mix(in srgb, ${c} 12%, #fff)"><div class="n" style="background:${c}">${n}</div><div><div style="font-weight:700;font-size:14px;color:var(--ink-900)">${t}</div><div style="font-size:12.5px;color:var(--ink-500);margin-top:2px;line-height:1.5">${d}</div></div></div>`).join("")}
+          <div style="margin-top:14px;padding:12px 15px;background:var(--risk-high-soft);border-radius:11px;font-size:12.5px;color:#a32a20;font-weight:700;line-height:1.5">通知最小化：告警与工单中不携带完整密钥原文，敏感原文仅在受控平台内经授权查看。</div></div>
+      </div>
+    </div>
+  </div>`;
+  const rb=$("#revealBtn");if(rb)rb.onclick=()=>toast("演示模式：完整原文的查看申请已记入审计追踪。");
+  const vb=$("#valBtn");if(vb)vb.onclick=()=>{vb.textContent="已记录（演示态）✓";toast("演示态：未对外发起任何真实探测，已写入审计。");};
+  $("#ticketBtn").onclick=()=>showTicket(h);
+  bindView();
+  try{const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(h.frag.join("\n")));const hex=[...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+    const el=$("#shaVal");if(el)el.textContent=hex;const ok=$("#shaOk");if(ok)ok.textContent="✓";}catch(e){const el=$("#shaVal");if(el)el.textContent="（此环境不支持 crypto.subtle，改用本地服务器打开即可）";}
+}
+function showTicket(h){const s=sev(h.score);const ev=h.findingType?`${h.findingType}：${h.findingMasked}`:h.frag[Math.min(2,h.frag.length-1)];
+  const rb=h.cat==="secret"?["吊销密钥 — 立即在云控制台禁用并删除该访问密钥","轮换凭据 — 签发新密钥并更新受影响服务","排查审计日志 — 确认泄露期间是否被利用","处理扩散副本 — 跟踪 fork 与第三方缓存清理"]:h.cat==="pii"?["触发隐私事件响应","删除 / 脱敏公开内容","评估影响的数据主体范围","法务 / 合规介入评估通报义务"]:["评估敏感程度","推动删除 / 下架","处理扩散副本","法务介入（视情况）"];
+  const text=["【GitDLP 泄露处置工单】",`命中编号：${h.id}`,`风险分：${h.score}（${s.label}）`,`类型：${h.type}`,`仓库：${h.repo}`,`文件：${h.path} @ ${h.commit}`,`关联账号：${h.account}（推测，仅供研判，不作个人指认）`,`密钥有效性：${h.validity}（前端不做真实探测）`,`命中证据（脱敏）：${ev}`,`证据 SHA-256：见详情页实时计算`,"","建议处置（Runbook）：",...rb.map((r,i)=>`  ${i+1}. ${r}`),"","备注：遵循通知最小化，正文不含完整密钥/PII 原文。"].join("\n");
+  $("#overlay").innerHTML=`<div class="scrim" id="tScrim"><div class="intro" style="max-width:640px"><div class="ih"><h2 style="font-size:18px">工单草稿 · 可复制</h2><p>脱敏内容，粘贴到 Jira / ServiceNow 等工单系统即可</p></div>
+    <div style="padding:18px 22px"><textarea readonly id="tText" style="width:100%;min-height:300px;border:1px solid var(--border);border-radius:12px;padding:14px;font-family:var(--font-mono);font-size:12px;line-height:1.7;color:var(--ink-800);background:var(--softer);resize:none">${text}</textarea></div>
+    <div style="padding:0 22px 22px;display:flex;gap:10px;align-items:center"><button class="btn-primary" id="tCopy">复制工单</button><button class="btn-ghost" id="tClose">关闭</button><span style="margin-left:auto;font-size:12px;color:var(--ink-400)">已置「处置中」+ 写审计 · 通知最小化（不含原文）</span></div></div></div>`;
+  const close=()=>$("#overlay").innerHTML="";$("#tScrim").onclick=e=>{if(e.target.id==="tScrim")close();};$("#tClose").onclick=close;
+  $("#tCopy").onclick=async()=>{try{await navigator.clipboard.writeText(text);$("#tCopy").textContent="已复制 ✓";}catch(e){toast("复制失败，请手动选择。");}};
+}
+
+/* ============================ 二级页面 ============================ */
+function pageHead(ic,t,sub,pk,right){return `<div class="wbhead"><div><div class="eyebrow">${sub.split("·")[0]}</div><h2 class="h2">${t}${pk?pin(pk):""}</h2><div style="font-size:14px;color:var(--ink-500);margin-top:8px;max-width:900px;line-height:1.6">${sub}</div></div>${right||""}</div>`;}
+function sevPills(v){return `<div style="display:flex;gap:6px;flex-wrap:wrap">${[["高危",v.high,"var(--risk-high)","var(--risk-high-soft)"],["中",v.mid,"var(--risk-med)","var(--risk-med-soft)"],["低",v.low,"var(--ok)","var(--ok-soft)"]].map(([l,n,c,s])=>`<span class="sevpill" style="background:${n>0?s:'#f2f5f3'};color:${n>0?c:'#a9b8b0'}">${l} ${n}</span>`).join("")}</div>`;}
+
+function renderHistory(){
+  $("#app").innerHTML=`${topnav("history")}<div class="wrap pageband fade">
+    ${pageHead("history","搜索记录","查询历史 · 「进入工作台」优先秒开本会话已跑结果；计划任务可定时自动重跑（新加坡时间凌晨 3:00，应用打开时生效）","a-history",`<button class="btn-ghost" style="padding:8px 14px;font-size:13px" onclick="toast('演示：历史仅存于本地浏览器')">清空历史</button>`)}
+    <div class="wbtable"><div class="wbrow wbhd" style="grid-template-columns:150px 1.3fr 1fr 1.1fr 100px 120px 150px"><div>时间</div><div>查询目标</div><div>参数</div><div>风险分布</div><div>命中</div><div style="text-align:center">计划任务</div><div style="text-align:center">操作</div></div>
+    ${HISTORY.map(r=>`<div class="wbrow" style="grid-template-columns:150px 1.3fr 1fr 1.1fr 100px 120px 150px;border-bottom:1px solid var(--hairline)">
+      <div class="mono" style="font-size:12.5px;color:var(--ink-500)">${r.at}</div>
+      <div><div style="display:flex;align-items:center;gap:7px"><span style="font-weight:800;font-size:14px;color:var(--ink-900)">${r.q}</span>${r.snap?'<span style="font-size:10px;font-weight:800;color:var(--primary-ink);background:var(--primary-soft);padding:2px 7px;border-radius:999px">秒开</span>':''}</div><div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">${r.exp?'<span class="catpill" style="background:#e0f0e6;color:#0f6b41">⊕ 扩展</span>':''}<span class="catpill" style="background:#eef2ef;color:var(--ink-500)">域名精确</span><span class="catpill" style="background:#eef2ef;color:var(--ink-500)">降噪</span></div></div>
+      <div style="font-size:12.5px;color:var(--ink-700);line-height:1.6"><div>语境：${r.range}</div><div style="color:var(--ink-500)">类型：全部</div></div>
+      <div>${sevPills(r.sev)}</div>
+      <div style="font-size:13px;font-weight:700;color:var(--ink-800)">命中 ${r.count}${r.newc>0?` <span style="font-size:11px;color:#fff;background:var(--primary);padding:2px 6px;border-radius:999px">🆕${r.newc}</span>`:''}<div style="font-size:11px;color:var(--ink-400);font-weight:600;margin-top:3px">匹配 ${r.total.toLocaleString()}</div></div>
+      <div style="text-align:center">${r.sched?`<span style="font-size:11px;font-weight:700;color:var(--info-ink);background:var(--info-soft);padding:4px 9px;border-radius:999px">${icon("calendar",11)} ${r.sched}</span>`:'<span style="font-size:11px;color:var(--ink-300)">未设置</span>'}</div>
+      <div style="display:flex;flex-direction:column;gap:6px;align-items:center"><button class="hist-open" style="width:132px;border:none;background:var(--primary);color:#fff;font-weight:700;font-size:12.5px;padding:8px;border-radius:10px">${r.snap?'进入工作台 →':'进入（重跑）→'}</button><button class="hist-open" style="width:132px;border:1px solid var(--linefaint);background:#fff;color:var(--ink-500);font-weight:700;font-size:12px;padding:7px;border-radius:10px">↻ 重新跑</button></div>
+    </div>`).join("")}</div></div>`;
+  $$(".hist-open").forEach(b=>b.onclick=()=>go("workbench"));bindView();
+}
+function renderAccounts(){
+  const map={};HITS.forEach(h=>{(map[h.account]=map[h.account]||{handle:h.account,type:h.acctType,related:[],max:0,repos:0}).related.push(h);map[h.account].max=Math.max(map[h.account].max,h.score);});
+  const list=Object.values(map).sort((a,b)=>b.max-a.max);const meta={"acme-labs":{email:"未公开",company:"acme-labs",repos:42,year:2019},"cfgh":{email:"chen.f@glp.com",company:"—",repos:8,year:2021},"devops-cn":{email:"li.m@glp.com",company:"—",repos:15,year:2020},"data-collab":{email:"未公开",company:"data-collab",repos:6,year:2022},"jwang":{email:"未公开",company:"—",repos:3,year:2023},"tourblog":{email:"未公开",company:"—",repos:1,year:2024}};
+  $("#app").innerHTML=`${topnav("accounts")}<div class="wrap pageband fade">
+    ${pageHead("user","账号线索卡片","账号风险线索聚合 · 集成本会话全部查询命中，按账号聚合公开资料 + 风险分级数量；所有归属标注「推测」，仅供人工研判——不作个人指认、不做身份反查、不与内部 HR 比对","a-accounts")}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    ${list.map(a=>{const s=sev(a.max);const p=meta[a.handle]||{email:"未公开",company:"—",repos:"—",year:"—"};const v={high:a.related.filter(h=>h.score>=80).length,mid:a.related.filter(h=>h.score>=60&&h.score<80).length,low:a.related.filter(h=>h.score<60).length};const conf=a.related.length>=3?'中':'低';return `
+    <div class="acct-card">
+      <div style="padding:22px 24px;display:flex;align-items:center;gap:16px;border-bottom:1px solid var(--hairline)">${avatar(a.handle,60)}
+        <div style="flex:1;min-width:0"><div class="mono" style="font-weight:700;font-size:19px;color:var(--ink-900)">${a.handle}</div><div style="font-size:13px;color:var(--ink-500);margin-top:2px">${a.type} · 公开仓库 ${p.repos} · 注册 ${p.year}</div></div>
+        <div style="text-align:center;padding:8px 14px;border-radius:12px;background:${s.soft}"><div class="mono" style="font-size:22px;font-weight:800;color:${s.c}">${a.max}</div><div style="font-size:10px;font-weight:800;color:${s.c}">${s.label}</div></div></div>
+      <div style="padding:20px 24px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap"><span style="font-size:12px;color:#8aa295;font-weight:600">风险数量</span>${sevPills(v)}<span style="flex:1"></span><span style="font-size:12.5px;color:var(--ink-500);font-weight:700">累计 ${a.related.length}</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">${[["公开资料邮箱",p.email],["关联组织 / 公司",p.company],["账号类型",a.type],["累计关联命中",a.related.length+" 次"]].map(([k,vv])=>`<div><div style="font-size:12px;color:#8aa295;font-weight:600">${k}</div><div style="font-size:13.5px;color:var(--ink-800);font-weight:600">${vv}</div></div>`).join("")}</div>
+        <div style="font-size:12px;color:#8aa295;font-weight:600;margin-bottom:8px">关联命中</div>
+        <div style="display:flex;flex-direction:column;gap:7px">${a.related.slice(0,5).map(rh=>{const rs=sev(rh.score);return `<button class="hitrow" data-hit="${rh.id}" style="display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--softer);border:none;border-radius:9px;text-align:left;width:100%"><span style="width:8px;height:8px;border-radius:50%;background:${rs.c}"></span><span style="font-weight:700;font-size:13px;color:var(--ink-800)">${rh.type}</span><span class="mono" style="font-size:11.5px;color:#93a69b;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${rh.repo}</span><span class="mono" style="font-size:12px;font-weight:800;color:${rs.c}">${rh.score}</span></button>`;}).join("")}</div>
+        <div style="margin-top:14px;padding:10px 14px;background:${conf==='中'?'var(--warn-soft)':'var(--neutral-bg)'};border-radius:10px;font-size:12.5px;color:${conf==='中'?'var(--warn-deep)':'var(--ink-500)'};font-weight:600">归属置信度：${conf} · 标注为「推测」，仅供研判</div>
+      </div></div>`;}).join("")}</div></div>`;
+  $$(".hitrow").forEach(b=>b.onclick=()=>{STATE.detailId=b.dataset.hit;go("detail");});bindView();
+}
+function renderHits(){
+  const list=[...HITS].sort((a,b)=>b.score-a.score);const v={high:list.filter(h=>h.score>=80).length,mid:list.filter(h=>h.score>=60&&h.score<80).length,low:list.filter(h=>h.score<60).length};
+  $("#app").innerHTML=`${topnav("hits")}<div class="wrap pageband fade">
+    ${pageHead("list","按风险分排序的命中列表","命中列表 · 汇总本会话全部查询命中，按 仓库+路径+内容 去重，从高到低统一排序；点击查看完整检测详情","a-hits")}
+    <div class="statcard" style="display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap"><div style="display:flex;align-items:baseline;gap:10px"><span style="font-size:26px;font-weight:900;color:var(--green-ink);font-family:var(--font-mono)">${list.length}</span><span style="font-size:13.5px;color:var(--ink-500);font-weight:700">本会话累积命中</span></div>${sevPills(v)}<span style="flex:1"></span><span style="font-size:12px;color:var(--ink-400)">按 仓库+路径+内容 去重，同一文件被多个查询命中只计一次</span></div>
+    <table class="g-table"><thead><tr><th>风险分</th><th>类型</th><th>仓库 · 路径</th><th>账号</th><th>状态</th><th></th></tr></thead>
+    <tbody>${list.map(h=>{const s=sev(h.score);return `<tr class="hitrow" data-hit="${h.id}" style="cursor:pointer">
+      <td><span style="display:inline-flex;flex-direction:column;align-items:center;padding:6px 8px;border-radius:10px;background:${s.soft}"><span class="mono" style="font-size:18px;font-weight:800;color:${s.c}">${h.score}</span><span style="font-size:10px;font-weight:800;color:${s.c}">${s.label}</span></span></td>
+      <td><div style="display:flex;align-items:center;gap:6px">${icon(CAT[h.cat].icon,14,2,`var(--cat-${CAT[h.cat].c})`)}<span style="font-weight:700;color:var(--ink-900)">${h.type}</span></div><div style="margin-top:4px">${catPill(h.cat)}${h.isNew?' <span class="catpill" style="background:var(--primary);color:#fff">🆕 新增</span>':''}</div></td>
+      <td class="mono" style="max-width:280px"><div style="color:var(--ink-800);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.repo}</div><div style="color:#93a69b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.path}</div></td>
+      <td class="mono" style="color:var(--ink-600)">${h.account}</td>
+      <td><span style="font-size:11px;font-weight:700;padding:4px 9px;border-radius:999px;background:var(--surface-sunken);color:var(--ink-600)">${h.status}</span></td>
+      <td style="text-align:right;color:#9fb3a6">→</td></tr>`;}).join("")}</tbody></table></div>`;
+  $$(".hitrow").forEach(b=>b.onclick=()=>{STATE.detailId=b.dataset.hit;go("detail");});bindView();
+}
+function renderAudit(){
+  const counts={total:AUDIT.length,scan:AUDIT.filter(a=>a.cat==="扫描").length,ev:AUDIT.filter(a=>a.cat==="证据").length,disp:AUDIT.filter(a=>a.cat==="工单"||a.cat==="处置").length};
+  $("#app").innerHTML=`${topnav("audit")}<div class="wrap pageband fade">
+    ${pageHead("shield","操作审计日志","审计追踪 · 扫描发起 / 证据访问 / 有效性验证 / 工单处置 / 配置变更全量留痕；演示态持久化于本浏览器，生产须写入防篡改的独立审计存储","a-audit")}
+    <div class="statstrip">${[["审计条目总数",counts.total,"var(--primary)"],["扫描发起",counts.scan,"var(--ok)"],["证据访问",counts.ev,"var(--warn-deep)"],["工单 / 处置",counts.disp,"var(--risk-high)"]].map(([l,v,c])=>`<div class="statcard"><div class="top"><div class="lbl">${l}</div><div class="dot" style="background:${c}"></div></div><div class="val">${v}</div><div class="delta" style="color:var(--ink-400)"> </div></div>`).join("")}</div>
+    <div class="seg" style="margin-bottom:16px">${["全部","扫描","证据","验证","工单","配置"].map((c,i)=>`<button class="${i===0?'on':''}">${c}</button>`).join("")}</div>
+    <table class="g-table"><thead><tr><th>时间</th><th>操作</th><th>对象 / 详情</th><th>操作人</th></tr></thead>
+    <tbody>${AUDIT.map(a=>{const st=AUDIT_STYLE[a.action]||["•","var(--ink-600)","var(--surface-sunken)"];return `<tr>
+      <td class="mono" style="color:var(--ink-500);white-space:nowrap">${a.at}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;background:${st[2]};color:${st[1]};font-size:12.5px;font-weight:700;white-space:nowrap">${st[0]} ${a.action}</span></td>
+      <td><div style="font-weight:700;color:var(--ink-900)">${a.target}</div><div style="font-size:12.5px;color:var(--ink-500);margin-top:2px;line-height:1.5">${a.detail}</div></td>
+      <td style="font-weight:600">${a.actor}</td></tr>`;}).join("")}</tbody></table>
+    <div style="margin-top:14px;padding:14px 18px;background:var(--risk-high-soft);border-radius:12px;font-size:13px;color:#a32a20;font-weight:600;line-height:1.6">通知最小化原则：审计详情中不记录完整密钥/PII 原文，仅记录「谁、何时、访问了哪条命中」。敏感原文的查看行为本身被记录，但原文不进入日志。</div>
+    </div>`;bindView();
+}
+
+/* ============================ toast / 注释 ============================ */
+let toastT=null;function toast(msg){let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";t.style.cssText="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:120;background:#0c1f18;color:#e7f6ee;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:0 10px 30px -8px rgba(0,0,0,.4);max-width:90vw;display:flex;align-items:center;gap:9px";document.body.appendChild(t);}t.innerHTML=icon("check",16,2.4,"#9ff0c8")+msg;t.style.opacity="1";clearTimeout(toastT);toastT=setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity="0";},2600);}
+let curAnno=null;
+function bindAnno(){document.body.addEventListener("click",e=>{const p=e.target.closest(".anno-pin");if(p){e.stopPropagation();showAnno(p.dataset.anno,p);return;}if(!e.target.closest(".anno-pop"))hideAnno();});window.addEventListener("scroll",hideAnno,true);}
+function showAnno(k,el){const a=ANNOS[k];if(!a)return;hideAnno();const p=document.createElement("div");p.className="anno-pop";
+  p.innerHTML=`<div class="ah"><span class="n">${a.n}</span><span class="ti">${a.title}</span><button class="closep">${icon("x",16)}</button></div><div class="ab">${a.body}<div class="src">${icon("layers",12)}${a.src}</div></div>`;
+  document.body.appendChild(p);const r=el.getBoundingClientRect(),pw=p.offsetWidth,ph=p.offsetHeight;let left=r.left+r.width/2-pw/2,top=r.bottom+10;
+  if(left<8)left=8;if(left+pw>innerWidth-8)left=innerWidth-pw-8;if(top+ph>innerHeight-8)top=r.top-ph-10;if(top<8)top=8;p.style.left=left+"px";p.style.top=top+"px";p.querySelector(".closep").onclick=hideAnno;curAnno=p;}
+function hideAnno(){if(curAnno){curAnno.remove();curAnno=null;}}
+
+/* ============================ 路由 ============================ */
+function go(v){stopAf();STATE.view=v;render();scrollTo(0,0);}
+function render(){hideAnno();$("#overlay").innerHTML="";
+  if(STATE.view==="search")renderSearch();
+  else if(STATE.view==="workbench")renderWorkbench();
+  else if(STATE.view==="detail")renderDetail();
+  else if(STATE.view==="history")renderHistory();
+  else if(STATE.view==="accounts")renderAccounts();
+  else if(STATE.view==="hits")renderHits();
+  else if(STATE.view==="audit")renderAudit();
+  syncStepper();}
+function bindView(){$$("[data-view]").forEach(b=>b.onclick=()=>go(b.dataset.view));}
+function syncStepper(){const map={search:"search",workbench:"workbench",detail:"detail"};$$("#stepper button").forEach(b=>b.classList.toggle("on",map[STATE.view]===b.dataset.step));}
+
+$("#stepper").onclick=e=>{const b=e.target.closest("[data-step]");if(b)go(b.dataset.step);};
+$("#annoToggle").onclick=()=>{const on=document.body.classList.toggle("anno-on");$("#annoToggle").classList.toggle("on",on);if(!on)hideAnno();};
+$("#restartBtn").onclick=()=>{STATE.view="search";STATE.tab="全部";STATE.minScore=0;go("search");};
+$("#introBtn").onclick=showIntro;
+function showIntro(){$("#overlay").innerHTML=`<div class="scrim" id="iScrim"><div class="intro"><div class="ih"><h2>GitDLP 交互式演示</h2><p>公开 GitHub 敏感数据泄露检测系统 — 调用 GitHub 代码搜索，运行密钥/PII 检测引擎，生成带证据的可解释风险研判。本演示为完全虚构的示例数据。</p></div>
+  <div class="ib">
+    <div class="step"><span class="n">1</span><div><div class="tt">搜寻台</div><div class="dd">输入目标，设置域名精确 / 降噪 / 类型 / 排查语境；可选内联「扩展搜索」把域名炸开成候选。</div></div></div>
+    <div class="step"><span class="n">2</span><div><div class="tt">检测工作台</div><div class="dd">统计条 + 类型/降噪筛选 + 命中队列表格；自动渐进取全（取满→分片）；结果过多可一键精确重搜。</div></div></div>
+    <div class="step"><span class="n">3</span><div><div class="tt">命中详情</div><div class="dd">四层证据（快照+实时SHA-256、有效性、扩散、账号）+ 可解释评分 + 处置 Runbook + 可复制工单。</div></div></div>
+    <div class="step"><span class="n">▦</span><div><div class="tt">顶部五个板块</div><div class="dd">搜寻台 / 查询历史 / 账号线索 / 命中列表 / 审计追踪，均可点击。</div></div></div>
+    <div class="step"><span class="n">★</span><div><div class="tt">注释模式</div><div class="dd">界面上闪烁的绿色数字 ❶❷❸ 可点击，查看每个区域对应的真实代码文件与合规边界。</div></div></div>
+  </div><div class="if"><button class="btn-primary" id="iStart">开始体验 ${icon("arrowR",16,2,"#fff")}</button></div></div></div>`;
+  $("#iScrim").onclick=e=>{if(e.target.id==="iScrim")$("#overlay").innerHTML="";};$("#iStart").onclick=()=>$("#overlay").innerHTML="";}
+
+bindAnno();render();showIntro();
+</script>
+</body>
+</html>
