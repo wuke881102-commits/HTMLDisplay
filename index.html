@@ -40,7 +40,7 @@
     ]},
     { num:"02", t:{ zh:"AI 身份安全", en:"AI for Identity Security" }, products:[
       { id:"identity-hub", n:{ zh:"身份安全中心", en:"Identity Hub" }, s:"self-innovate" },
-      { id:"useract",      n:{ zh:"账号活动分析", en:"UserAct Search" }, s:"self-innovate" }
+      { id:"useract",      n:{ zh:"账号活动分析", en:"Account DeepSearch" }, s:"self-innovate" }
     ]},
     { num:"03", t:{ zh:"AI 漏洞管理", en:"AI for Vulnerability Management" }, products:[
       { id:"vulnerability-hub", n:{ zh:"漏洞安全中心", en:"Vulnerability Hub" }, s:"self-innovate" }
@@ -58,12 +58,13 @@
       { id:"ai-risk-framework", n:{ zh:"AI 安全风险框架", en:"AI Security Risk Framework" }, s:"principle" },
       { id:"digital-human",     n:{ zh:"AI 数字员工安全", en:"AI Security for Digital Employee" }, s:"principle" }
     ]},
-    { num:"03", t:{ zh:"AI 安全防护", en:"AI Security Guardrail (+ Gateway)" }, products:[
+    { num:"03", t:{ zh:"AI 安全防护", en:"AI Security Guardrail and Gateway" }, products:[
       { id:"ai-guardrails", n:{ zh:"AI 安全护栏", en:"AI Guardrails" }, s:"commercial" },
       { id:"ai-gateway", n:{ zh:"AI 网关", en:"AI Gateway" }, s:"commercial" }
     ]},
-    { num:"04", t:{ zh:"面向 AI 编码的安全智能体", en:"AI Agent for AI Coding" }, products:[
-      { id:"pentest-openclaw", n:{ zh:"AI智能体参与渗透测试", en:"Penetration Testing via AI Agent" }, s:"commercial-self-innovate" }
+    { num:"04", t:{ zh:"面向 AI 编码的安全智能体", en:"AI Security for AI Coding" }, products:[
+      { id:"pentest-openclaw", n:{ zh:"AI智能体参与渗透测试", en:"Penetration Testing via AI Agent" }, s:"commercial-self-innovate" },
+      { id:"github-leak", n:{ zh:"GitHub 泄露检测", en:"Github Leak Detection" }, s:"self-innovate" }
     ]}
   ];
 
@@ -79,7 +80,8 @@
     "digital-human": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/AgentRisk",
     "ai-guardrails": "#",
     "ai-gateway": "#",
-    "pentest-openclaw": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/catclaw"
+    "pentest-openclaw": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/catclaw",
+    "github-leak": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/gitdlpdemo"
   };
 
   var UI = {
@@ -216,7 +218,7 @@
         + '<div class="panorama-grid">'
 
           + '<div style="border:1px solid #DCEDE3;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:#FBFEFC;">'
-            + '<div style="background:linear-gradient(135deg,#30AA60 0%,#00AA4F 100%);padding:14px 18px;color:#fff;">'
+            + '<div style="background:linear-gradient(135deg,#30AA60 0%,#00AA4F 100%);padding:14px 18px;color:#fff;text-align:center;">'
               + '<div style="font-size:18px;font-weight:800;letter-spacing:0.01em;">' + esc(ui.leftColTitle) + '</div>'
               + '<div style="font-size:12.5px;opacity:0.92;margin-top:2px;font-weight:500;">' + esc(ui.leftColSub) + '</div>'
             + '</div>'
@@ -238,7 +240,7 @@
           + '</div>'
 
           + '<div style="border:1px solid #D5E5DC;border-radius:14px;overflow:hidden;display:flex;flex-direction:column;background:#FAFDFB;">'
-            + '<div style="background:linear-gradient(135deg,#006845 0%,#005A3C 100%);padding:14px 18px;color:#fff;">'
+            + '<div style="background:linear-gradient(135deg,#006845 0%,#005A3C 100%);padding:14px 18px;color:#fff;text-align:center;">'
               + '<div style="font-size:18px;font-weight:800;letter-spacing:0.01em;">' + esc(ui.rightColTitle) + '</div>'
               + '<div style="font-size:12.5px;opacity:0.9;margin-top:2px;font-weight:500;">' + esc(ui.rightColSub) + '</div>'
             + '</div>'
