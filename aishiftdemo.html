@@ -623,7 +623,7 @@ h1,h2,h3,h4{margin:0;color:var(--ink)}
     {lb:"登记引导卡",to:"张伟",tm:"07-22 15:02",body:'<div style="font-size:13px;color:var(--body)">「合同智能审查助手」欢迎/菜单卡 · 引导登记与分流问卷</div>'},
     {lb:"检查项任务卡",to:"张伟",tm:"07-22 15:20",body:'<div class="obitem"><div class="r"><span class="mono" style="font-size:12px;font-weight:700;color:var(--primary)">DAT-05</span><span class="lvl m">M</span></div><div style="font-size:12.5px;line-height:1.5">考虑将敏感数据脱敏后再给智能体处理，仅处理最小必要敏感数据。</div></div><div class="qr"><span>已落实</span><span>部分落实</span><span>不适用</span><span>需要帮助</span></div>'},
     {lb:"复核结果卡",to:"张伟",tm:"07-22 16:10",body:'<div style="font-size:13px;line-height:1.6">「合同智能审查助手」<span class="mono" style="font-weight:700">DAT-05</span> → <b style="color:#0E8F7E">有条件通过</b><div style="color:var(--body-2);margin-top:4px">复核意见：下周提交「最小必要」字段收敛结果，安全抽查后转正。</div></div>'},
-    {lb:"催办/升级卡",to:"张伟",tm:"07-22 16:30",body:'<div style="font-size:13px;line-height:1.6"><b style="color:var(--warning)">催办提醒</b>：「合同智能审查助手」<span class="mono">AGT-03</span>（M 级必须项）</div>'}
+    {lb:"催办卡",to:"张伟",tm:"07-22 16:30",body:'<div style="font-size:13px;line-height:1.6"><b style="color:var(--warning)">催办提醒</b>：「合同智能审查助手」<span class="mono">AGT-03</span> 已超过约定时限未回答（M 级必须项）</div>'}
   ];
   $("#oblist").innerHTML=OB.map(function(o){return '<div class="card obcard"><div class="oh"><span class="lb">'+o.lb+'</span><span class="to">→ '+o.to+'</span><span class="tm">'+o.tm+'</span></div>'+o.body+'</div>'}).join("");
 })();
