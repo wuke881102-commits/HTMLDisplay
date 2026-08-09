@@ -27,7 +27,7 @@
 
   var STATUS = {
     "self-innovate": { zh:"自研", en:"SELF-INNOVATE", desc:{ zh:"自主研发", en:"Built In-house" } },
-    "commercial-self-innovate": { zh:"商业/自研", en:"COMMERCIAL/SELF-INNOVATE", desc:{ zh:"商业方案 + 自主研发", en:"Vendor + in-house" } },
+    "commercial-self-innovate": { zh:"商业 + 自研", en:"COMMERCIAL + SELF-INNOVATE", desc:{ zh:"商业方案 + 自主研发", en:"Vendor + in-house" } },
     "principle":     { zh:"原则", en:"PRINCIPLE",     desc:{ zh:"指导原则", en:"Guiding Principle" } },
     "practice":      { zh:"实践", en:"PRACTICE",      desc:{ zh:"应用实践", en:"Applied Practice" } },
     "commercial":    { zh:"商业产品", en:"COMMERCIAL", desc:{ zh:"商业方案", en:"Vendor Solution" } }
@@ -35,7 +35,7 @@
 
   var left = [
     { num:"01", t:{ zh:"AI 安全运营（SOC）", en:"AI for Security Operations" }, products:[
-      { id:"cyber-incident-hub", n:{ zh:"网络安全事件中心", en:"Cyber Incident Hub" }, s:"self-innovate" },
+      { id:"cyber-incident-hub", n:{ zh:"网络安全事件中心", en:"Cyber Incident Hub" }, s:"commercial-self-innovate" },
       { id:"multiagent-cowork",  n:{ zh:"多智能体协同", en:"MultiAgent Cowork" }, s:"self-innovate" }
     ]},
     { num:"02", t:{ zh:"AI 身份安全", en:"AI for Identity Security" }, products:[
@@ -48,8 +48,8 @@
     { num:"04", t:{ zh:"AI 邮件安全", en:"AI for Email Security" }, products:[
       { id:"emailguard", n:{ zh:"邮件安全卫士", en:"EmailGuard" }, s:"self-innovate" }
     ]},
-    { num:"05", t:{ zh:"AI 应用安全", en:"AI for Application Security" }, products:[
-      { id:"pentest-openclaw", n:{ zh:"AI智能体参与渗透测试", en:"Penetration Test via AI Agent" }, s:"commercial-self-innovate" }
+    { num:"05", t:{ zh:"AI 攻击面管理", en:"AI for Attack Surface Management" }, products:[
+      { id:"pentest-openclaw", n:{ zh:"公司域名防伪监测", en:"DomainGuard" }, s:"self-innovate" }
     ]}
   ];
 
@@ -62,7 +62,7 @@
       { id:"digital-human",     n:{ zh:"AI 数字员工安全", en:"AI Security for Digital Employee" }, s:"principle" }
     ]},
     { num:"03", t:{ zh:"AI 安全防护", en:"AI Security Guardrail and Gateway" }, products:[
-      { id:"ai-guardrails", n:{ zh:"AI 安全护栏", en:"AI Guardrails" }, s:"commercial" },
+      { id:"ai-guardrails", n:{ zh:"AI 安全护栏", en:"AI Guardrails" }, s:"commercial-self-innovate" },
       { id:"ai-gateway", n:{ zh:"AI 安全网关", en:"AI Gateway" }, s:"commercial" }
     ]},
     { num:"04", t:{ zh:"AI安全面向 AI 编码", en:"AI Security for AI Coding" }, products:[
@@ -84,7 +84,7 @@
     "digital-human": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/AgentRisk",
     "ai-guardrails": "#",
     "ai-gateway": "#",
-    "pentest-openclaw": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/catclaw",
+    "pentest-openclaw": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/domainguarddemo",
     "github-leak": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/gitdlpdemo",
     "ai-shift-assessment": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/aishiftdemo"
   };
