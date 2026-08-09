@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DomainGuard 仿冒域名监测与取证 · 带注释的交互式演示</title>
+<style>
+/* ============================================================
+   DomainGuard — 仿冒域名监测与取证系统
+   交互式演示（内容严格对齐实际功能；样式仿 GLP Soft Neo 设计令牌）
+   全部数据为演示虚构，不含任何真实客户/域名信息
+   ============================================================ */
+:root{
+  --canvas:#f3f3f1; --surface:#ffffff; --surface-2:#f8f8f6; --surface-sunken:#eef1ec; --softer:#f6f6f4;
+  --border:#e2e6e2; --border-strong:#c9d2c9; --hairline:rgba(0,37,15,.08); --linefaint:#e7ebe6;
+  --ink-900:#001b0b; --ink-800:#00250f; --ink-700:#20321f; --ink-600:#3f4a3d;
+  --ink-500:#68706b; --ink-400:#8a928d; --ink-300:#b6bdb8;
+  --primary:#00642f; --primary-700:#004d22; --primary-600:#0a7a3d; --green-ink:#00250f;
+  --primary-soft:#e5f2e8; --primary-soft-2:#eef7f0; --primary-ink:#004d22;
+  --risk-high:#b03030; --risk-high-soft:#f7e3e3; --risk-high-ink:#8a2424;
+  --risk-med:#8a6a12; --risk-med-soft:#f7efdc; --risk-med-ink:#725804;
+  --ok:#0a7a3d; --ok-soft:#e5f2e8; --warn:#d9a441; --warn-soft:#f7efdc; --warn-deep:#8a6a12;
+  --orange:#c2621f; --orange-soft:#faf0e0; --orange-ink:#a5510f;
+  --info:#3b82f6; --info-soft:#e4eefb; --info-ink:#235b9c;
+  --neutral:#8a928d; --neutral-bg:#eef1ec;
+  --cat-secret:#b03030; --cat-secret-soft:#f7e3e3; --cat-pii:#c2621f; --cat-pii-soft:#faf0e0;
+  --cat-source:#3b82f6; --cat-source-soft:#e4eefb; --cat-config:#8a6a12; --cat-config-soft:#f7efdc;
+  --cat-other:#68706b; --cat-other-soft:#eef1ec;
+  --scene-t1:#8a928d; --scene-t1-bg:#eef1ec; --scene-t2:#d9a441; --scene-t2-bg:#f7efdc;
+  --scene-t3:#d84d4d; --scene-t3-bg:#f7e3e3; --scene-t4:#0a7a3d; --scene-t4-bg:#e5f2e8;
+  --font-sans:"Manrope","Noto Sans SC","Source Han Sans SC","Microsoft YaHei UI","Microsoft YaHei",sans-serif;
+  --font-mono:"JetBrains Mono","SF Mono",Menlo,Consolas,monospace;
+  --shadow-xs:0 1px 2px rgba(0,37,15,.06); --shadow-sm:0 1px 3px rgba(0,37,15,.08),0 0 0 1px rgba(0,37,15,.03);
+  --shadow-soft:0 6px 18px rgba(0,37,15,.06); --shadow-card:0 10px 30px rgba(0,37,15,.08);
+  --shadow-md:0 4px 12px rgba(0,37,15,.10),0 0 0 1px rgba(0,37,15,.04); --shadow-lg:0 8px 24px rgba(0,37,15,.16);
+  --maxw:1240px;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;color:var(--ink-800);font-family:var(--font-sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+body{background:linear-gradient(180deg,#f6f8f6 0%,#eef4ef 100%);}
+button{font-family:inherit;cursor:pointer;}input,textarea{font-family:inherit;}
+.mono{font-family:var(--font-mono);font-feature-settings:"tnum" 1;}
+::selection{background:var(--primary-soft);}
+@keyframes g-fade{from{opacity:0}to{opacity:1}}
+@keyframes g-fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes g-spin{to{transform:rotate(360deg)}}
+@keyframes anno-ping{0%{box-shadow:0 0 0 0 rgba(0,100,47,.5)}70%{box-shadow:0 0 0 8px rgba(0,100,47,0)}100%{box-shadow:0 0 0 0 rgba(0,100,47,0)}}
+.spin{animation:g-spin .9s linear infinite;display:inline-block;}
+.fade{animation:g-fade-up .35s ease;}
+svg{flex:none;}
+
+/* demo chrome */
+.demo-bar{position:sticky;top:0;z-index:80;display:flex;align-items:center;gap:18px;padding:10px 20px;background:#04170c;color:#dcefe3;border-bottom:1px solid #113a25;flex-wrap:wrap;}
+.demo-bar .brandwrap{display:flex;align-items:center;gap:10px;font-weight:800;font-size:14px;color:#fff;}
+.demo-bar .brandwrap .badge{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:999px;background:rgba(34,171,118,.2);color:#9ff0c8;font-size:10.5px;font-weight:700;letter-spacing:.06em;}
+.stepper{display:flex;align-items:center;gap:6px;margin:0 auto;flex-wrap:wrap;}
+.stepper button{display:inline-flex;align-items:center;gap:8px;border:1px solid transparent;background:transparent;color:#88b6a2;font-size:12.5px;font-weight:600;padding:6px 12px;border-radius:999px;transition:all .14s;}
+.stepper button .num{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:800;background:rgba(255,255,255,.08);color:#9ff0c8;}
+.stepper button.on{background:rgba(34,171,118,.16);color:#eafff4;border-color:rgba(34,171,118,.4);}
+.stepper button.on .num{background:var(--primary-600);color:#fff;}
+.stepper .arrow{color:#3c5f4f;font-size:13px;}
+.demo-actions{display:flex;align-items:center;gap:10px;}
+.demo-actions .toggle{display:inline-flex;align-items:center;gap:8px;border:1px solid #2a5443;background:rgba(255,255,255,.04);color:#cdeeda;font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:999px;}
+.demo-actions .toggle.on{background:var(--primary-600);border-color:var(--primary);color:#fff;}
+.demo-actions .toggle .sw{width:30px;height:16px;border-radius:999px;background:#28473a;position:relative;transition:background .15s;}
+.demo-actions .toggle.on .sw{background:#0c3b27;}
+.demo-actions .toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#9bbcae;transition:all .16s;}
+.demo-actions .toggle.on .sw::after{left:16px;background:#fff;}
+.demo-actions .ghost{border:1px solid #2a5443;background:transparent;color:#a9d2c0;font-size:12.5px;font-weight:600;padding:7px 13px;border-radius:999px;}
+.demo-actions .ghost:hover{background:rgba(255,255,255,.05);color:#fff;}
+
+/* topnav */
+.g-topnav{position:sticky;top:49px;z-index:40;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border-bottom:1px solid var(--linefaint);}
+.g-topnav .inner{width:var(--maxw);max-width:94vw;margin:0 auto;display:flex;align-items:center;gap:10px;height:72px;}
+.brandmark{display:flex;align-items:center;gap:12px;cursor:pointer;}
+.brandmark .glyph{width:44px;height:44px;border-radius:13px;flex:none;background:linear-gradient(155deg,var(--primary-600),var(--primary-700));display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(0,77,34,.28);color:#fff;}
+.brandmark .t1{font-weight:800;font-size:20px;color:var(--green-ink);line-height:1.05;letter-spacing:-.3px;}
+.brandmark .t2{font-size:11.5px;color:var(--ink-500);font-weight:500;}
+.g-topnav nav{display:flex;align-items:center;gap:3px;margin:0 auto;flex-wrap:wrap;}
+.g-topnav nav button{border:none;background:transparent;color:var(--ink-800);font-weight:700;font-size:13.5px;padding:8px 13px;border-radius:999px;white-space:nowrap;}
+.g-topnav nav button.on{background:linear-gradient(150deg,var(--primary-600),var(--primary-700));color:#fff;}
+.tokpill{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border-radius:11px;background:var(--warn-soft);color:var(--warn-deep);font-size:12.5px;font-weight:700;white-space:nowrap;}
+.tokpill .d{width:8px;height:8px;border-radius:50%;background:var(--warn-deep);}
+.btn-primary{display:inline-flex;align-items:center;gap:7px;border:none;background:linear-gradient(150deg,var(--primary-600),var(--primary-700));color:#fff;padding:11px 20px;border-radius:12px;font-weight:700;font-size:14px;white-space:nowrap;box-shadow:0 6px 14px rgba(0,77,34,.25);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;}
+.btn-ghost{border:1px solid var(--border-strong);background:var(--surface);color:var(--ink-700);padding:11px 18px;border-radius:12px;font-weight:700;font-size:14px;}
+.btn-sm{padding:8px 14px;font-size:12.5px;border-radius:10px;}
+
+/* home / search */
+.g-home{background:radial-gradient(circle at 10% 18%,rgba(0,100,47,.09),transparent 26%),linear-gradient(180deg,#f7faf7,#eef6f0);}
+.wrap{width:var(--maxw);max-width:94vw;margin:0 auto;}
+.g-home-main{display:grid;grid-template-columns:1fr 460px;gap:56px;align-items:start;padding:52px 0 76px;}
+.kicker{display:inline-flex;align-items:center;gap:8px;padding:7px 15px;border-radius:999px;background:var(--primary-soft);color:var(--primary-ink);font-weight:700;font-size:12.5px;margin-bottom:22px;}
+h1.hero{font-size:46px;line-height:1.1;font-weight:900;letter-spacing:-1.3px;color:var(--green-ink);margin:0 0 20px;}
+h1.hero .g{color:var(--primary-600);}
+p.lede{font-size:16.5px;line-height:1.65;color:var(--ink-600);max-width:540px;margin:0 0 30px;}
+.searchbox{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-card);}
+.searchbox .mag{width:44px;height:44px;border-radius:12px;background:var(--softer);display:grid;place-items:center;color:var(--ink-400);flex:none;}
+.searchbox input{flex:1;border:none;outline:none;font-size:15.5px;color:var(--ink-900);background:transparent;}
+.searchbox .go{padding:13px 22px;border-radius:12px;background:var(--primary-soft);color:var(--primary-700);border:none;font-weight:700;font-size:14.5px;display:inline-flex;align-items:center;gap:8px;}
+.g-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+.g-tags span{font-size:12.5px;color:var(--ink-500);background:var(--surface);border:1px solid var(--linefaint);padding:5px 12px;border-radius:999px;cursor:pointer;}
+.fieldlabel{font-size:12.5px;font-weight:700;color:var(--ink-400);}
+.rangeseg{display:inline-flex;gap:4px;background:#eaeeea;padding:5px;border-radius:14px;flex-wrap:wrap;}
+.rangeseg button{border:none;border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;background:transparent;color:var(--ink-600);}
+.rangeseg button.on{background:#fff;color:var(--primary-700);box-shadow:0 2px 8px rgba(0,37,15,.12);}
+/* scene card */
+.g-ev-card{background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:32px;box-shadow:0 18px 44px rgba(0,37,15,.10);}
+.g-ev-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:22px;}
+.g-ev-head span{font-weight:800;font-size:18px;color:var(--green-ink);}
+.g-ev-head b{font-size:10.5px;font-weight:700;color:#9fb3a6;letter-spacing:1px;}
+.g-ev-tier{border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;margin-bottom:12px;}
+.g-ev-tier strong{display:block;font-weight:800;font-size:15px;margin-bottom:3px;}
+.g-ev-tier p{margin:0;font-size:12.5px;color:var(--ink-700);line-height:1.5;}
+.g-ev-tier .no{font-family:var(--font-mono);font-weight:800;font-size:26px;opacity:.4;}
+.home-foot{padding:16px 0 34px;text-align:center;color:var(--ink-400);font-size:12px;}
+.statrow3{display:flex;gap:22px;margin-top:20px;}
+.statrow3>div{flex:1;text-align:center;background:var(--softer);border-radius:14px;padding:14px 8px;}
+.statrow3 .n{font-size:24px;font-weight:800;font-family:var(--font-mono);color:var(--ink-900);}
+.statrow3 .k{font-size:11.5px;color:var(--ink-500);font-weight:600;margin-top:2px;}
+.iconrow{display:flex;gap:10px;justify-content:center;margin-top:8px;}
+.iconrow button{width:44px;height:44px;border-radius:12px;border:1px solid var(--linefaint);background:#fff;display:grid;place-items:center;color:var(--ink-600);}
+.recent-chip{display:inline-flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:#fff;border:1px solid var(--linefaint);cursor:pointer;font-size:12.5px;}
+
+/* workbench / queue */
+.pageband{padding:32px 0 70px;}
+.wbhead{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:14px;}
+.eyebrow{font-size:11.5px;font-weight:800;color:var(--primary-600);letter-spacing:1px;margin-bottom:6px;}
+.h2{font-size:30px;font-weight:900;color:var(--green-ink);letter-spacing:-.5px;margin:0;}
+.seg{display:inline-flex;background:#fff;border:1px solid var(--linefaint);border-radius:12px;padding:5px;gap:3px;flex-wrap:wrap;}
+.seg button{padding:9px 15px;border-radius:9px;font-weight:700;font-size:13px;border:none;background:transparent;color:var(--ink-600);white-space:nowrap;}
+.seg button.on{background:var(--primary-600);color:#fff;}
+.searchmini{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--linefaint);border-radius:999px;padding:10px 16px;flex:1;min-width:200px;max-width:420px;}
+.searchmini input{flex:1;border:none;outline:none;background:transparent;font-size:13.5px;}
+.wbtable{background:#fff;border:1px solid var(--border);border-radius:18px;overflow:hidden;box-shadow:var(--shadow-card);}
+.wbrow{display:grid;grid-template-columns:34px 2fr 0.9fr 1.05fr 0.85fr 1fr 100px 78px;gap:14px;padding:14px 22px;align-items:center;}
+.wbhd{background:var(--softer);border-bottom:1px solid var(--border);font-size:11.5px;font-weight:800;color:var(--ink-500);letter-spacing:.3px;}
+.wbtr{border-bottom:1px solid var(--hairline);cursor:pointer;transition:background .12s;text-align:left;background:none;border-left:none;border-right:none;border-top:none;width:100%;}
+.wbtr:hover{background:var(--softer);}
+.scorebadge{font-size:18px;font-weight:800;font-family:var(--font-mono);}
+.simsub{font-size:11px;color:var(--ink-400);margin-top:3px;font-variant-numeric:tabular-nums;}
+.forcedtag{font-size:10.5px;color:var(--ink-400);margin-top:3px;cursor:help;}
+.scenepill{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;display:inline-block;}
+.riskpill{font-size:11.5px;font-weight:800;padding:4px 11px;border-radius:999px;display:inline-block;}
+.statuspill{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:999px;background:var(--surface-sunken);color:var(--ink-600);display:inline-block;}
+.reopenbanner{font-size:11px;color:var(--warn-deep);margin-top:4px;display:flex;align-items:center;gap:4px;}
+.clustertag{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--primary-soft);color:var(--primary-ink);}
+.checkcell{display:flex;align-items:center;justify-content:center;}
+.dg-checkbox{width:16px;height:16px;}
+
+/* detail */
+.backlink{display:inline-flex;align-items:center;gap:7px;color:var(--ink-500);font-weight:700;font-size:13.5px;cursor:pointer;margin-bottom:16px;}
+.dheadcard{background:#fff;border:1px solid var(--border);border-radius:20px;padding:24px 28px;box-shadow:var(--shadow-card);margin-bottom:18px;}
+.dheadtop{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:10px;}
+.dscore{text-align:right;}
+.dscore .n{font-size:38px;font-weight:800;font-family:var(--font-mono);line-height:1;color:var(--ink-900);}
+.dscore .k{font-size:11px;color:var(--ink-400);font-weight:700;}
+.dscore .sim{font-size:11.5px;color:var(--ink-500);margin-top:4px;}
+.dgrid{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start;}
+.tier{background:#fff;border:1px solid var(--border);border-radius:18px;overflow:hidden;margin-bottom:16px;}
+.tier .th{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-left:5px solid;flex-wrap:wrap;gap:6px;}
+.tier .th .tt{font-weight:800;font-size:15.5px;}
+.tier .th .rt{font-size:11.5px;font-weight:700;}
+.tier .tb{padding:18px 20px;}
+.panel{background:#fff;border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-card);margin-bottom:16px;}
+.factor{margin-bottom:12px;}
+.factor .fl{display:flex;justify-content:space-between;margin-bottom:5px;font-size:13px;}
+.factor .fbar{height:8px;background:var(--neutral-bg);border-radius:6px;overflow:hidden;}
+.factor .fbar>div{height:100%;border-radius:6px;}
+.clusterbox{margin-top:16px;padding:14px 16px;border:1px solid var(--border);border-left:3px solid var(--primary-600);border-radius:10px;background:var(--softer);}
+.clusterhead{display:flex;align-items:center;gap:8px;font-size:13.5px;margin-bottom:8px;}
+.clustermembers{display:flex;flex-wrap:wrap;gap:7px;margin-top:8px;}
+/* 加白/仍在检测的后果说明 —— 必须紧挨着按钮，只靠 toast 一闪而过没人记得住 */
+.wlhint{margin-top:12px;padding:10px 14px;border-radius:8px;background:var(--softer);font-size:12.5px;line-height:1.7;color:var(--ink-500);}
+.wlhinton{background:var(--primary-soft);color:var(--primary-ink);}
+.clusterchip{font-size:12px;font-family:var(--font-mono);padding:4px 9px;border-radius:6px;border:1px solid var(--border);background:#fff;cursor:pointer;}
+.clusterchip.self{border-color:var(--primary-600);color:var(--primary-700);cursor:default;}
+.shotgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.shotcard{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--softer);}
+.shotph{height:180px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#eef1ec,#e2e8e3);color:var(--ink-400);font-size:12px;flex-direction:column;gap:6px;}
+.shotmeta{padding:10px 14px;font-size:11.5px;color:var(--ink-500);line-height:1.7;}
+.shotmeta b{color:var(--ink-800);}
+.minibox{background:var(--softer);border-radius:10px;padding:11px 13px;}
+.minibox .k{font-size:11.5px;color:var(--ink-400);font-weight:600;}.minibox .v{font-weight:700;font-size:13px;margin-top:2px;word-break:break-all;}
+.fpbox{padding:12px 14px;background:var(--primary-soft);border-radius:10px;font-size:12.5px;color:var(--primary-ink);line-height:1.6;}
+.tlitem{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--hairline);}
+.tlitem:last-child{border-bottom:none;}
+.tldot{width:9px;height:9px;border-radius:50%;background:var(--primary-600);margin-top:5px;flex:none;}
+
+/* rules page */
+.ruletable{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
+.ruletable th{background:var(--softer);font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-500);text-align:left;padding:12px 14px;}
+.ruletable td{border-bottom:1px solid var(--hairline);padding:12px 14px;font-size:12.5px;color:var(--ink-700);vertical-align:top;}
+.ruletable tr:last-child td{border-bottom:none;}
+.tierbadge{display:inline-block;font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:6px;margin:2px 4px 2px 0;background:var(--surface-sunken);color:var(--ink-600);}
+
+/* board */
+.statstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.statcard{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow-soft);}
+.statcard .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.statcard .lbl{font-size:13px;color:var(--ink-500);font-weight:700;}
+.statcard .dot{width:10px;height:10px;border-radius:50%;}
+.statcard .val{font-size:28px;font-weight:800;color:var(--ink-900);font-family:var(--font-mono);line-height:1;}
+.statcard .delta{font-size:12px;font-weight:700;margin-top:6px;}
+.pipetable{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
+.piperow{display:grid;grid-template-columns:1.6fr 0.85fr 1fr 1fr 1.2fr;gap:14px;padding:14px 20px;border-bottom:1px solid var(--hairline);align-items:center;}
+.piperow:last-child{border-bottom:none;}
+.pipehd{background:var(--softer);font-size:11px;font-weight:800;color:var(--ink-500);}
+.scopebadge{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;}
+
+/* evidence page */
+.evcard{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow-soft);margin-bottom:14px;}
+
+/* audit page */
+.g-table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
+.g-table th{background:var(--softer);font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500);text-align:left;padding:12px 14px;}
+.g-table td{border-bottom:1px solid var(--hairline);padding:12px 14px;font-size:12.5px;color:var(--ink-700);vertical-align:top;}
+.g-table tr:last-child td{border-bottom:none;}
+.g-table tr:hover td{background:var(--softer);}
+.hashbanner{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--ok-soft);border-radius:14px;margin-bottom:18px;color:var(--primary-ink);font-weight:700;font-size:13.5px;}
+
+/* annotation */
+.anno-pin{display:none;}
+body.anno-on .anno-pin{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--primary-600);color:#fff;font-size:11px;font-weight:800;vertical-align:middle;margin:0 3px;flex:none;box-shadow:0 2px 6px -1px rgba(0,100,47,.6);animation:anno-ping 2.4s infinite;cursor:pointer;position:relative;z-index:5;}
+body.anno-on .anno-pin:hover{transform:scale(1.12);}
+.anno-anchor{position:relative;}
+body.anno-on .anno-pin.corner{position:absolute;top:-9px;left:-9px;}
+.anno-pop{position:fixed;z-index:95;width:340px;max-width:92vw;background:#04170c;color:#e7f6ee;border-radius:12px;box-shadow:0 18px 50px -10px rgba(0,0,0,.5);animation:g-fade-up .18s ease;border:1px solid #113a25;}
+.anno-pop .ah{display:flex;align-items:center;gap:9px;padding:13px 15px 9px;border-bottom:1px solid #113a25;}
+.anno-pop .ah .n{width:22px;height:22px;border-radius:50%;background:var(--primary-600);color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;flex:none;}
+.anno-pop .ah .ti{font-weight:800;font-size:14px;color:#fff;}
+.anno-pop .ab{padding:11px 15px 14px;font-size:12.6px;line-height:1.62;color:#c8e3d6;}
+.anno-pop .ab b{color:#9ff0c8;font-weight:700;}
+.anno-pop .src{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:600;color:#7fbfa3;background:rgba(10,122,61,.16);padding:4px 9px;border-radius:6px;}
+.anno-pop .closep{margin-left:auto;border:none;background:transparent;color:#6f9685;}
+.anno-hint{display:none;}
+body.anno-on .anno-hint{display:flex;align-items:center;gap:8px;justify-content:center;padding:9px 16px;background:var(--primary-soft);color:var(--primary-ink);font-size:12.5px;font-weight:600;border-bottom:1px solid rgba(0,100,47,.18);}
+
+/* modal */
+.scrim{position:fixed;inset:0;background:rgba(4,23,12,.55);z-index:100;display:grid;place-items:center;padding:24px;animation:g-fade .2s ease;}
+.intro{width:100%;max-width:580px;background:#fff;border-radius:18px;box-shadow:var(--shadow-lg);overflow:hidden;max-height:88vh;overflow-y:auto;}
+.intro .ih{padding:24px 28px 18px;background:linear-gradient(135deg,var(--primary-700),var(--primary-600));color:#fff;}
+.intro .ih h2{margin:0 0 6px;font-size:20px;font-weight:900;}
+.intro .ih p{margin:0;font-size:13px;color:#d7f0e2;line-height:1.6;}
+.intro .ib{padding:20px 28px;}
+.intro .step{display:flex;gap:13px;padding:10px 0;border-bottom:1px solid var(--hairline);}
+.intro .step:last-child{border-bottom:none;}
+.intro .step .n{width:26px;height:26px;border-radius:50%;background:var(--primary-soft);color:var(--primary-ink);font-weight:800;font-size:13px;display:grid;place-items:center;flex:none;}
+.intro .step .tt{font-weight:700;color:var(--ink-900);font-size:13.5px;}
+.intro .step .dd{font-size:12.5px;color:var(--ink-600);margin-top:2px;line-height:1.55;}
+.intro .if{padding:0 28px 24px;display:flex;justify-content:flex-end;}
+.modalbody{padding:18px 24px;}
+.formfield{margin-bottom:14px;}
+.formfield label{display:block;font-size:12.5px;font-weight:700;color:var(--ink-600);margin-bottom:6px;}
+.forminput{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13.5px;outline:none;}
+.forminput:focus{border-color:var(--primary-600);}
+
+@media(max-width:1080px){.dgrid{grid-template-columns:1fr;}.g-home-main{grid-template-columns:1fr;}.statstrip{grid-template-columns:repeat(2,1fr);}.wbrow{grid-template-columns:30px 2fr 1fr 90px;}.wbrow>.hide{display:none;}.piperow{grid-template-columns:1fr;gap:6px;}}
+</style>
+</head>
+<body class="anno-on">
+
+<div class="demo-bar">
+  <div class="brandwrap">DomainGuard <span class="badge">交互式演示</span></div>
+  <div class="stepper" id="stepper">
+    <button data-step="home"><span class="num">1</span>监测台</button><span class="arrow">›</span>
+    <button data-step="queue"><span class="num">2</span>复核队列</button><span class="arrow">›</span>
+    <button data-step="detail"><span class="num">3</span>域名详情</button>
+  </div>
+  <div class="demo-actions">
+    <button class="toggle on" id="annoToggle"><span class="sw"></span>注释模式</button>
+    <button class="ghost" id="introBtn">使用说明</button>
+    <button class="ghost" id="restartBtn">重新开始</button>
+  </div>
+</div>
+<div class="anno-hint" id="annoHint">注释模式已开启 — 界面上闪烁的绿色数字 ❶❷❸ 可点击，查看每个区域对应的真实实现文件与能力 / 合规边界。</div>
+
+<div id="app"></div>
+<div id="overlay"></div>
+
+<script>
+/* ============================ 图标 ============================ */
+const ICONS={
+  search:"M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3",user:"M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0",
+  shield:"M12 3 5 6v5c0 4.5 3 8 7 10 4-2 7-5.5 7-10V6l-7-3Z",alert:"M12 4 2.5 20h19L12 4Z|M12 10v4|M12 17.5v.5",
+  clock:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z|M12 7v5l3 2",globe:"M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z|M3 12h18|M12 3c2.5 2.5 3.5 5.7 3.5 9s-1 6.5-3.5 9c-2.5-2.5-3.5-5.7-3.5-9s1-6.5 3.5-9Z",
+  key:"M14 7a4 4 0 1 0-3.4 6L4 19.6 5.5 21l1.5-1.5L8.5 21 10 19.5 8.5 18l2.5-2.5A4 4 0 0 0 14 7Z",code:"M8 6l-6 6 6 6|M16 6l6 6-6 6",file:"M6 2h8l4 4v16H6zM14 2v4h4",
+  refresh:"M21 12a9 9 0 1 1-2.6-6.3M21 4v4h-4",download:"M12 3v12m0 0 4-4m-4 4-4-4|M4 17v2a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-2",
+  chevronD:"M6 9l6 6 6-6",chevronR:"M9 6l6 6-6 6",chevronL:"M15 6l-6 6 6 6",x:"M6 6l12 12M18 6 6 18",check:"M5 12l5 5 9-11",
+  lock:"M6 11h12v9H6zM9 11V8a3 3 0 0 1 6 0v3",building:"M5 21V4a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v17M15 9h3a1 1 0 0 1 1 1v11M9 7h2M9 11h2M9 15h2",
+  layers:"M12 3l9 5-9 5-9-5 9-5Z|M3 13l9 5 9-5",list:"M8 6h13M8 12h13M8 18h13|M3.5 6h.01M3.5 12h.01M3.5 18h.01",
+  arrowR:"M5 12h14M13 6l6 6-6 6",bolt:"M13 3 4 14h7l-1 7 9-11h-7l1-7Z",history:"M3 12a9 9 0 1 1 3 6.7M3 12H1m2 0V9|M12 8v4l3 2",
+  ticket:"M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4V7Z|M13 7v10",fork:"M6 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Zm12 0a3 3 0 1 0 0 6 3 3 0 0 0 0-6ZM6 9v3a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9M12 15v6",
+  star:"M12 3l2.7 5.9L21 9.7l-4.6 4.3L17.6 21 12 17.7 6.4 21l1.2-7L3 9.7l6.3-.8L12 3Z",eye:"M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z|M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z",
+  calendar:"M4 5h16v16H4zM4 9h16M8 3v4M16 3v4",wrench:"M14 7a4 4 0 0 1-5.5 3.7L4 15l3 3 4.3-4.5A4 4 0 0 0 17 8l-2 2-2-2 2-2a4 4 0 0 0-1-.99",
+  plus:"M12 5v14M5 12h14",flask:"M9 3h6M10 3v6l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 18l-5-9V3",
+  camera:"M4 8h3l2-3h6l2 3h3v12H4Z|M12 17a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z",
+};
+function icon(n,s=16,st=1.7,c){const r=ICONS[n];if(!r)return"";return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="${c||'currentColor'}" stroke-width="${st}" stroke-linecap="round" stroke-linejoin="round">${r.split("|").map(d=>`<path d="${d}"/>`).join("")}</svg>`;}
+
+/* ============================ 场景 / 风险 / 状态 展示映射 ============================ */
+const SCENE={T1:{label:"相似域名抢注",c:"var(--scene-t1)",bg:"var(--scene-t1-bg)"},T2:{label:"无关内容滥用",c:"var(--scene-t2)",bg:"var(--scene-t2-bg)"},
+  T3:{label:"仿冒官网/钓鱼",c:"var(--scene-t3)",bg:"var(--scene-t3-bg)"},T4:{label:"证书/子域名滥用",c:"var(--scene-t4)",bg:"var(--scene-t4-bg)"}};
+function riskStyle(r){return r==="high"?{label:"高",c:"var(--risk-high-ink)",bg:"var(--risk-high-soft)"}:r==="medium"?{label:"中",c:"var(--risk-med-ink)",bg:"var(--risk-med-soft)"}:{label:"低",c:"var(--ink-600)",bg:"var(--surface-sunken)"};}
+const STATUS_LABEL={reviewing:"待复核",watching:"持续观察",false_positive:"误报",confirmed:"已确认仿冒",whitelisted:"已加白（退出检测）",monitoring:"监控池（无网站）"};
+
+/* ============================ 数据（完全虚构，仅供演示） ============================ */
+let DOMAINS=[
+ {id:"d1",domain:"mail-glpsso.com",scene:"T3",risk:"high",score:55,similarity:91,status:"reviewing",firstSeen:"2026-07-30 09:12",source:"variant_probe",
+  note:"域名以企业入口词「mail」+ 品牌词构成，且落地页本身即登录页",registrar:"Global Names Registrar LLC",registeredAt:"2026-06-30",ip:"198.51.100.44",
+  riskForcedBy:"T3",category:"", hasWebsite:true, webVerdict:"has_website",
+  finalUrl:"https://mail-glpsso.com/sso/login",title:"GLP Corporate Mail — Sign in",
+  hits:[["FR-301","域名相似度评分",30,32,"品牌词与其他词直接拼接"],["FR-305","钓鱼特征识别",22,30,"域名以企业入口词「mail」+ 品牌词构成，且落地页本身即登录页（未跳转出站）"]],
+  decisionReason:"判定为 T3 仿冒官网/钓鱼 —— 命中硬证据「企业入口伪装」，按 FR-307 直接归为高风险，与综合得分（55）无关。",
+  fpNote:"未命中白名单，未触发误报控制。", captures:[
+    {ua:"pc",status:"200",flags:["登录表单"],size:"1.9 MB",time:"2026-08-06 09:41"},
+    {ua:"mobile",status:"200",flags:["登录表单"],size:"640 KB",time:"2026-08-06 09:41"}],
+  timeline:[["v1","增强级证据包归档","人工确认仿冒后固定证据；共固定 12 个文件、9.4 MB；已向 ntp.aliyun.com 校时，偏差 6 ms；保留至 2029-08-06"]]},
+
+ {id:"d2",domain:"glp-parcel.cn",scene:"T2",risk:"medium",score:46,similarity:79,status:"reviewing",firstSeen:"2026-07-28 14:03",source:"variant_probe",
+  note:"域名含品牌词，页面为博彩内容","registrar":"厦门易名科技有限公司",registeredAt:"2026-05-11",ip:"103.21.244.5",
+  riskForcedBy:"",category:"赌博",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"http://glp-parcel.cn/","title":"环球国际·真人视讯",
+  hits:[["FR-301","域名相似度评分",26,32,"品牌词与其他词直接拼接，TLD 由 .com 替换为 .cn"],["FR-306","内容风险分类",20,20,"规则分类为赌博：命中「真人视讯」「投注」等关键词"]],
+  decisionReason:"综合得分 46，按 FR-307 分级规则归为中风险。",
+  fpNote:"未命中白名单，未触发误报控制。",captures:[{ua:"pc",status:"200",flags:[],size:"2.4 MB",time:"2026-08-06 09:38"},{ua:"mobile",status:"200",flags:[],size:"780 KB",time:"2026-08-06 09:38"}],
+  timeline:[]},
+
+ {id:"d3",domain:"glpcorp-hr.org",scene:"T2",risk:"medium",score:41,similarity:75,status:"reviewing",firstSeen:"2026-07-25 10:00",source:"variant_probe",
+  note:"品牌词与其他词直接拼接",registrar:"Ascio Technologies Inc.",registeredAt:"2003-04-11",ip:"46.228.201.90",
+  riskForcedBy:"",category:"其他业务内容",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"https://glpcorp-hr.org/","title":"GLP Chartered Institute — Global Learning Partnership",
+  clusterKey:"ip:46.228.201.90+page:x91a",
+  hits:[["FR-301","域名相似度评分",26,32,"品牌词与其他词直接拼接"],["FR-302","品牌关键词命中",15,21,"title / 正文命中品牌词共 6 处"]],
+  decisionReason:"综合得分 41，按 FR-307 分级规则归为中风险。",
+  fpNote:"未命中白名单，未触发误报控制。",captures:[{ua:"pc",status:"200",flags:[],size:"1.2 MB",time:"2026-08-05 22:10"}],timeline:[]},
+ {id:"d4",domain:"glp-associates.net",scene:"T2",risk:"medium",score:40,similarity:74,status:"reviewing",firstSeen:"2026-07-25 10:01",source:"variant_probe",
+  note:"品牌词与其他词直接拼接",registrar:"Ascio Technologies Inc.",registeredAt:"2003-04-11",ip:"46.228.201.90",
+  riskForcedBy:"",category:"其他业务内容",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"https://glp-associates.net/","title":"GLP Chartered Institute — Global Learning Partnership",
+  clusterKey:"ip:46.228.201.90+page:x91a",
+  hits:[["FR-301","域名相似度评分",25,32,"品牌词与其他词直接拼接"],["FR-302","品牌关键词命中",15,21,"title / 正文命中品牌词共 6 处"]],
+  decisionReason:"综合得分 40，按 FR-307 分级规则归为中风险。",fpNote:"未命中白名单，未触发误报控制。",captures:[{ua:"pc",status:"200",flags:[],size:"1.2 MB",time:"2026-08-05 22:11"}],timeline:[]},
+ // 已走完整个 FR-403 流程的演示样本：先判误报，再显式批准加白，
+ // 分数归零、场景退回 T1 —— 打开演示就能在「已加白」页签和详情页看到终态与撤销按钮。
+ {id:"d5",domain:"theglpgroup.org",scene:"T1",risk:"low",score:0,similarity:72,status:"whitelisted",firstSeen:"2026-07-25 10:02",source:"variant_probe",
+  note:"命中官方资产白名单，不产生告警",registrar:"Ascio Technologies Inc.",registeredAt:"2003-04-11",ip:"46.228.201.90",
+  riskForcedBy:"",category:"其他业务内容",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"https://theglpgroup.org/en/","title":"GLP Chartered Institute — Global Learning Partnership",
+  clusterKey:"ip:46.228.201.90+page:x91a",
+  // 命中白名单是 analyze() 最早短路的一个分支，根本不会跑 FR-301~FR-308，
+  // 所以 hits 是空的——不是"旧命中还在、只是分数改成了 0"。
+  hits:[],
+  decisionReason:"命中官方资产白名单，评分归零，不再产生告警。",
+  fpNote:"欧洲某教育培训机构，GLP 是其自有缩写，与普洛斯无关。",
+  verdictAt:"2026-08-05 22:35",verdictScore:39,verdictBy:"analyst",
+  captures:[{ua:"pc",status:"200",flags:[],size:"1.1 MB",time:"2026-08-05 22:12"}],timeline:[]},
+
+ {id:"d6",domain:"glp1-clinic.com",scene:"T1",risk:"low",score:12,similarity:66,status:"false_positive",firstSeen:"2026-07-20 08:30",source:"variant_probe",
+  note:"命中医药/实验室行业词（glp-1）且未出现物流/仓储语境词，判定为 GLP 通用缩写的合法使用",
+  registrar:"NameCheap Inc.",registeredAt:"2019-02-14",ip:"172.67.10.9",riskForcedBy:"",category:"其他业务内容",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"https://glp1-clinic.com/","title":"GLP-1 Weight Management Clinic",
+  hits:[["FR-301","域名相似度评分",26,32,"品牌词内嵌于注册主体"],["FR-302","品牌关键词命中",16,21,"页面文本、title 命中品牌词共 4 处"],["FR-308","误报控制降权",-30,0,"命中医药/实验室行业词（glp-1）且未出现物流/仓储语境词，判定为 GLP 通用缩写的合法使用，关键词维度已降权"]],
+  decisionReason:"综合得分 12，按 FR-307 分级规则归为低风险。",fpNote:"GLP 为常见缩写（GLP-1、Good Laboratory Practice）。本条已通过行业词共现校验，未命中白名单。",
+  verdictAt:"2026-08-02 11:20",verdictScore:12,verdictBy:"analyst",captures:[{ua:"pc",status:"200",flags:[],size:"980 KB",time:"2026-08-01 19:02"}],timeline:[]},
+
+ {id:"d7",domain:"puluosi-mall.top",scene:"T2",risk:"medium",score:38,similarity:70,status:"reviewing",firstSeen:"2026-07-22 16:44",source:"variant_probe",
+  note:"中文品牌拼音抢注，页面为灰产引流",registrar:"Alibaba Cloud Computing Ltd.",registeredAt:"2026-04-02",ip:"47.243.11.7",
+  riskForcedBy:"",category:"灰产引流",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"http://puluosi-mall.top/","title":"清仓甩卖·全场1折起",
+  hits:[["FR-301","域名相似度评分",22,32,"拼音变体与品牌拼音编辑距离 1"],["FR-306","内容风险分类",16,20,"规则分类为灰产引流：命中「清仓」「加V」等关键词"]],
+  decisionReason:"综合得分 38，按 FR-307 分级规则归为中风险。",fpNote:"未命中白名单，未触发误报控制。",captures:[{ua:"pc",status:"200",flags:[],size:"1.5 MB",time:"2026-08-05 09:00"}],timeline:[]},
+
+ {id:"d8",domain:"glp-invest.io",scene:"T3",risk:"high",score:92,similarity:97,status:"confirmed",firstSeen:"2026-07-10 08:00",source:"ct",
+  note:"品牌词以完整词素出现，官网结构指纹高度命中",registrar:"NameSilo LLC",registeredAt:"2026-07-05",ip:"185.199.1.20",
+  riskForcedBy:"T3",category:"仿冒官网",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"https://glp-invest.io/login","title":"GLP Global Investor Portal",
+  hits:[["FR-301","域名相似度评分",32,32,"品牌词以完整词素出现"],["FR-303","Logo 图像识别",18,18,"dHash 感知哈希距离 2（阈值 10）"],["FR-304","官网结构指纹比对",15,15,"DOM SimHash + CSS 类名 Jaccard 相似度 0.94"],["FR-305","钓鱼特征识别",22,30,"落地页即登录页且要求输入资金账户信息"],
+    ["FR-102","证书 SAN 命中",10,10,"CT 日志中同一张证书 SAN 上还挂着 glp-invest-hk.io"]],
+  decisionReason:"判定为 T3 仿冒官网/钓鱼 —— 命中硬证据（Logo 图像 + 官网结构指纹），按 FR-307 直接归为高风险，与综合得分（92）无关。",
+  fpNote:"未命中白名单，未触发误报控制。",verdictAt:"2026-08-05 15:40",verdictScore:92,verdictBy:"analyst",
+  captures:[{ua:"pc",status:"200",flags:["登录表单","跨域提交->pay-gate-x.net"],size:"2.1 MB",time:"2026-08-05 15:10"},{ua:"mobile",status:"200",flags:["登录表单"],size:"710 KB",time:"2026-08-05 15:10"}],
+  timeline:[["v1","增强级证据包归档","人工确认仿冒后固定证据；共固定 16 个文件、18.4 MB；已向 ntp.aliyun.com 校时，偏差 4 ms；保留至 2029-08-05"]]},
+
+ {id:"d9",domain:"portal.partner-x.net",scene:"T4",risk:"high",score:58,similarity:64,status:"reviewing",firstSeen:"2026-08-01 03:12",source:"ct",
+  note:"品牌词出现在第三方注册主域的子域中，注册主体本身与品牌无关",registrar:"GoDaddy.com LLC",registeredAt:"2024-11-02",ip:"104.21.9.201",
+  riskForcedBy:"T4",category:"证书/子域名滥用",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"https://glp-portal.partner-x.net/","title":"GLP Partner Portal Login",
+  hits:[["FR-301","域名相似度评分",18,32,"品牌词出现在子域，主域与品牌无关"],["FR-302","品牌关键词命中",21,21,"title / 正文命中品牌词共 9 处"],["FR-102","证书 SAN 命中",10,10,"CT 日志中发现，变体字典未覆盖"]],
+  decisionReason:"判定为 T4 第三方子域滥用且命中品牌关键词，按 FR-307 直接归为高风险，与综合得分（58）无关。",
+  fpNote:"未命中白名单，未触发误报控制。",captures:[{ua:"pc",status:"200",flags:["登录表单"],size:"1.6 MB",time:"2026-08-06 09:50"}],timeline:[]},
+
+ {id:"d10",domain:"glp.shop",scene:"T1",risk:"low",score:12,similarity:60,status:"watching",firstSeen:"2026-07-15 20:00",source:"variant_probe",
+  note:"NS 命中停放服务特征（sedoparking）",registrar:"Sav.com LLC",registeredAt:"2025-09-30",ip:"—",
+  riskForcedBy:"",category:"停放页",hasWebsite:false,webVerdict:"parked",finalUrl:"",title:"",
+  hits:[["FR-301","域名相似度评分",12,32,"品牌词完整出现，TLD 由 .com 替换为 .shop"]],
+  decisionReason:"综合得分 12，按 FR-307 分级规则归为低风险。",fpNote:"未命中白名单，未触发误报控制。",captures:[],timeline:[]},
+
+ {id:"d11",domain:"glpg.cc",scene:"T1",risk:"low",score:5,similarity:45,status:"monitoring",firstSeen:"2026-08-04 12:00",source:"variant_probe",
+  note:"无 A/AAAA 解析记录，判定为未建站抢注",registrar:"未查得（该 TLD 不参与免费 RDAP）",registeredAt:"",ip:"",
+  riskForcedBy:"",category:"",hasWebsite:false,webVerdict:"",finalUrl:"",title:"",
+  hits:[["FR-301","域名相似度评分",5,32,"编辑距离 2，短品牌词封顶生效"]],
+  decisionReason:"发现阶段（未采集页面）不允许评为高风险，按 FR-307 归为低风险。",fpNote:"未命中白名单，未触发误报控制。",captures:[],timeline:[]},
+
+ {id:"d12",domain:"g1p-secure.com",scene:"T3",risk:"high",score:63,similarity:85,status:"reviewing",firstSeen:"2026-08-03 07:20",source:"ct",
+  note:"同形字（数字 1 替代字母 l）归一化后与品牌一致",registrar:"Dynadot Inc.",registeredAt:"2026-07-29",ip:"91.198.22.10",
+  riskForcedBy:"T3",category:"仿冒官网",hasWebsite:true,webVerdict:"has_website",
+  finalUrl:"https://g1p-secure.com/account/verify","title":"Account Verification Required",
+  hits:[["FR-301","域名相似度评分",30,32,"同形字归一化后与品牌一致"],["FR-305","钓鱼特征识别",30,30,"登录表单的密码字段 POST 至第三方域 collect-relay.top"]],
+  decisionReason:"判定为 T3 仿冒官网/钓鱼 —— 命中硬证据「密码字段跨域外发」，按 FR-307 直接归为高风险，与综合得分（63）无关。",
+  fpNote:"未命中白名单，未触发误报控制。",captures:[{ua:"pc",status:"200",flags:["登录表单","跨域提交->collect-relay.top"],size:"1.3 MB",time:"2026-08-06 09:55"}],timeline:[]},
+];
+
+/* 同源聚类（只认 同IP+同页面指纹 或 同证书SAN，已排除停放页/空壳） */
+const CLUSTERS=[
+  {key:"ip:46.228.201.90+page:x91a",basis:"same_ip+same_page",basisLabel:"解析到同一 IP 46.228.201.90，且页面 DOM 指纹一致",confidence:"high",members:["d3","d4","d5"]},
+];
+// 已加白的域名不参与聚类 —— 它已经退出检测，继续把它算进组里会让
+// "这个组有 N 个域名待处理"这句话不成立。与 domainguard/cluster.py 同一口径。
+function clusterOf(id){
+  const c=CLUSTERS.find(x=>x.members.includes(id));
+  if(!c)return null;
+  const active=c.members.filter(m=>findDomain(m).status!=="whitelisted");
+  if(active.length<2)return null;
+  return {...c,members:active};
+}
+
+/* 评分维度（v5，与真实配置一致的权重结构） */
+const RULES=[
+  {code:"FR-301",name:"域名相似度",weight:32,req:"无（仅需域名本身）",desc:"Damerau-Levenshtein 编辑距离 / 品牌词包含度 / 同形字归一化后一致，三路取最大"},
+  {code:"FR-302",name:"品牌关键词命中",weight:21,req:"页面采集",desc:"title / meta / 正文 / img alt；拉丁品牌词按词边界匹配；先剔除页面中的自身域名"},
+  {code:"FR-302B",name:"同行业语境共现",weight:12,req:"页面采集",desc:"域名含品牌词 且 页面出现物流/仓储/产业园等同行业词 —— 与 GLP-1 医药同名不同业相反"},
+  {code:"FR-306",name:"内容风险分类",weight:20,req:"页面采集",desc:"规则分类为赌博 / 色情 / 诈骗金融 / 灰产引流"},
+  {code:"FR-303",name:"Logo 图像识别",weight:18,req:"官网基线 + 页面采集",desc:"dHash 感知哈希比对，汉明距离 ≤10 判命中"},
+  {code:"FR-304",name:"官网结构指纹",weight:15,req:"官网基线 + 页面采集",desc:"DOM SimHash + CSS 类名 Jaccard 加权，相似度 ≥0.62 判命中"},
+  {code:"FR-305",name:"钓鱼特征识别",weight:30,req:"页面采集",desc:"分级计分，凭据类三档取最强的一档，不叠加：密码字段跨域外发 30 分 · 企业入口伪装(mail/sso/vpn 等入口词+品牌词，且落地页即登录页) 22 分 · 页面存在登录表单 10 分 · 诱导下载 8 分 · 跨域表单但密码字段不在其中 3 分。前两档同时是 T3 的硬证据，命中即判高风险"},
+  {code:"FR-102",name:"证书 SAN 命中",weight:10,req:"CT 日志轮询",desc:"CertSpotter 每 15 分钟 + crt.sh 每 6 小时轮询。仅两种情况算命中：该域名由 CT 发现（字典未覆盖），或同一证书 SAN 上还挂着其他命中品牌词的名称"},
+  {code:"FR-308",name:"误报控制降权",weight:-40,req:"页面采集",desc:"命中医药/实验室等行业词 且 未出现物流语境词 → 降权，封顶 -40 分"},
+];
+const THRESHOLDS=[["入库门槛（相似度，非综合得分）","≥ 60"],["高风险线（综合得分）","≥ 70"],["中风险线（综合得分）","≥ 45"],["短品牌词纯编辑距离命中封顶","45 分"]];
+const SCENERULES=[
+  ["T1","相似域名抢注","无解析 / 停放待售页 / 错误页空壳 —— 域名已注册但没有实质站点"],
+  ["T2","无关内容滥用","有解析、非停放、非空壳，且内容与受保护品牌业务无关"],
+  ["T3","仿冒官网/钓鱼","四选一硬证据：Logo 图像命中 / 官网结构指纹命中 / 密码字段跨域外发 / 企业入口伪装。命中即直接判高风险，与综合得分无关"],
+  ["T4","证书/子域名滥用","品牌词出现在第三方注册主域的子域中，注册主体本身与品牌无关，且命中品牌关键词即判高风险"],
+];
+
+/* 运营看板：流水线阶段（与真实 schedule.json 结构一致） */
+const PIPELINE=[
+  {label:"CT 证书监测 · CertSpotter",freq:"每 15 分钟",scope:"incremental",scopeDetail:"按位点只取新签发证书；首次运行返回全量历史",lastRun:"6 分钟前",summary:"取回相关域名 1 个，新入台账 0 个"},
+  {label:"CT 证书监测 · crt.sh",freq:"每 6 小时",scope:"incremental",scopeDetail:"按 72 小时窗口回看，窗口是间隔的 12 倍，502 下轮重叠捞回",lastRun:"2 小时前",summary:"取回相关域名 0 个，1/4 个查询模式失败"},
+  {label:"DNS 探活",freq:"每天 02:30",scope:"full",scopeDetail:"变体字典全量重跑，强制走公共解析器",lastRun:"6 小时前",summary:"探活 71,940 条，有解析 1,412 条"},
+  {label:"建站探测",freq:"每天 02:30",scope:"full",scopeDetail:"对全部有解析域名发 GET，判定有无实质网站",lastRun:"6 小时前",summary:"探测 1,412 条，有实质网站 492 条"},
+  {label:"入库与情报增强",freq:"每天 02:30",scope:"mixed",scopeDetail:"研判全量；RDAP/TLS 只给当轮新发现域名开个头（20条），存量交给下一步补齐",lastRun:"6 小时前",summary:"进队列 68 条，监控池 1,344 条，保留人工判定 6 条"},
+  {label:"情报补齐（RDAP/TLS）",freq:"每天 02:30",scope:"incremental",scopeDetail:"库驱动，按「谁还没成功查到就先给谁」排队，RDAP 限流 1 次/秒并对 429 退避重试",lastRun:"6 小时前",summary:"补齐 84 条（RDAP 成功 61），队列情报覆盖 141/152"},
+  {label:"页面采集（Playwright）",freq:"每天 02:30",scope:"incremental",scopeDetail:"库驱动，没采过的排最前，每条 PC + 移动双 UA",lastRun:"6 小时前",summary:"采集 60 条（12 条首次），队列采集覆盖 149/152"},
+  {label:"重新研判",freq:"每天 02:30",scope:"full",scopeDetail:"台账全量重算，零外部请求，人工判定只更新分数不改状态",lastRun:"6 小时前",summary:"重算 1,412 条，结论变化 9 条，保留 6 条人工判定"},
+  {label:"官网基线重建",freq:"每周一 03:30",scope:"full",scopeDetail:"重采官网页面，重建结构指纹与 Logo 哈希，覆盖变少时拒绝写入",lastRun:"2 天前",summary:"2 个页面，Logo 哈希 11 个"},
+];
+const SCOPE_STYLE={full:{label:"全量",bg:"var(--primary-soft)",fg:"var(--primary-ink)"},incremental:{label:"增量",bg:"var(--info-soft)",fg:"var(--info-ink)"},mixed:{label:"全量+限额",bg:"var(--warn-soft)",fg:"var(--warn-deep)"}};
+
+/* 证据包 */
+const EVIDENCE=[
+  {domain:"glp-invest.io",version:1,trigger:"人工确认仿冒后固定证据",files:16,size:"18.4 MB",ntp:true,ntpSrc:"ntp.aliyun.com",ntpOffset:4,retention:"2029-08-05",hash:"8f2a91c3e0b7d4f6a1c9e2b8d5f0a3c7",at:"2026-08-05 15:40"},
+  {domain:"mail-glpsso.com",version:1,trigger:"高风险自动取证",files:12,size:"9.4 MB",ntp:true,ntpSrc:"ntp.aliyun.com",ntpOffset:6,retention:"2029-08-06",hash:"3b7e40a1c6f2d9b5e8a0c4f7b1d6e3a9",at:"2026-08-06 09:41"},
+];
+
+/* 审计日志（含哈希链、覆盖 review/batch_review/whitelist/reanalyze/enrich 等真实动作） */
+let AUDIT=[
+  {action:"review",cat:"研判",target:"glp1-clinic.com",detail:"判定「误报」· 判定时得分 12 · 产出 1 条白名单建议",actor:"分析师 · 当前用户",at:"2026-08-02 11:20:03"},
+  {action:"whitelist_approve",cat:"白名单",target:"theglpgroup.org",detail:"加入白名单 · 写入 whitelist_approved.yaml · 已退出检测 · 备注：欧洲某教育培训机构，GLP 是其自有缩写",actor:"分析师 · 当前用户",at:"2026-08-05 22:35:10"},
+  {action:"review",cat:"研判",target:"glp-invest.io",detail:"判定「确认仿冒」· 自动触发增强级取证，生成证据包 v1",actor:"分析师 · 当前用户",at:"2026-08-05 15:40:12"},
+  {action:"enrich",cat:"流水线",target:"job",detail:"情报补齐 84 条（RDAP 成功 61），队列情报覆盖 141/152",actor:"system",at:"2026-08-06 02:41:20"},
+  {action:"capture_batch",cat:"流水线",target:"job",detail:"采集 60 条（12 条首次），队列采集覆盖 149/152",actor:"system",at:"2026-08-06 02:48:55"},
+  {action:"reanalyze",cat:"流水线",target:"job",detail:"重算 1,412 条，结论变化 9 条，保留 6 条人工判定",actor:"system",at:"2026-08-06 02:50:30"},
+  {action:"ct_poll",cat:"流水线",target:"job",detail:"CertSpotter 轮询：取回相关域名 1 个，新入台账 0 个",actor:"system",at:"2026-08-06 09:35:02"},
+  {action:"instant_scan",cat:"研判",target:"g1p-secure.com",detail:"即时研判：DNS+建站探测+Playwright采集+RDAP/TLS/CT，综合得分 63",actor:"分析师 · 当前用户",at:"2026-08-06 09:55:40"},
+];
+
+/* ============================ 注释 ============================ */
+const ANNOS={
+  "a-search":{n:1,title:"检索与即时研判",src:"api.py · POST /search, /domains/instant-scan",body:"输入域名 / 品牌关键词 / 证书 SAN / IP。台账内有命中 → 带关键词跳复核队列（落到哪个视图由后端按命中真实状态计算，避免「查到了却显示没有」）；台账没有但输入像域名 → <b>真实发起</b> DNS + 建站探测 + Playwright 采集 + RDAP/TLS/CT，当场评分入库。"},
+  "a-range":{n:2,title:"发现时间范围",src:"Home · 写入审计",body:"用于标注排查语境并写入审计，<b>不是结果的硬过滤器</b>——真实发现时间以台账 first_seen_at 为准。"},
+  "a-scenes":{n:3,title:"四类威胁场景",src:"analyze.py · 场景判定",body:"T1 相似域名抢注 → T2 无关内容滥用 → T3 仿冒官网/钓鱼 → T4 证书/子域名滥用。<b>T3/T4 命中硬证据即直接判高风险</b>，与综合得分无关——这是最容易被误读的一点，详情页会显式说明理由。"},
+  "a-scope":{n:4,title:"复核队列的五个视图",src:"api.py · _SCOPE_SQL",body:"待复核 / 已判误报 / 已确认仿冒 / 监控池 / 全部。<b>人工判定过的域名不会被自动流程冲掉</b>：reanalyze / capture_run / ingest 三处统一守着 <code>MANUAL_VERDICTS</code> 常量，只更新分数不改状态；只有分数比判定当时升高，才退回待复核并标出理由。"},
+  "a-scorecol":{n:5,title:"综合得分 ≠ 相似度",src:"analyze.py · total_score vs similarity.score",body:"综合得分是加权和（风险分级看它），相似度是纯字符串匹配结果（入库门槛看它），<b>两个不同的数，故意分开</b>。列表上一并展示，避免「50 分却是高风险」看起来像算错了。"},
+  "a-forced":{n:6,title:"按 T3/T4 判定 的高风险标注",src:"api.py · risk_forced_by",body:"高风险如果来自场景硬证据而不是分数堆出来的，会单独标出并在详情页说明「与综合得分无关」——否则一个 50~60 分的高风险会让人怀疑系统出错。"},
+  "a-cluster":{n:7,title:"同源聚类",src:"domainguard/cluster.py",body:"只认<b>同 IP 且页面 DOM 指纹一致</b>，或<b>同一张证书 SAN</b>（签发时 CA 验证过控制权）。单独同 IP 不算数——那会把整个共享主机/CDN 误判成一伙。停放页/空壳（T1）不参与聚类，避免同一套错误页模板被误判成同源。"},
+  "a-verdict":{n:8,title:"三个判定按钮",src:"api.py · POST /domains/{id}/review",body:"<b>确认仿冒并取证</b>：自动触发增强级证据包归档（PC+移动截图、HTML、DNS/RDAP/TLS 快照、SHA-256 清单）。<b>判为误报</b>：移出待复核，但<b>域名仍在检测中</b>——分数比判定当时升高会自动退回复核。<b>持续观察</b>：留在监控节奏里，不算处置完成。要让误报永久免检，需在详情页再点一次「批准加入白名单」。"},
+  "a-rulehits":{n:9,title:"命中规则明细 · 可解释评分",src:"analyze.py · RuleHit",body:"每个维度的贡献单独列出，<b>非黑盒</b>。规则版本号写进每条研判记录，改权重后旧结论仍可复现解释当时为什么是这个分。"},
+  "a-fp":{n:10,title:"误报控制",src:"analyze.py · _fp_control · FR-308",body:"GLP 是高频通用缩写（GLP-1 减肥药、Good Laboratory Practice）。命中医药/实验室语境词 <b>且</b> 未出现物流/仓储语境词才降权，封顶 -40 分——防止降权规则本身被滥用来洗白真仿冒。"},
+  "a-capture":{n:11,title:"采集快照",src:"domainguard/capture.py",body:"Playwright 无痕上下文，<b>仅 GET、禁用下载、不提交表单、单域名限流</b>——采集目标可能是真实恶意页面。每张截图落 SHA-256，写进 MANIFEST 作为完整性凭据。"},
+  "a-intel":{n:12,title:"域名情报 · RDAP / TLS",src:"domainguard/intel.py",body:"真实查询，非模拟。RDAP 单独限流 1 次/秒并对 429 退避重试——公共 RDAP 入口的实际限额比想象中低得多；部分 TLD（如 .cn 家族）不参与免费 RDAP，需要商业 WHOIS API 才能补齐。"},
+  "a-evidence":{n:13,title:"取证时间线",src:"domainguard/evidence.py",body:"每次归档记录文件数、体积、NTP 校时偏差、留存期限。<b>当前没有 WORM 存储</b>，防篡改仅靠审计哈希链自证；界面与取证说明单里如实标注这一限制，不夸大证据强度。"},
+  "a-rules":{n:14,title:"评分维度与权重",src:"config/assets.yaml · scoring.weights",body:"权重表直接读自后端配置，与研判时实际使用的完全一致，不是写死在前端的说明文字。FR-305 是<b>分级</b>而非固定分——凭据跨域外发和「页面上恰好有个登录框」是天差地别的证据，不能同分。"},
+  "a-thresholds":{n:15,title:"阈值与分级规则",src:"config/assets.yaml · scoring.thresholds",body:"入库看<b>相似度</b>（发现标准），分级看<b>综合得分</b>（风险标准）——一个赌博站点综合得分可能只有 50，但域名高度相似，必须进台账研判。"},
+  "a-board":{n:16,title:"检测节奏与覆盖范围",src:"config/schedule.json · /api/v1/pipeline",body:"每个阶段标明频率、全量/增量/抽样、上次<b>真实</b>运行时间——数据来自审计日志，不是猜的。「上次运行」显示「从未运行」时说明定时任务还没注册或已连续失败，不会拿产物文件的修改时间伪装成「刚跑过」。"},
+  "a-whitelist":{n:17,title:"批准加入白名单 · FR-403",src:"domainguard/whitelist.py · POST /domains/{id}/whitelist",body:"只在<b>已判误报</b>的域名上出现，且不提供驳回——不批就是不批，域名照常检测。加白必须是独立于「判为误报」的第二次显式操作：自动加白会被攻击者利用来给自己洗白，只要把仿冒站做得像正常业务、骗一次误报判定，域名就永久免检了。加白后彻底退出检测（不采集、不富化、不评分告警），写入独立的 <code>whitelist_approved.yaml</code>（不改写手写的 assets.yaml），随时可在详情页撤销恢复检测。不提供批量/整组加白。"},
+  "a-audit":{n:18,title:"审计追踪 · 哈希链",src:"domainguard/storage.py · write_audit / verify_audit_chain",body:"每条记录带上一条的哈希，任一条被改动都会在校验时立刻暴露——这是<b>没有 WORM 存储时的技术兜底</b>，不等同于司法级防篡改，页面上会如实说明。"},
+  "a-intake":{n:19,title:"人工提报",src:"api.py · POST /intake",body:"员工/外部举报入口。提交后进入监控池或直接研判队列，与自动发现的域名走同一套评分与处置流程，不特殊对待。"},
+};
+
+/* ============================ 工具 ============================ */
+const $=(s,r=document)=>r.querySelector(s);const $$=(s,r=document)=>[...r.querySelectorAll(s)];
+function pin(k,corner){return `<span class="anno-pin${corner?' corner':''}" data-anno="${k}">${ANNOS[k].n}</span>`;}
+function fmtScene(s){const m=SCENE[s]||SCENE.T1;return `<span class="scenepill" style="background:${m.bg};color:${m.c}">${s} · ${m.label}</span>`;}
+function fmtRisk(r){const m=riskStyle(r);return `<span class="riskpill" style="background:${m.bg};color:${m.c}">${m.label}</span>`;}
+function findDomain(id){return DOMAINS.find(d=>d.id===id);}
+function pushAudit(action,cat,target,detail){AUDIT.unshift({action,cat,target,detail,actor:"分析师 · 当前用户",at:new Date().toISOString().slice(0,19).replace("T"," ")});}
+
+/* ============================ 状态 ============================ */
+let STATE={view:"home",q:"mail-glpsso.com",range:"3d",reason:"",scope:"pending",risk:"all",scene:"all",qq:"",
+  selected:new Set(),detailId:"d1",auditFilter:"全部"};
+
+/* ============================ 顶部导航 ============================ */
+function topnav(active){
+  const items=[["home","监测台"],["queue","复核队列"],["evidence","取证存档"],["rules","风险规则"],["board","运营看板"],["audit","审计日志"]];
+  return `<div class="g-topnav"><div class="inner">
+    <div class="brandmark" data-view="home"><div class="glyph">${icon("shield",22,2,"#fff")}</div><div><div class="t1">DomainGuard</div><div class="t2">仿冒域名监测与取证</div></div></div>
+    <nav>${items.map(([id,l])=>`<button data-view="${id}" class="${active===id?'on':''}">${l}</button>`).join("")}</nav>
+    <div class="tokpill"><span class="d"></span>数据源 · 降级</div>
+  </div></div>`;
+}
+
+/* ============================ 监测台 ============================ */
+function renderHome(){
+  const pending=DOMAINS.filter(d=>d.status==="reviewing"||d.status==="watching").length;
+  const high=DOMAINS.filter(d=>d.status!=="monitoring"&&d.risk==="high").length;
+  const tiers=[["T1",SCENE.T1,DOMAINS.filter(d=>d.scene==="T1"&&d.status!=="monitoring").length,"停放页、无解析、空站 —— 潜在风险储备，持续监控"],
+    ["T2",SCENE.T2,DOMAINS.filter(d=>d.scene==="T2").length,"赌博、色情、诈骗、灰产内容 —— 品牌污染与公众误导"],
+    ["T3",SCENE.T3,DOMAINS.filter(d=>d.scene==="T3").length,"含品牌词、Logo 或登录表单 —— 凭据窃取、商业诈骗"],
+    ["T4",SCENE.T4,DOMAINS.filter(d=>d.scene==="T4").length,"第三方证书或子域名嵌入品牌词 —— 定向钓鱼"]];
+  $("#app").innerHTML=`${topnav("home")}
+  <div class="g-home fade"><div class="wrap"><div class="g-home-main">
+    <div>
+      <div class="kicker">品牌保护 · BRAND ABUSE MONITORING</div>
+      <h1 class="hero">查哪个<span class="g">域名在仿冒？</span>${pin("a-search")}</h1>
+      <p class="lede">输入域名、品牌关键词或证书 SAN，系统会调取变体字典、CT 日志、NRD 与被动 DNS 记录，完成采集、相似度研判与风险分级，并生成可取证的域名档案。</p>
+      <div class="searchbox"><div class="mag">${icon("search",19,1.7)}</div>
+        <input id="q" value="${STATE.q}" placeholder="域名 / 品牌关键词 / 证书 SAN / IP"/>
+        <button class="go" id="goSearch">开始检索 ${icon("arrowR",16,2)}</button></div>
+      <div class="g-tags" id="chips">${["glp.com","glp.com.cn","普洛斯","Homoglyph","Punycode"].map(t=>`<span data-q="${t}">${t}</span>`).join("")}</div>
+
+      <div style="margin-top:22px">
+        <div class="fieldlabel" style="margin-bottom:8px">发现时间范围${pin("a-range")}</div>
+        <div class="rangeseg" id="rangeseg">${[["24h","最近 24 小时"],["3d","最近 3 天"],["7d","最近 7 天"],["30d","最近 30 天"],["custom","自定义"]].map(([v,l])=>`<button data-r="${v}" class="${STATE.range===v?'on':''}">${l}</button>`).join("")}</div>
+      </div>
+      <div class="formfield" style="margin-top:18px;max-width:460px">
+        <label>检索原因 · 选填，会写入审计日志</label>
+        <input class="forminput" id="reason" placeholder="例如：CT 告警跟进 / 月度复查 / 工单 #4821" value="${STATE.reason}"/>
+      </div>
+
+      <div class="statrow3">
+        <div><div class="n">${pending}</div><div class="k">今日新发现</div></div>
+        <div><div class="n" style="color:${high>0?'var(--risk-high-ink)':'var(--ink-900)'}">${high}</div><div class="k">高风险待复核</div></div>
+        <div><div class="n">—</div><div class="k">端到端延迟</div></div>
+      </div>
+      <div class="iconrow">
+        <button data-view="board" title="运营看板">${icon("history",18,1.8)}</button>
+        <button data-view="evidence" title="取证存档">${icon("file",18,1.8)}</button>
+        <button data-view="audit" title="审计日志">${icon("list",18,1.8)}</button>
+        <button title="告警通道（未接入 SMTP/企微）" onclick="toast('演示：告警通道尚未接入 SMTP/企业微信，见《待提供清单》')">${icon("alert",18,1.8)}</button>
+      </div>
+    </div>
+
+    <aside class="g-ev-card anno-anchor">${pin("a-scenes","corner")}
+      <div class="g-ev-head"><span>四类威胁场景，一眼看懂</span><b>FOUR THREAT TIERS</b></div>
+      ${tiers.map(([code,m,n,d],i)=>`<div class="g-ev-tier" style="background:${m.bg}"><div style="flex:1"><strong style="color:${m.c}">${code} · ${m.label}</strong><p>${d}</p></div><div class="no" style="color:${m.c}">${String(i+1).padStart(2,'0')}</div></div>`).join("")}
+      <div style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--linefaint);font-size:12px;color:var(--ink-500);line-height:1.6">T3/T4 命中硬证据即直接判高风险，与综合得分无关；发现阶段（未采集页面）不允许评为高风险。</div>
+    </aside>
+  </div>
+  <div class="home-foot">研判结论为线索，非最终法律结论 · 采集仅 GET、禁用下载、不提交表单 · 全部操作记入审计日志</div>
+  </div></div>`;
+  $("#chips").onclick=e=>{const s=e.target.closest("[data-q]");if(s){STATE.q=s.dataset.q;renderHome();}};
+  $("#rangeseg").onclick=e=>{const b=e.target.closest("[data-r]");if(b){STATE.range=b.dataset.r;renderHome();}};
+  $("#reason").oninput=e=>STATE.reason=e.target.value;
+  $("#goSearch").onclick=doSearch;
+  $("#q").addEventListener("keydown",e=>{if(e.key==="Enter")doSearch();});
+  bindView();
+}
+function doSearch(){
+  STATE.q=$("#q")?$("#q").value.trim():STATE.q;
+  if(!STATE.q)return;
+  const hit=DOMAINS.find(d=>d.domain.toLowerCase().includes(STATE.q.toLowerCase())||d.note.toLowerCase().includes(STATE.q.toLowerCase()));
+  if(hit){
+    STATE.scope=hit.status==="monitoring"?"monitoring":"all";STATE.qq=STATE.q;
+    pushAudit("search","检索",STATE.q,`语境「${STATE.range}」· 原因「${STATE.reason||'（未填写）'}」· 台账内有命中，落到 scope=${STATE.scope}`);
+    go("queue");return;
+  }
+  const looksDomain=/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(STATE.q);
+  if(looksDomain){runInstantScan(STATE.q);return;}
+  toast("台账内无命中，且输入不是可研判的域名");
+}
+function runInstantScan(domain){
+  $("#overlay").innerHTML=`<div class="scrim" id="scanScrim"><div class="intro" style="max-width:480px"><div class="ih"><h2 style="font-size:17px">即时研判中…</h2><p>DNS 探活 → 建站探测 → Playwright 采集 → RDAP/TLS/CT 并发查询 → 评分入库</p></div>
+    <div class="modalbody" id="scanSteps"></div></div></div>`;
+  const steps=["DNS 探活…","建站探测（判定是否有实质网站）…","并发查询 RDAP / TLS / CT…","Playwright 采集 PC + 移动双端…","评分与场景判定…"];
+  let i=0;const box=$("#scanSteps");
+  const timer=setInterval(()=>{
+    box.innerHTML=steps.slice(0,i+1).map((s,idx)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;color:${idx<i?'var(--primary-600)':'var(--ink-800)'}">${idx<i?icon("check",16,2.6,"var(--primary-600)"):'<span class="spin">'+icon("refresh",16,2,"var(--ink-400)")+'</span>'}<span style="font-size:13.5px;font-weight:${idx===i?'700':'500'}">${s}</span></div>`).join("");
+    i++;
+    if(i>steps.length){clearInterval(timer);finishInstantScan(domain);}
+  },550);
+}
+function finishInstantScan(domain){
+  const id="d"+(DOMAINS.length+1);
+  const score=27+Math.floor(Math.random()*18);
+  const nd={id,domain,scene:"T2",risk:score>=45?"medium":"low",score,similarity:58+Math.floor(Math.random()*20),status:score>=45?"reviewing":"watching",
+    firstSeen:new Date().toISOString().slice(0,16).replace("T"," "),source:"manual",note:"品牌词与其他词直接拼接（即时研判）",
+    registrar:"WhoisGuard Inc.",registeredAt:"2026-07-18",ip:"104.21.5.3",riskForcedBy:"",category:"其他业务内容",hasWebsite:true,webVerdict:"has_website",
+    finalUrl:`https://${domain}/`,title:domain+" — Under Construction",
+    hits:[["FR-301","域名相似度评分",score-6,32,"品牌词与其他词直接拼接"],["FR-302","品牌关键词命中",6,21,"页面文本命中品牌词 1 处"]],
+    decisionReason:`综合得分 ${score}，按 FR-307 分级规则归为${score>=45?'中':'低'}风险。`,
+    fpNote:"未命中白名单，未触发误报控制。",
+    captures:[{ua:"pc",status:"200",flags:[],size:"1.1 MB",time:"刚刚"},{ua:"mobile",status:"200",flags:[],size:"420 KB",time:"刚刚"}],timeline:[]};
+  DOMAINS.push(nd);
+  pushAudit("instant_scan","研判",domain,`即时研判：DNS+建站探测+Playwright采集+RDAP/TLS/CT，综合得分 ${score}`);
+  $("#overlay").innerHTML="";
+  STATE.detailId=id;go("detail");
+  toast(`即时研判完成 · 综合得分 ${score}`);
+}
+
+/* ============================ 复核队列 ============================ */
+const SCOPE_KEYS=["pending","false_positive","confirmed","whitelisted","monitoring","all"];
+const SCOPE_LABEL={pending:"待复核",false_positive:"已判误报",confirmed:"已确认仿冒",whitelisted:"已加白",monitoring:"监控池",all:"全部"};
+const SCOPE_DESC={pending:"真实在提供网站内容、且尚未做出人工判定的域名，按风险等级与发现时间排序。判过的在「已判误报」「已确认仿冒」页签里。",
+  false_positive:"已判为误报，不再出现在待复核队列，但<b>仍在检测中</b>——重新研判只更新分数，分数比判定当时升高会自动退回待复核。要永久免检需在详情页再点一次「批准加入白名单」。",
+  confirmed:"已确认仿冒并完成取证。同样不再进入待复核队列，分数升高时才退回重看。",
+  whitelisted:"已加入白名单，<b>已退出检测</b>——不再采集、不再富化、不再评分告警，也不会因分数变化被退回。要恢复检测，进入详情页撤销加白。",
+  monitoring:"已发现但当前没有网站的域名（无解析 / 停放页 / 错误页 / 连不上）。一旦建站自动升入研判队列。",
+  all:"不分处置状态的全部域名（不含监控池与已加白）。通常从首页搜索跳转过来。"};
+// "全部"排除监控池与已加白 —— 加白的语义就是退出检测，混进日常视图等于没生效
+function scopeFilter(d){if(STATE.scope==="pending")return d.status==="reviewing"||d.status==="watching";if(STATE.scope==="all")return d.status!=="monitoring"&&d.status!=="whitelisted";return d.status===STATE.scope;}
+function renderQueue(){
+  let list=DOMAINS.filter(scopeFilter);
+  if(STATE.risk!=="all")list=list.filter(d=>d.risk===STATE.risk);
+  if(STATE.scene!=="all")list=list.filter(d=>d.scene===STATE.scene);
+  if(STATE.qq)list=list.filter(d=>d.domain.toLowerCase().includes(STATE.qq.toLowerCase())||d.note.toLowerCase().includes(STATE.qq.toLowerCase()));
+  list=[...list].sort((a,b)=>({high:0,medium:1,low:2}[a.risk]-{high:0,medium:1,low:2}[b.risk])||b.score-a.score);
+  const scopeCounts={pending:DOMAINS.filter(d=>d.status==="reviewing"||d.status==="watching").length,false_positive:DOMAINS.filter(d=>d.status==="false_positive").length,
+    confirmed:DOMAINS.filter(d=>d.status==="confirmed").length,whitelisted:DOMAINS.filter(d=>d.status==="whitelisted").length,
+    monitoring:DOMAINS.filter(d=>d.status==="monitoring").length,
+    all:DOMAINS.filter(d=>d.status!=="monitoring"&&d.status!=="whitelisted").length};
+  const base=DOMAINS.filter(scopeFilter);
+  const riskCounts={all:base.length,high:base.filter(d=>d.risk==="high").length,medium:base.filter(d=>d.risk==="medium").length,low:base.filter(d=>d.risk==="low").length};
+
+  $("#app").innerHTML=`${topnav("queue")}
+  <div class="wrap pageband fade">
+    <div class="wbhead"><div><div class="eyebrow">REVIEW QUEUE · FR-401 / FR-701</div><h2 class="h2">复核队列${pin("a-scope")}</h2>
+      <p style="font-size:13.5px;color:var(--ink-500);margin-top:8px;max-width:820px;line-height:1.6">${SCOPE_DESC[STATE.scope]}</p></div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        <button class="btn-ghost btn-sm" data-view="intake">人工提报</button>
+        ${STATE.scope!=="false_positive"?`<button class="btn-ghost btn-sm" id="batchFp" ${STATE.selected.size===0?'disabled':''}>批量误报${STATE.selected.size>0?` (${STATE.selected.size})`:''}</button>`:''}
+        <button class="btn-primary btn-sm" id="exportBtn" ${STATE.selected.size===0?'disabled':''}>导出证据包</button>
+      </div></div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+      <div class="seg" id="scopeSeg">${SCOPE_KEYS.map(k=>`<button data-scope="${k}" class="${STATE.scope===k?'on':''}">${SCOPE_LABEL[k]} ${scopeCounts[k]}</button>`).join("")}</div>
+      <div class="seg" id="riskSeg">${[["all","全部 "+riskCounts.all],["high","高风险 "+riskCounts.high],["medium","中风险 "+riskCounts.medium],["low","低风险 "+riskCounts.low]].map(([v,l])=>`<button data-risk="${v}" class="${STATE.risk===v?'on':''}">${l}</button>`).join("")}</div>
+      <div class="seg" id="sceneSeg">${[["all","全部场景"],["T1","T1"],["T2","T2"],["T3","T3"],["T4","T4"]].map(([v,l])=>`<button data-scene="${v}" class="${STATE.scene===v?'on':''}">${l}</button>`).join("")}</div>
+      <div class="searchmini">${icon("search",15,2,"var(--ink-400)")}<input id="qq" placeholder="按域名 / 注册商 / IP 过滤" value="${STATE.qq}"/></div>
+    </div>
+
+    <div class="wbtable">
+      <div class="wbrow wbhd"><div></div><div>域名</div><div>场景</div><div>综合得分</div><div>风险</div><div>状态</div><div>发现时间</div><div style="text-align:right">操作${pin("a-scorecol")}${pin("a-forced")}${pin("a-cluster")}</div></div>
+      ${list.length===0?`<div style="padding:40px;text-align:center;color:var(--ink-400)">没有符合条件的域名</div>`:list.map(d=>{
+        const cl=clusterOf(d.id);
+        return `<div class="wbrow wbtr" data-open="${d.id}">
+        <div class="checkcell" onclick="event.stopPropagation()"><input type="checkbox" class="dg-checkbox" data-sel="${d.id}" ${STATE.selected.has(d.id)?'checked':''}/></div>
+        <div style="min-width:0"><div style="font-weight:800;font-size:14px;color:var(--ink-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.domain}${cl?` <span class="clustertag">同源×${cl.members.length}</span>`:''}</div>
+          <div style="font-size:11.5px;color:var(--ink-500);margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${d.note}</div></div>
+        <div>${fmtScene(d.scene)}</div>
+        <div><span class="scorebadge">${d.score}</span><div class="simsub">相似度 ${d.similarity}</div></div>
+        <div>${fmtRisk(d.risk)}${d.riskForcedBy?`<div class="forcedtag" title="命中 ${d.riskForcedBy} 硬证据，按 FR-307 直接判高风险，与综合得分无关">按 ${d.riskForcedBy} 判定</div>`:''}</div>
+        <div><span class="statuspill">${STATUS_LABEL[d.status]}</span></div>
+        <div style="font-size:12px;color:var(--ink-500)">${d.firstSeen}</div>
+        <div style="text-align:right;color:var(--primary-600);font-weight:700;font-size:12.5px">查看详情 →</div>
+      </div>`;}).join("")}
+    </div>
+    <div style="margin-top:14px;font-size:12px;color:var(--ink-400);display:flex;justify-content:space-between"><span>共 ${list.length} 条 · 按风险等级与发现时间排序</span><span>全部操作记入审计日志（FR-404）</span></div>
+  </div>`;
+
+  $("#scopeSeg").onclick=e=>{const b=e.target.closest("[data-scope]");if(b){STATE.scope=b.dataset.scope;STATE.selected.clear();renderQueue();}};
+  $("#riskSeg").onclick=e=>{const b=e.target.closest("[data-risk]");if(b){STATE.risk=b.dataset.risk;renderQueue();}};
+  $("#sceneSeg").onclick=e=>{const b=e.target.closest("[data-scene]");if(b){STATE.scene=b.dataset.scene;renderQueue();}};
+  $("#qq").oninput=e=>{STATE.qq=e.target.value;renderQueue();};
+  $$("[data-sel]").forEach(cb=>cb.onchange=e=>{const id=e.target.dataset.sel;if(e.target.checked)STATE.selected.add(id);else STATE.selected.delete(id);renderQueue();});
+  $$("[data-open]").forEach(row=>row.onclick=()=>{STATE.detailId=row.dataset.open;go("detail");});
+  const bf=$("#batchFp");if(bf)bf.onclick=()=>{if(STATE.selected.size===0)return;
+    [...STATE.selected].forEach(id=>applyVerdict(id,"false_positive","队列批量判定"));
+    toast(`已判为误报 ${STATE.selected.size} 条 · 移出待复核，分数升高时会自动退回`);STATE.selected.clear();renderQueue();};
+  $("#exportBtn").onclick=()=>{if(STATE.selected.size===0)return;pushAudit("evidence_export","取证",[...STATE.selected].join(","),`导出 ${STATE.selected.size} 个域名的证据包`);toast(`证据包已生成 · evidence_bundle_${STATE.selected.size}items.zip`);};
+  bindView();
+}
+
+/* 判定逻辑：确认仿冒 / 误报 / 持续观察 —— 与真实系统同样的副作用 */
+function applyVerdict(id,verdict,note){
+  const d=findDomain(id);if(!d)return;
+  const map={confirmed:"confirmed",false_positive:"false_positive",watch:"watching"};
+  const newStatus=map[verdict]||verdict;
+  d.status=newStatus;
+  if(newStatus==="confirmed"||newStatus==="false_positive"){
+    d.verdictAt=new Date().toISOString().slice(0,16).replace("T"," ");d.verdictScore=d.score;d.verdictBy="analyst";
+  }
+  pushAudit("review","研判",d.domain,`判定「${verdict==='confirmed'?'确认仿冒':verdict==='false_positive'?'误报':'持续观察'}」· 判定时得分 ${d.score}`+(note?` · ${note}`:""));
+  if(newStatus==="confirmed"){
+    d.timeline=d.timeline||[];
+    d.timeline.unshift(["v"+(d.timeline.length+1),"增强级证据包归档",`人工确认仿冒后固定证据；共固定 ${10+Math.floor(Math.random()*8)} 个文件、${(1+Math.random()*18).toFixed(1)} MB；已向 ntp.aliyun.com 校时，偏差 ${2+Math.floor(Math.random()*8)} ms；保留至 2029-08-06`]);
+    EVIDENCE.unshift({domain:d.domain,version:1,trigger:"人工确认仿冒后固定证据",files:12,size:"9.1 MB",ntp:true,ntpSrc:"ntp.aliyun.com",ntpOffset:5,retention:"2029-08-06",hash:Math.random().toString(16).slice(2)+Math.random().toString(16).slice(2),at:new Date().toISOString().slice(0,16).replace("T"," ")});
+  }
+  // 判为误报**不会**自动加白，也不产出待审建议。误报只是"这次不是仿冒"，
+  // 域名仍在检测中，分数升高会自动退回复核；要永久免检必须在详情页
+  // 再点一次「批准加入白名单」——这是独立的第二次显式操作。
+}
+
+/* FR-403 加入白名单 —— 只对已判误报的域名开放，加白后彻底退出检测。
+   不提供批量加白/整组加白：批量免检是最危险的操作，不给这个入口。 */
+function approveWhitelist(id,note){
+  const d=findDomain(id);if(!d||d.status!=="false_positive")return;
+  d.status="whitelisted";
+  d.verdictAt=new Date().toISOString().slice(0,16).replace("T"," ");d.verdictScore=d.score;
+  // 命中白名单是 analyze() 里最早的一个分支，直接短路返回 —— 根本不会跑
+  // FR-301~FR-308 那些规则，所以真实系统里加白后"命中规则明细"是空的，
+  // 不是"旧命中还在、只是分数改成了 0"。这里把 hits 也清空，保持一致。
+  d.score=0;d.risk="low";d.scene="T1";d.note="命中官方资产白名单，不产生告警";
+  d.hits=[];d.decisionReason="命中官方资产白名单，评分归零，不再产生告警。";
+  pushAudit("whitelist_approve","白名单",d.domain,`加入白名单 · 写入 whitelist_approved.yaml · 已退出检测`+(note?` · ${note}`:""));
+}
+function revokeWhitelist(id){
+  const d=findDomain(id);if(!d||d.status!=="whitelisted")return;
+  d.status="false_positive";
+  pushAudit("whitelist_revoke","白名单",d.domain,"撤销加白 · 已从 whitelist_approved.yaml 移除 · 恢复检测");
+}
+
+/* ============================ 域名详情 ============================ */
+function renderDetail(){
+  const d=findDomain(STATE.detailId)||DOMAINS[0];
+  const cl=clusterOf(d.id);
+  $("#app").innerHTML=`${topnav("queue")}
+  <div class="wrap fade" style="padding:24px 0 70px">
+    <div class="backlink" data-view="queue">${icon("chevronL",15,2)} 返回复核队列</div>
+    <div class="dheadcard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:20px;flex-wrap:wrap">
+        <div style="flex:1;min-width:280px">
+          <div class="dheadtop"><span style="font-size:22px;font-weight:900;color:var(--green-ink)">${d.domain}</span>${fmtRisk(d.risk)}<span class="scenepill" style="background:${SCENE[d.scene].bg};color:${SCENE[d.scene].c}">${d.scene} · ${SCENE[d.scene].label}</span><span class="statuspill">${STATUS_LABEL[d.status]}</span></div>
+          <div style="font-size:13px;color:var(--ink-500)">${d.note} · 首次发现 ${d.firstSeen} · 数据源 ${d.source==='manual'?'人工提报/即时研判':d.source==='ct'?'CT 日志':'变体字典探活'}</div>
+          ${d.verdictScore!==undefined?`<div style="font-size:12.5px;color:${d.status==='false_positive'?'var(--ink-500)':'var(--primary-ink)'};margin-top:6px">人工判定于 ${d.verdictAt} · 判定时 ${d.verdictScore} 分${d.score===d.verdictScore?'，此后分数未变':`，当前 ${d.score} 分`}</div>`:''}
+        </div>
+        <div class="dscore"><div class="k">综合得分</div><div class="n">${d.score}</div><div class="sim">相似度 ${d.similarity}</div></div>
+      </div>
+
+      ${cl?`<div class="clusterbox">
+        <div class="clusterhead">${icon("globe",15,2,"var(--primary-600)")}<strong>同源组 · 共 ${cl.members.length} 个域名</strong>${cl.confidence==='medium'?'<span style="font-size:11px;color:var(--warn-deep)">证据偏弱</span>':''}</div>
+        <div style="font-size:12.5px;color:var(--ink-500)">${cl.basisLabel}</div>
+        <div class="clustermembers">${cl.members.map(mid=>{const m=findDomain(mid);const self=mid===d.id;return self?`<span class="clusterchip self">${m.domain} · ${m.score} 分（当前）</span>`:`<button class="clusterchip" data-open="${mid}">${m.domain} · ${m.score} 分 · ${STATUS_LABEL[m.status]}</button>`;}).join("")}</div>
+        <div style="font-size:11.5px;color:var(--ink-400);margin-top:8px">同组域名出自同一主体，通常处置结论相同。但加白是逐个域名确认的 —— 不提供整组批量加白，批量免检是最危险的操作。</div>
+      </div>`:''}
+
+      <div class="wbhead" style="margin:18px 0 0;align-items:center">
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-primary btn-sm" id="btnConfirm" ${d.status==='confirmed'?'disabled':''}>确认仿冒并取证${pin("a-verdict")}</button>
+          <button class="btn-ghost btn-sm" id="btnFp" ${d.status==='false_positive'?'disabled':''}>判为误报</button>
+          <button class="btn-ghost btn-sm" id="btnWatch" ${d.status==='watching'?'disabled':''}>持续观察</button>
+          <button class="btn-ghost btn-sm" id="btnExport">导出证据包 ZIP</button>
+          ${d.status==='false_positive'?`<button class="btn-ghost btn-sm" id="btnWl" title="加入白名单后该域名退出检测：不再采集、不再评分告警">批准加入白名单${pin("a-whitelist")}</button>`:''}
+          ${d.status==='whitelisted'?`<button class="btn-ghost btn-sm" id="btnRevokeWl">撤销加白，恢复检测${pin("a-whitelist")}</button>`:''}
+        </div>
+      </div>
+      ${d.status==='false_positive'?`<div class="wlhint">当前仍在检测中：分数升高（出现新证据）会自动退回待复核。点「批准加入白名单」后该域名<b>退出检测</b> —— 不再采集、不再富化、不再评分告警，也不会因分数变化被退回。</div>`:''}
+      ${d.status==='whitelisted'?`<div class="wlhint wlhinton">已加入白名单，<b>已退出检测</b>。写入 <code class="mono">config/whitelist_approved.yaml</code>，不再消耗采集与情报补齐额度。要恢复检测，点上方「撤销加白」。</div>`:''}
+    </div>
+
+    <div class="dgrid">
+      <div>
+        <div class="panel">
+          <div style="font-weight:800;font-size:15.5px;color:var(--green-ink);margin-bottom:4px">命中规则明细${pin("a-rulehits")}</div>
+          <div style="font-size:12px;color:var(--ink-400);margin-bottom:14px">规则版本 v5 · 明细权重之和 = 综合得分 ${d.score}</div>
+          ${d.hits.map(([code,name,pts,max,detail])=>{const r=Math.abs(pts)/Math.max(Math.abs(max)||1,1);const c=pts<0?'var(--ok)':r>=.85?'var(--risk-high)':r>=.5?'var(--orange)':'var(--warn)';return `
+          <div class="factor"><div class="fl"><span style="color:var(--ink-700)"><b>${code}</b> ${name}</span><span class="mono" style="font-weight:800;color:${c}">${pts>=0?'+':''}${pts}</span></div>
+            <div class="fbar"><div style="width:${Math.min(100,Math.round(r*100))}%;background:${c}"></div></div>
+            <div style="font-size:11.5px;color:var(--ink-500);margin-top:4px">${detail}</div></div>`;}).join("")}
+          <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--linefaint);font-size:12.5px;color:var(--ink-600);line-height:1.6"><b>研判结论：</b>${d.decisionReason}</div>
+        </div>
+
+        <div class="panel"><div style="font-weight:800;font-size:15.5px;color:var(--green-ink);margin-bottom:10px">误报控制${pin("a-fp")}</div>
+          <div class="fpbox">${d.fpNote}</div></div>
+
+        <div class="panel"><div style="font-weight:800;font-size:15.5px;color:var(--green-ink);margin-bottom:4px">采集快照${pin("a-capture")}</div>
+          <div style="font-size:12px;color:var(--ink-400);margin-bottom:14px">仅 GET、禁用下载、不提交表单、单域名限流；每张截图落 SHA-256</div>
+          ${d.captures.length===0?`<div style="padding:20px;text-align:center;color:var(--ink-400);background:var(--softer);border-radius:10px">尚未执行页面采集（该域名未进入采集队列 / Playwright 未运行）</div>`:`
+          <div class="shotgrid">${d.captures.map(c=>`<div class="shotcard"><div class="shotph">${icon("camera",34,1.5)}<span>${c.ua.toUpperCase()} 整页截图（演示占位）</span></div>
+            <div class="shotmeta"><div>HTTP <b>${c.status}</b> · ${c.size} · ${c.time}</div>${c.flags.length?`<div style="color:var(--risk-high-ink);margin-top:4px">⚠ ${c.flags.join(' · ')}</div>`:''}<div class="mono" style="margin-top:4px;font-size:10.5px;color:var(--ink-400)">SHA-256 ${fakeHash(c.ua+d.domain)} ✓</div></div></div>`).join("")}</div>`}
+          <div style="margin-top:14px;font-size:12.5px;color:var(--ink-500)"><b>最终跳转链：</b>${d.finalUrl?`200 → <span class="mono">${d.finalUrl}</span>`:'（无解析或连接失败）'}</div>
+        </div>
+
+        <div class="panel"><div style="font-weight:800;font-size:15.5px;color:var(--green-ink);margin-bottom:12px">域名情报${pin("a-intel")}</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            ${[["注册商",d.registrar],["注册时间",d.registeredAt||"—（RDAP 查不到，需商业 API）"],["解析 IP",d.ip||"—"],["建站探测结论",d.webVerdict||"—"]].map(([k,v])=>`<div class="minibox"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("")}
+          </div></div>
+
+        <div class="panel"><div style="font-weight:800;font-size:15.5px;color:var(--green-ink);margin-bottom:4px">取证时间线${pin("a-evidence")}</div>
+          ${(!d.timeline||d.timeline.length===0)?`<div style="padding:16px;text-align:center;color:var(--ink-400);background:var(--softer);border-radius:10px">该域名尚未产生证据包。判定为「确认仿冒」后将自动触发增强级取证。</div>`:
+            d.timeline.map(([v,title,detail])=>`<div class="tlitem"><div class="tldot"></div><div><div style="font-weight:700;font-size:13.5px">增强级证据包归档 ${v}</div><div style="font-size:12px;color:var(--ink-500);margin-top:3px;line-height:1.6">${detail}</div></div></div>`).join("")}
+        </div>
+      </div>
+
+      <div>
+        <div class="panel" style="background:var(--warn-soft);border-color:#ecdca6"><div style="font-weight:800;font-size:13.5px;color:var(--warn-deep);margin-bottom:6px">合规边界</div>
+          <div style="font-size:12px;color:#8a6608;line-height:1.7">研判结论为线索，非最终司法/合规结论；采集不遵循 robots.txt 但仅 GET；账号溯源仅公开信息聚合，标注「推测」，不做个人指认；证据无 WORM 存储，防篡改仅靠哈希链自证。</div></div>
+      </div>
+    </div>
+  </div>`;
+  $("#btnConfirm").onclick=()=>{applyVerdict(d.id,"confirmed");toast("已确认仿冒 · 证据包已生成");renderDetail();};
+  $("#btnFp").onclick=()=>{applyVerdict(d.id,"false_positive");toast("已判为误报 · 移出待复核，仍在检测中，分数升高会自动退回");renderDetail();};
+  $("#btnWatch").onclick=()=>{applyVerdict(d.id,"watch");toast("已转入持续观察 · 每日复查已启用");renderDetail();};
+  $("#btnExport").onclick=()=>{pushAudit("evidence_export","取证",d.domain,"导出证据包 ZIP");toast(`证据包已生成 · evidence_${d.domain.replace(/\./g,'_')}.zip`);};
+  const wlBtn=$("#btnWl");if(wlBtn)wlBtn.onclick=()=>{approveWhitelist(d.id);toast("已加入白名单 · 该域名退出检测，不再采集与评分");renderDetail();};
+  const wlRevoke=$("#btnRevokeWl");if(wlRevoke)wlRevoke.onclick=()=>{revokeWhitelist(d.id);toast("已撤销加白 · 该域名恢复检测，下一轮重新评分");renderDetail();};
+  $$("[data-open]").forEach(b=>b.onclick=()=>{STATE.detailId=b.dataset.open;renderDetail();});
+  bindView();
+}
+function fakeHash(seed){let h=0;for(const ch of seed)h=(h*31+ch.charCodeAt(0))>>>0;return h.toString(16).padStart(8,'0')+"…"+((h*2654435761)>>>0).toString(16).padStart(8,'0');}
+
+/* ============================ 取证存档 ============================ */
+function renderEvidence(){
+  $("#app").innerHTML=`${topnav("evidence")}<div class="wrap pageband fade">
+    ${pageHead("取证存档","EVIDENCE ARCHIVE · FR-501 / FR-504","已生成的增强级证据包，含截图、HTML、DNS/RDAP/TLS 快照与 SHA-256 清单。导出为一次性下载链接，15 分钟内有效。")}
+    ${EVIDENCE.map(e=>`<div class="evcard">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
+        <div><div style="font-weight:800;font-size:15px;color:var(--ink-900)" class="mono">${e.domain} · v${e.version}</div><div style="font-size:12.5px;color:var(--ink-500);margin-top:3px">${e.trigger} · ${e.at}</div></div>
+        <button class="btn-ghost btn-sm" onclick="toast('演示：一次性下载链接已生成，15 分钟内有效')">${icon("download",14,2)} 导出 ZIP</button></div>
+      <div class="wlfacts" style="margin-top:12px">
+        <div><div class="k">文件数</div><div class="v">${e.files} 个</div></div>
+        <div><div class="k">体积</div><div class="v">${e.size}</div></div>
+        <div><div class="k">NTP 校时</div><div class="v">${e.ntp?`已同步 · 偏差 ${e.ntpOffset}ms`:'未完成'}</div></div>
+        <div><div class="k">留存至</div><div class="v">${e.retention}</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--ink-400)" class="mono">MANIFEST SHA-256 · ${e.hash}</div>
+    </div>`).join("")}
+    <div style="margin-top:8px;padding:14px 16px;background:var(--warn-soft);border-radius:12px;font-size:12.5px;color:var(--warn-deep);line-height:1.6">本证据包为技术存证，非司法存证；当前存放在普通文件系统，防篡改仅靠哈希链，未接入具备 Object Lock 的对象存储。</div>
+  </div>`;bindView();
+}
+
+/* ============================ 风险规则 ============================ */
+function renderRules(){
+  $("#app").innerHTML=`${topnav("rules")}<div class="wrap pageband fade">
+    ${pageHead("风险规则","RISK RULES · FR-301 ~ FR-309","当前生效的评分维度、阈值与判定规则，直接读自后端配置，与研判时实际使用的完全一致。","a-rules")}
+    <div style="font-size:12.5px;color:var(--ink-500);margin-bottom:16px">规则版本 v5 · 综合得分 = 各维度加权求和（不做归一化），上限 100</div>
+    <table class="ruletable"><thead><tr><th>规则码</th><th>维度</th><th>权重</th><th>前置条件</th><th>判定方式</th></tr></thead><tbody>
+      ${RULES.map(r=>`<tr><td class="mono"><b>${r.code}</b></td><td style="font-weight:700">${r.name}</td><td class="mono" style="font-weight:800;color:${r.weight<0?'var(--ok)':'var(--ink-800)'}">${r.weight>0?'+':''}${r.weight}</td><td>${r.req}</td><td>${r.desc}</td></tr>`).join("")}
+    </tbody></table>
+
+    <div class="wbhead" style="margin-top:32px"><h3 class="h2" style="font-size:20px">阈值与风险分级${pin("a-thresholds")}</h3></div>
+    <table class="ruletable"><tbody>${THRESHOLDS.map(([k,v])=>`<tr><td style="font-weight:700">${k}</td><td class="mono" style="font-weight:800">${v}</td></tr>`).join("")}</tbody></table>
+    <div style="font-size:12px;color:var(--ink-500);margin-top:10px;line-height:1.6">入库看相似度（发现标准），分级看综合得分（风险标准）—— 一个赌博站点综合得分可能只有 50，但域名与受保护资产高度相似，必须进台账。</div>
+
+    <div class="wbhead" style="margin-top:32px"><h3 class="h2" style="font-size:20px">威胁场景判定</h3></div>
+    <table class="ruletable"><thead><tr><th>场景</th><th>名称</th><th>判据</th></tr></thead><tbody>
+      ${SCENERULES.map(([c,n,d])=>`<tr><td><span class="scenepill" style="background:${SCENE[c].bg};color:${SCENE[c].c}">${c}</span></td><td style="font-weight:700">${n}</td><td>${d}</td></tr>`).join("")}
+    </tbody></table>
+
+    <div class="wbhead" style="margin-top:32px"><h3 class="h2" style="font-size:20px">误报控制与白名单</h3></div>
+    <div class="panel">
+      <div style="font-weight:700;margin-bottom:8px">误报控制 <span style="font-size:12px;color:var(--ink-400)">· FR-308，降权封顶 40 分</span></div>
+      <div style="font-size:13px;color:var(--ink-700);line-height:1.6">命中医药/实验室行业词（如 GLP-1、Good Laboratory Practice）且未出现物流/仓储语境词 → 判定为品牌缩写的合法使用，关键词维度降权。</div>
+      <div style="margin-top:14px;font-weight:700;margin-bottom:8px">官方资产白名单</div>
+      <div style="font-size:13px;color:var(--ink-700);line-height:1.6">精确匹配 + 子域后缀匹配。手写条目在 <code class="mono">assets.yaml</code>，FR-403 审批通过的条目在独立的 <code class="mono">whitelist_approved.yaml</code>，配置加载时合并，互不污染。</div>
+    </div>
+  </div>`;bindView();
+}
+
+/* ============================ 运营看板 ============================ */
+function renderBoard(){
+  // 误报率的分子要把 whitelisted 也算进去 —— 加白的前提就是先判过误报，
+  // 加白只是"这条误报永久免检"，不是"这条不算误报了"。只数 false_positive
+  // 会让误报率随着加白增多而悄悄变好看，方向反了。
+  const reviewed=DOMAINS.filter(d=>["confirmed","false_positive","whitelisted"].includes(d.status)).length;
+  const fp=DOMAINS.filter(d=>d.status==="false_positive"||d.status==="whitelisted").length;
+  const stats=[["待复核域名",DOMAINS.filter(d=>d.status==="reviewing"||d.status==="watching").length,"var(--warn-deep)"],
+    ["高风险待处置",DOMAINS.filter(d=>d.status!=="monitoring"&&d.risk==="high").length,"var(--risk-high-ink)"],
+    ["已确认仿冒",DOMAINS.filter(d=>d.status==="confirmed").length,"var(--ok)"],
+    ["误报率",reviewed?Math.round(fp/reviewed*100)+"%":"—","var(--ink-500)"]];
+  const scenes=["T1","T2","T3","T4"].map(s=>[s,DOMAINS.filter(d=>d.scene===s&&d.status!=="monitoring").length]);
+  const maxScene=Math.max(...scenes.map(s=>s[1]),1);
+  $("#app").innerHTML=`${topnav("board")}<div class="wrap pageband fade">
+    ${pageHead("运营看板","OPERATIONS BOARD","检测节奏与覆盖范围、处置情况、场景分布 —— 全部数据来自审计日志与台账真实状态，不是估算。")}
+    <div class="statstrip">${stats.map(([l,v,c])=>`<div class="statcard"><div class="top"><div class="lbl">${l}</div><div class="dot" style="background:${c}"></div></div><div class="val">${v}</div><div class="delta" style="color:var(--ink-400)">${l==='误报率'&&!reviewed?'尚无人工复核记录，误报率无意义':' '}</div></div>`).join("")}</div>
+
+    <h3 class="h2" style="font-size:20px;margin:28px 0 6px">检测节奏与覆盖范围${pin("a-board")}</h3>
+    <p style="font-size:12.5px;color:var(--ink-500);margin-bottom:14px">「上次运行」来自审计日志，是任务真的跑过的记录。显示「从未运行」说明定时任务还没注册或已连续失败。</p>
+    <div class="pipetable">
+      <div class="piperow pipehd"><div>阶段</div><div>频率</div><div>范围</div><div>上次运行</div><div>说明</div></div>
+      ${PIPELINE.map(p=>{const sc=SCOPE_STYLE[p.scope];return `<div class="piperow">
+        <div style="font-weight:700;font-size:13.5px">${p.label}</div>
+        <div style="font-size:12.5px;color:var(--ink-600)">${p.freq}</div>
+        <div><span class="scopebadge" style="background:${sc.bg};color:${sc.fg}">${sc.label}</span><div style="font-size:11px;color:var(--ink-400);margin-top:4px;line-height:1.5">${p.scopeDetail}</div></div>
+        <div style="font-size:12.5px;color:var(--ink-700)">${p.lastRun}</div>
+        <div style="font-size:12px;color:var(--ink-500);line-height:1.5">${p.summary}</div></div>`;}).join("")}
+    </div>
+
+    <h3 class="h2" style="font-size:20px;margin:28px 0 14px">场景分布</h3>
+    <div class="panel">${scenes.map(([s,n])=>`<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><div style="width:100px;font-size:12.5px;font-weight:700;color:${SCENE[s].c}">${s} ${SCENE[s].label}</div><div style="flex:1;height:10px;background:var(--surface-sunken);border-radius:6px;overflow:hidden"><div style="width:${n/maxScene*100}%;height:100%;background:${SCENE[s].c};border-radius:6px"></div></div><div class="mono" style="width:30px;text-align:right;font-weight:800">${n}</div></div>`).join("")}</div>
+  </div>`;bindView();
+}
+
+/* ============================ 审计日志 ============================ */
+const AUDIT_CAT_STYLE={"研判":["📝","var(--primary-ink)","var(--primary-soft)"],"白名单":["✅","var(--warn-deep)","var(--warn-soft)"],"流水线":["⚙️","var(--info-ink)","var(--info-soft)"],"取证":["📦","var(--orange-ink)","var(--orange-soft)"],"检索":["🔍","var(--ink-600)","var(--surface-sunken)"]};
+function renderAudit(){
+  const cats=["全部",...new Set(AUDIT.map(a=>a.cat))];
+  const list=STATE.auditFilter==="全部"?AUDIT:AUDIT.filter(a=>a.cat===STATE.auditFilter);
+  $("#app").innerHTML=`${topnav("audit")}<div class="wrap pageband fade">
+    ${pageHead("审计日志","AUDIT TRAIL · FR-404","扫描/研判/白名单审批/证据导出/流水线全量留痕。每条记录带上一条的哈希，任一条被改动都会在校验时立刻暴露。","a-audit")}
+    <div class="hashbanner">${icon("shield",18,2)}审计哈希链校验：完好（${AUDIT.length + 178} 条）· 没有 WORM 存储时的技术兜底，不等同于司法级防篡改</div>
+    <div class="seg" style="margin-bottom:16px">${cats.map(c=>`<button data-af="${c}" class="${STATE.auditFilter===c?'on':''}">${c}</button>`).join("")}</div>
+    <table class="g-table"><thead><tr><th>时间</th><th>动作</th><th>对象 / 详情</th><th>操作人</th></tr></thead>
+    <tbody>${list.map(a=>{const st=AUDIT_CAT_STYLE[a.cat]||["•","var(--ink-600)","var(--surface-sunken)"];return `<tr>
+      <td class="mono" style="color:var(--ink-500);white-space:nowrap">${a.at}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:${st[2]};color:${st[1]};font-size:12px;font-weight:700;white-space:nowrap">${st[0]} ${a.cat}</span></td>
+      <td><div style="font-weight:700;color:var(--ink-900)" class="mono">${a.target}</div><div style="font-size:12px;color:var(--ink-500);margin-top:3px;line-height:1.5">${a.detail}</div></td>
+      <td style="font-weight:600;white-space:nowrap">${a.actor}</td></tr>`;}).join("")}</tbody></table>
+  </div>`;
+  $$("[data-af]").forEach(b=>b.onclick=()=>{STATE.auditFilter=b.dataset.af;renderAudit();});
+  bindView();
+}
+
+/* ============================ 人工提报 ============================ */
+function renderIntake(){
+  $("#app").innerHTML=`${topnav("queue")}<div class="wrap fade" style="padding:32px 0 70px;max-width:640px">
+    <div class="backlink" data-view="queue">${icon("chevronL",15,2)} 返回复核队列</div>
+    ${pageHead("人工提报","MANUAL INTAKE · FR-107","员工/外部举报入口。提交后与自动发现的域名走同一套评分与处置流程，不特殊对待。","a-intake")}
+    <div class="panel">
+      <div class="formfield"><label>可疑域名</label><input class="forminput" id="ikDomain" placeholder="例如：glp-secure-login.com"/></div>
+      <div class="formfield"><label>举报理由</label><input class="forminput" id="ikReason" placeholder="例如：收到钓鱼邮件链接指向该域名"/></div>
+      <div class="formfield"><label>举报人</label><input class="forminput" id="ikReporter" placeholder="姓名或工号"/></div>
+      <button class="btn-primary" id="ikSubmit">提交并发起研判</button>
+    </div>
+  </div>`;
+  $("#ikSubmit").onclick=()=>{
+    const dom=$("#ikDomain").value.trim();if(!dom){toast("请填写域名");return;}
+    pushAudit("intake","检索",dom,`人工提报 · 举报理由：${$("#ikReason").value||'（未填写）'} · 举报人：${$("#ikReporter").value||'（未填写）'}`);
+    toast("已提交，正在发起即时研判…");runInstantScan(dom);
+  };
+  bindView();
+}
+
+function pageHead(title,eyebrow,desc,pk){return `<div class="wbhead"><div><div class="eyebrow">${eyebrow}</div><h2 class="h2">${title}${pk?pin(pk):''}</h2><div style="font-size:13.5px;color:var(--ink-500);margin-top:8px;max-width:860px;line-height:1.6">${desc}</div></div></div>`;}
+
+/* ============================ toast / 注释 ============================ */
+let toastT=null;function toast(msg){let t=$("#toast");if(!t){t=document.createElement("div");t.id="toast";t.style.cssText="position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:120;background:#04170c;color:#e7f6ee;padding:12px 20px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:0 10px 30px -8px rgba(0,0,0,.4);max-width:90vw;display:flex;align-items:center;gap:9px";document.body.appendChild(t);}t.innerHTML=icon("check",16,2.4,"#9ff0c8")+msg;t.style.opacity="1";clearTimeout(toastT);toastT=setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity="0";},2800);}
+let curAnno=null;
+function bindAnno(){document.body.addEventListener("click",e=>{const p=e.target.closest(".anno-pin");if(p){e.stopPropagation();showAnno(p.dataset.anno,p);return;}if(!e.target.closest(".anno-pop"))hideAnno();});window.addEventListener("scroll",hideAnno,true);}
+function showAnno(k,el){const a=ANNOS[k];if(!a)return;hideAnno();const p=document.createElement("div");p.className="anno-pop";
+  p.innerHTML=`<div class="ah"><span class="n">${a.n}</span><span class="ti">${a.title}</span><button class="closep">${icon("x",16)}</button></div><div class="ab">${a.body}<div class="src">${icon("layers",12)}${a.src}</div></div>`;
+  document.body.appendChild(p);const r=el.getBoundingClientRect(),pw=p.offsetWidth,ph=p.offsetHeight;let left=r.left+r.width/2-pw/2,top=r.bottom+10;
+  if(left<8)left=8;if(left+pw>innerWidth-8)left=innerWidth-pw-8;if(top+ph>innerHeight-8)top=r.top-ph-10;if(top<8)top=8;p.style.left=left+"px";p.style.top=top+"px";p.querySelector(".closep").onclick=hideAnno;curAnno=p;}
+function hideAnno(){if(curAnno){curAnno.remove();curAnno=null;}}
+
+/* ============================ 路由 ============================ */
+function go(v){STATE.view=v;render();scrollTo(0,0);}
+function render(){hideAnno();$("#overlay").innerHTML="";
+  if(STATE.view==="home")renderHome();
+  else if(STATE.view==="queue")renderQueue();
+  else if(STATE.view==="detail")renderDetail();
+  else if(STATE.view==="evidence")renderEvidence();
+  else if(STATE.view==="rules")renderRules();
+  else if(STATE.view==="board")renderBoard();
+  else if(STATE.view==="audit")renderAudit();
+  else if(STATE.view==="intake")renderIntake();
+  syncStepper();}
+function bindView(){$$("[data-view]").forEach(b=>b.onclick=()=>go(b.dataset.view));}
+function syncStepper(){const map={home:"home",queue:"queue",detail:"detail"};$$("#stepper button").forEach(b=>b.classList.toggle("on",map[STATE.view]===b.dataset.step));}
+
+$("#stepper").onclick=e=>{const b=e.target.closest("[data-step]");if(b)go(b.dataset.step);};
+$("#annoToggle").onclick=()=>{const on=document.body.classList.toggle("anno-on");$("#annoToggle").classList.toggle("on",on);if(!on)hideAnno();};
+$("#restartBtn").onclick=()=>{STATE.view="home";STATE.scope="pending";STATE.risk="all";STATE.scene="all";STATE.qq="";STATE.selected.clear();go("home");};
+$("#introBtn").onclick=showIntro;
+function showIntro(){$("#overlay").innerHTML=`<div class="scrim" id="iScrim"><div class="intro"><div class="ih"><h2>DomainGuard 交互式演示</h2><p>仿冒域名监测与取证系统 —— 从变体字典发现，到相似度研判、风险分级、人工复核、证据固定、白名单回流的完整闭环。本演示为完全虚构的示例数据。</p></div>
+  <div class="ib">
+    <div class="step"><span class="n">1</span><div><div class="tt">监测台</div><div class="dd">检索台账，或对新域名发起真实即时研判（DNS+建站探测+Playwright采集+RDAP/TLS/CT）。</div></div></div>
+    <div class="step"><span class="n">2</span><div><div class="tt">复核队列</div><div class="dd">五个视图（待复核/已判误报/已确认仿冒/监控池/全部），风险/场景筛选，同源聚类标注，批量处置。</div></div></div>
+    <div class="step"><span class="n">3</span><div><div class="tt">域名详情</div><div class="dd">可解释评分（命中规则明细）+ 误报控制 + 采集快照 + 域名情报 + 取证时间线 + 三个判定按钮。</div></div></div>
+    <div class="step"><span class="n">▦</span><div><div class="tt">顶部六个板块</div><div class="dd">监测台 / 复核队列 / 取证存档 / 风险规则 / 运营看板 / 审计日志，均可点击。</div></div></div>
+    <div class="step"><span class="n">★</span><div><div class="tt">注释模式</div><div class="dd">界面上闪烁的绿色数字 ❶❷❸ 可点击，查看每个区域对应的真实实现文件与合规边界。</div></div></div>
+  </div><div class="if"><button class="btn-primary" id="iStart">开始体验 ${icon("arrowR",16,2,"#fff")}</button></div></div></div>`;
+  $("#iScrim").onclick=e=>{if(e.target.id==="iScrim")$("#overlay").innerHTML="";};$("#iStart").onclick=()=>$("#overlay").innerHTML="";}
+
+bindAnno();render();showIntro();
+</script>
+</body>
+</html>
