@@ -27,7 +27,7 @@
 
   var STATUS = {
     "self-innovate": { zh:"自主开发", en:"SELF-INNOVATE", desc:{ zh:"Vibe Coding", en:"Built In-house" } },
-    "commercial-self-innovate": { zh:"商业产品 + 自主开发", en:"COMMERCIAL + SELF-INNOVATE", desc:{ zh:"商业方案 + 自主研发", en:"Vendor + in-house" } },
+    "commercial-self-innovate": { zh:"商业产品 + 自主开发", en:"COMMERCIAL+SELF-INNOVATE", desc:{ zh:"商业方案 + 自主研发", en:"Vendor + in-house" } },
     "principle":     { zh:"原则", en:"PRINCIPLE",     desc:{ zh:"指导原则", en:"Guiding Principle" } },
     "practice":      { zh:"实践", en:"PRACTICE",      desc:{ zh:"应用实践", en:"Applied Practice" } },
     "commercial":    { zh:"商业产品", en:"COMMERCIAL", desc:{ zh:"商业方案", en:"Vendor Solution" } }
@@ -279,10 +279,10 @@
   if (window.__capSum) return; window.__capSum = 1;
   var IDS = ["cyber-incident-hub","multiagent-cowork","identity-hub","useract","vulnerability-hub","emailguard","pentest-openclaw","ai-safety-platform","ai-risk-framework","digital-human","ai-guardrails","ai-gateway","github-leak","ai-shift-assessment","ai-red-teaming"];
   var GROUPS = [
-    { key:"plugin",  zh:"插件", en:"Add-in",  n:1, ids:["emailguard"] },
-    { key:"product", zh:"产品", en:"Product", n:2, ids:["multiagent-cowork","ai-guardrails"] },
-    { key:"system",  zh:"系统", en:"System",  n:3, ids:["cyber-incident-hub","identity-hub","vulnerability-hub"] },
-    { key:"tool",    zh:"工具", en:"Tool",    n:4, ids:["useract","pentest-openclaw","github-leak","ai-shift-assessment"] }
+    { key:"plugin",  zh:"安全插件", en:"Security Add-in",  n:1, ids:["emailguard"] },
+    { key:"product", zh:"安全产品", en:"Security Products", n:2, ids:["multiagent-cowork","ai-guardrails"] },
+    { key:"system",  zh:"安全系统", en:"Security Systems",  n:3, ids:["cyber-incident-hub","identity-hub","vulnerability-hub"] },
+    { key:"tool",    zh:"安全工具", en:"Security Tools",    n:4, ids:["useract","pentest-openclaw","github-leak","ai-shift-assessment"] }
   ];
   var HL  = "background:#E6F4EC;border-radius:6px;box-shadow:0 0 0 3px #E6F4EC,0 0 0 5px #00963B;";
   var OFF = "display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 13px;border:1px solid #E1E7EC;border-radius:9px;background:#FFFFFF;cursor:pointer;transition:all .15s;";
@@ -321,7 +321,7 @@
   function mkItem(g){
     var it = document.createElement("div"); it.setAttribute("data-grp", g.key); it.style.cssText = OFF;
     var num = document.createElement("span"); num.style.cssText = "flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:3px 8px;border-radius:999px;background:#E3F5EA;color:#008E43;border:1px solid #6BC592;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:12.5px;font-weight:800;line-height:1.3;"; num.textContent = "×" + g.n;
-    var lab = document.createElement("span"); lab.setAttribute("data-lab", g.key); lab.style.cssText = "font-size:13px;font-weight:600;color:#2B3A30;min-width:58px;text-align:left;"; lab.textContent = labelFor(g);
+    var lab = document.createElement("span"); lab.setAttribute("data-lab", g.key); lab.style.cssText = "font-size:13px;font-weight:600;color:#2B3A30;text-align:left;min-width:" + (isZh() ? "0px" : "130px") + ";"; lab.textContent = labelFor(g);
     it.appendChild(num); it.appendChild(lab);
     it.addEventListener("click", function(){ active = (active === g.key) ? null : g.key; applyHL(); });
     return it;
@@ -330,14 +330,14 @@
     var c = document.querySelector(".panorama-center"); if (!c) return;
     var w = document.getElementById("cap-summary");
     if (!w){
-      w = document.createElement("div"); w.id = "cap-summary"; w.style.cssText = "width:100%;max-width:152px;margin-top:4px;display:flex;flex-direction:column;gap:7px;";
+      w = document.createElement("div"); w.id = "cap-summary"; w.style.cssText = "width:100%;max-width:205px;margin-top:4px;display:flex;flex-direction:column;gap:7px;";
       var eb = document.createElement("div"); eb.id = "cap-eb"; eb.style.cssText = "font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11px;letter-spacing:0.14em;color:#737A82;font-weight:600;text-align:center;margin-bottom:2px;"; w.appendChild(eb);
       for (var i=0;i<GROUPS.length;i++){ w.appendChild(mkItem(GROUPS[i])); }
       c.appendChild(w);
     }
     var eb2 = document.getElementById("cap-eb"); var et = isZh() ? "能力构成 · PORTFOLIO" : "PORTFOLIO";
     if (eb2 && eb2.textContent !== et) eb2.textContent = et;
-    for (var k=0;k<GROUPS.length;k++){ var lb = w.querySelector('[data-lab="' + GROUPS[k].key + '"]'); var t = labelFor(GROUPS[k]); if (lb && lb.textContent !== t) lb.textContent = t; }
+    for (var k=0;k<GROUPS.length;k++){ var lb = w.querySelector('[data-lab="' + GROUPS[k].key + '"]'); if (!lb) continue; var t = labelFor(GROUPS[k]); if (lb.textContent !== t) lb.textContent = t; lb.style.minWidth = isZh() ? "0px" : "130px"; }
   }
   function captionFix(){
     var c = document.querySelector(".panorama-center"); if (!c) return;
