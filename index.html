@@ -26,8 +26,8 @@
   "use strict";
 
   var STATUS = {
-    "self-innovate": { zh:"自研", en:"SELF-INNOVATE", desc:{ zh:"自主研发", en:"Built In-house" } },
-    "commercial-self-innovate": { zh:"商业 + 自研", en:"COMMERCIAL + SELF-INNOVATE", desc:{ zh:"商业方案 + 自主研发", en:"Vendor + in-house" } },
+    "self-innovate": { zh:"自主开发", en:"SELF-INNOVATE", desc:{ zh:"Vibe Coding", en:"Built In-house" } },
+    "commercial-self-innovate": { zh:"商业产品 + 自主开发", en:"COMMERCIAL + SELF-INNOVATE", desc:{ zh:"商业方案 + 自主研发", en:"Vendor + in-house" } },
     "principle":     { zh:"原则", en:"PRINCIPLE",     desc:{ zh:"指导原则", en:"Guiding Principle" } },
     "practice":      { zh:"实践", en:"PRACTICE",      desc:{ zh:"应用实践", en:"Applied Practice" } },
     "commercial":    { zh:"商业产品", en:"COMMERCIAL", desc:{ zh:"商业方案", en:"Vendor Solution" } }
@@ -100,7 +100,7 @@
       ringLeftLines:[{ t:"AI 创造", fs:13, fw:600 },{ t:"价值", fs:16, fw:900 }],
       ringRightLines:[{ t:"卓越 AI", fs:13, fw:600 },{ t:"基石", fs:16, fw:900 }],
       ringW:80, ringLH:1.16,
-      ringCaption:"安全让 AI 创造价值，AI 让安全更高效——二者互为基石。",
+      ringCaption:"安全让 AI 创造价值，AI 让安全更高效。",
       legendTitle:"状态说明"
     },
     en: {
@@ -113,7 +113,7 @@
       ringLeftLines:[{ t:"AI for", fs:13, fw:700 },{ t:"Value Creation", fs:12, fw:500 }],
       ringRightLines:[{ t:"Foundation", fs:12, fw:500 },{ t:"for AI", fs:14, fw:700 },{ t:"Excellence", fs:12, fw:500 }],
       ringW:74, ringLH:1.12,
-      ringCaption:"Security lets AI create value; AI makes security more efficient — each is the foundation of the other.",
+      ringCaption:"Security lets AI create value; AI makes security more efficient.",
       legendTitle:"LEGEND"
     }
   };
@@ -268,6 +268,110 @@
   }
 
   render();
+})();
+</script>
+
+<script>
+/* Capability-portfolio summary for the AI Security Panorama.
+   Injected below the strategic-core caption; clicking a category highlights
+   its member products. Observes the document and re-applies on every render. */
+(function(){
+  if (window.__capSum) return; window.__capSum = 1;
+  var IDS = ["cyber-incident-hub","multiagent-cowork","identity-hub","useract","vulnerability-hub","emailguard","pentest-openclaw","ai-safety-platform","ai-risk-framework","digital-human","ai-guardrails","ai-gateway","github-leak","ai-shift-assessment","ai-red-teaming"];
+  var GROUPS = [
+    { key:"plugin",  zh:"插件", en:"Add-in",  n:1, ids:["emailguard"] },
+    { key:"product", zh:"产品", en:"Product", n:2, ids:["multiagent-cowork","ai-guardrails"] },
+    { key:"system",  zh:"系统", en:"System",  n:3, ids:["cyber-incident-hub","identity-hub","vulnerability-hub"] },
+    { key:"tool",    zh:"工具", en:"Tool",    n:4, ids:["useract","pentest-openclaw","github-leak","ai-shift-assessment"] }
+  ];
+  var HL  = "background:#E6F4EC;border-radius:6px;box-shadow:0 0 0 3px #E6F4EC,0 0 0 5px #00963B;";
+  var OFF = "display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 13px;border:1px solid #E1E7EC;border-radius:9px;background:#FFFFFF;cursor:pointer;transition:all .15s;";
+  var ON  = "display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 13px;border:1px solid #00AA4F;border-radius:9px;background:#EAF7EF;cursor:pointer;transition:all .15s;box-shadow:0 2px 8px rgba(0,170,79,0.18);";
+  var active = null, userLang = null;
+  function bg(btn){ try { return btn ? window.getComputedStyle(btn).backgroundColor : ""; } catch(e){ return ""; } }
+  function clearC(c){ return !c || c === "transparent" || c.indexOf("rgba(0, 0, 0, 0)") >= 0; }
+  function isZh(){
+    if (userLang) return userLang === "zh";
+    var btns = document.querySelectorAll("button"), zh = null, en = null;
+    for (var i = 0; i < btns.length; i++){ var t = (btns[i].textContent || "").replace(/\s+/g, ""); if (t === "中") zh = btns[i]; else if (t === "EN") en = btns[i]; }
+    var zc = bg(zh), ec = bg(en);
+    if (!clearC(zc) && clearC(ec)) return true;
+    if (!clearC(ec) && clearC(zc)) return false;
+    var b = document.body ? document.body.textContent : "";
+    return (b.indexOf("状态说明") >= 0 || b.indexOf("赋能安全") >= 0 || b.indexOf("点击任意产品") >= 0);
+  }
+  function grid(){ return document.querySelector(".panorama-grid"); }
+  function anchors(){ var g = grid(); return g ? Array.prototype.slice.call(g.querySelectorAll("a[href]")) : []; }
+  function stamp(){ var a = anchors(); if (a.length !== IDS.length) return false; for (var i=0;i<a.length;i++){ a[i].setAttribute("data-pid", IDS[i]); } return true; }
+  function elFor(id){ var a = anchors(); for (var i=0;i<a.length;i++){ if (a[i].getAttribute("data-pid") === id) return a[i]; } return null; }
+  function clearHL(){ var r = document.querySelectorAll("[data-hlr]"); for (var i=0;i<r.length;i++){ r[i].style.cssText = r[i].getAttribute("data-hlo") || ""; r[i].removeAttribute("data-hlr"); r[i].removeAttribute("data-hlo"); } }
+  function applyHL(){
+    clearHL();
+    var it = document.querySelectorAll("[data-grp]");
+    for (var i=0;i<it.length;i++){ it[i].style.cssText = (it[i].getAttribute("data-grp") === active) ? ON : OFF; }
+    if (!active) return;
+    var g = null; for (var k=0;k<GROUPS.length;k++){ if (GROUPS[k].key === active) g = GROUPS[k]; }
+    if (!g) return;
+    for (var j=0;j<g.ids.length;j++){
+      var el = elFor(g.ids[j]);
+      if (el){ if (!el.hasAttribute("data-hlr")) el.setAttribute("data-hlo", el.style.cssText); el.setAttribute("data-hlr","1"); el.style.cssText = (el.getAttribute("data-hlo") || "") + HL; }
+    }
+  }
+  function labelFor(g){ return isZh() ? g.zh : g.en; }
+  function mkItem(g){
+    var it = document.createElement("div"); it.setAttribute("data-grp", g.key); it.style.cssText = OFF;
+    var num = document.createElement("span"); num.style.cssText = "flex:none;display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:3px 8px;border-radius:999px;background:#E3F5EA;color:#008E43;border:1px solid #6BC592;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:12.5px;font-weight:800;line-height:1.3;"; num.textContent = "×" + g.n;
+    var lab = document.createElement("span"); lab.setAttribute("data-lab", g.key); lab.style.cssText = "font-size:13px;font-weight:600;color:#2B3A30;min-width:58px;text-align:left;"; lab.textContent = labelFor(g);
+    it.appendChild(num); it.appendChild(lab);
+    it.addEventListener("click", function(){ active = (active === g.key) ? null : g.key; applyHL(); });
+    return it;
+  }
+  function ensureBox(){
+    var c = document.querySelector(".panorama-center"); if (!c) return;
+    var w = document.getElementById("cap-summary");
+    if (!w){
+      w = document.createElement("div"); w.id = "cap-summary"; w.style.cssText = "width:100%;max-width:152px;margin-top:4px;display:flex;flex-direction:column;gap:7px;";
+      var eb = document.createElement("div"); eb.id = "cap-eb"; eb.style.cssText = "font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11px;letter-spacing:0.14em;color:#737A82;font-weight:600;text-align:center;margin-bottom:2px;"; w.appendChild(eb);
+      for (var i=0;i<GROUPS.length;i++){ w.appendChild(mkItem(GROUPS[i])); }
+      c.appendChild(w);
+    }
+    var eb2 = document.getElementById("cap-eb"); var et = isZh() ? "能力构成 · PORTFOLIO" : "PORTFOLIO";
+    if (eb2 && eb2.textContent !== et) eb2.textContent = et;
+    for (var k=0;k<GROUPS.length;k++){ var lb = w.querySelector('[data-lab="' + GROUPS[k].key + '"]'); var t = labelFor(GROUPS[k]); if (lb && lb.textContent !== t) lb.textContent = t; }
+  }
+  function captionFix(){
+    var c = document.querySelector(".panorama-center"); if (!c) return;
+    var kids = c.children, cap = null;
+    for (var i = 0; i < kids.length; i++){ var k = kids[i]; if (k.id === "cap-summary" || k.id === "cap-mycap") continue; if (k.querySelector && k.querySelector("svg")) continue; var tx = k.textContent || ""; if (tx.indexOf("efficient") >= 0 || tx.indexOf("高效") >= 0 || tx.indexOf("create value") >= 0 || tx.indexOf("创造价值") >= 0){ cap = k; break; } }
+    var zh = isZh();
+    var line1 = zh ? "安全让 AI 创造价值，" : "Security lets AI create value;";
+    var line2 = zh ? "AI 让安全更高效。" : "AI makes security more efficient.";
+    var mine = document.getElementById("cap-mycap");
+    if (!mine){ if (!cap) return; mine = document.createElement("div"); mine.id = "cap-mycap"; mine.setAttribute("style", cap.getAttribute("style") || ""); cap.parentNode.insertBefore(mine, cap.nextSibling); }
+    if (cap && cap.style.display !== "none") cap.style.display = "none";
+    var want = line1 + "|" + line2;
+    if (mine.getAttribute("data-txt") !== want){ mine.setAttribute("data-txt", want); mine.textContent = ""; mine.appendChild(document.createTextNode(line1)); mine.appendChild(document.createElement("br")); mine.appendChild(document.createTextNode(line2)); }
+  }
+  function guideFix(){
+    var g = null, all = document.querySelectorAll("div,p,span");
+    for (var i = 0; i < all.length; i++){ if (all[i].id === "cap-myguide") continue; var tx = all[i].textContent || ""; if ((tx.indexOf("open its page") >= 0 || tx.indexOf("进入对应页面") >= 0) && tx.replace(/\s/g, "").length < 45){ g = all[i]; break; } }
+    if (!g) return;
+    var zh = isZh();
+    var icon = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#00963B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:-3px;margin:0 3px;"><path d="M22 14a8 8 0 0 1-8 8"/><path d="M18 11v-1a2 2 0 0 0-2-2a2 2 0 0 0-2 2"/><path d="M14 10V9a2 2 0 0 0-2-2a2 2 0 0 0-2 2v1"/><path d="M10 9.5V4a2 2 0 0 0-2-2a2 2 0 0 0-2 2v10"/><path d="M18 11a2 2 0 1 1 4 0v3a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>';
+    var html = zh ? ("点击任意名称" + icon + "进入对应页面 ↗") : ("Click any name" + icon + " to open its page ↗");
+    var mine = document.getElementById("cap-myguide");
+    if (!mine){ mine = document.createElement("div"); mine.id = "cap-myguide"; mine.setAttribute("style", (g.getAttribute("style") || "") + ";display:block;gap:0;"); g.parentNode.insertBefore(mine, g.nextSibling); }
+    if (g.style.display !== "none") g.style.display = "none";
+    var want = zh ? "zh" : "en";
+    if (mine.getAttribute("data-l") !== want){ mine.setAttribute("data-l", want); mine.innerHTML = html; }
+  }
+  function refresh(){ if (!grid() || !stamp()) return; ensureBox(); captionFix(); guideFix(); applyHL(); }
+  var sched = false;
+  function schedule(){ if (sched) return; sched = true; var run = function(){ sched = false; refresh(); }; if (window.requestAnimationFrame) requestAnimationFrame(run); else setTimeout(run, 16); }
+  try { new MutationObserver(schedule).observe(document, { childList:true, subtree:true, characterData:true }); } catch(e){}
+  if (document.readyState !== "loading") schedule();
+  document.addEventListener("DOMContentLoaded", schedule);
+  document.addEventListener("click", function(e){ var t = e.target; if (!t) return; var x = (t.textContent || "").replace(/\s+/g, ""); if (x === "中" || x === "EN"){ userLang = (x === "中") ? "zh" : "en"; setTimeout(refresh, 0); setTimeout(refresh, 70); setTimeout(refresh, 260); } }, true);
 })();
 </script>
 </body>
