@@ -9,6 +9,14 @@
    DomainGuard — 仿冒域名监测与取证系统
    交互式演示（内容严格对齐实际功能；样式仿 GLP Soft Neo 设计令牌）
    全部数据为演示虚构，不含任何真实客户/域名信息
+
+   与实现同步于 2026-08-16，本轮跟上的变更：
+     · 顶部「取证存档」页签下线 → 证据包在确认仿冒时当场产出并弹出下载
+     · 新增「自有资产」页（自监控）：资产巡检 / 子域名候选池 / 变更与异常 / 放行清单
+     · 首页四张能力卡改为按当前配置与库内计数现算，「分级告警」换成自有资产监控
+     · 首页场景卡改为真实条数、可点击跳队列筛选
+     · 运营看板：漏斗 + 12 个流水线阶段，「频率 / 调度状态 / 上次运行」三列分开
+     · 口径统一：首页、复核队列「全部」、看板场景分布共用 inScope() 一个定义
    ============================================================ */
 :root{
   --canvas:#f3f3f1; --surface:#ffffff; --surface-2:#f8f8f6; --surface-sunken:#eef1ec; --softer:#f6f6f4;
@@ -84,6 +92,9 @@ svg{flex:none;}
 .btn-primary{display:inline-flex;align-items:center;gap:7px;border:none;background:linear-gradient(150deg,var(--primary-600),var(--primary-700));color:#fff;padding:11px 20px;border-radius:12px;font-weight:700;font-size:14px;white-space:nowrap;box-shadow:0 6px 14px rgba(0,77,34,.25);}
 .btn-primary:disabled{opacity:.5;cursor:not-allowed;}
 .btn-ghost{border:1px solid var(--border-strong);background:var(--surface);color:var(--ink-700);padding:11px 18px;border-radius:12px;font-weight:700;font-size:14px;}
+/* 置灰按钮必须看得出来是灰的。只加 disabled 属性而样式不变，用户会一直点，
+   以为界面卡住了 —— 详情页那个「下载证据包 ZIP」在取证前正是这个状态。 */
+.btn-ghost:disabled{opacity:.45;cursor:not-allowed;background:var(--softer);}
 .btn-sm{padding:8px 14px;font-size:12.5px;border-radius:10px;}
 
 /* home / search */
@@ -203,12 +214,82 @@ p.lede{font-size:16.5px;line-height:1.65;color:var(--ink-600);max-width:540px;ma
 .statcard .val{font-size:28px;font-weight:800;color:var(--ink-900);font-family:var(--font-mono);line-height:1;}
 .statcard .delta{font-size:12px;font-weight:700;margin-top:6px;}
 .pipetable{background:#fff;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-card);}
-.piperow{display:grid;grid-template-columns:1.6fr 0.85fr 1fr 1fr 1.2fr;gap:14px;padding:14px 20px;border-bottom:1px solid var(--hairline);align-items:center;}
+/* 六列一律 minmax(0,Nfr)，不能直接写 Nfr。
+   fr 的自动最小值是 min-content：行里只要出现一个不可断行的长串
+   （Windows 路径、超长 URL、哈希），那一行的列就会被撑宽。而每一行都是
+   独立的 grid 容器，于是只有那一行跟上下对不齐 —— 真实系统里踩过一次，
+   这里同步修好，并用 overflow-wrap:anywhere 让长串自己断。 */
+.piperow{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,0.7fr) minmax(0,1.05fr) minmax(0,1.7fr) minmax(0,0.55fr) minmax(0,1.35fr);gap:14px;padding:14px 20px;border-bottom:1px solid var(--hairline);align-items:start;}
+.piperow>div{min-width:0;overflow-wrap:anywhere;}
 .piperow:last-child{border-bottom:none;}
-.pipehd{background:var(--softer);font-size:11px;font-weight:800;color:var(--ink-500);}
+.pipehd{background:var(--softer);font-size:11px;font-weight:800;color:var(--ink-500);align-items:center;}
 .scopebadge{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;}
+.pipemeta{font-size:11px;color:var(--ink-400);margin-top:4px;line-height:1.5;}
+.funnel{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;}
+.funnel .fc{background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow-soft);}
+.funnel .fk{font-size:12.5px;color:var(--ink-500);font-weight:700;}
+.funnel .fv{font-size:26px;font-weight:800;font-family:var(--font-mono);color:var(--ink-900);line-height:1.15;margin:4px 0 2px;}
+.funnel .fn{font-size:11px;color:var(--ink-400);line-height:1.5;}
+.funnel .fp{display:inline-block;font-weight:800;color:var(--primary-600);margin-right:6px;}
+.schednote{display:flex;align-items:flex-start;gap:9px;padding:12px 16px;border-radius:12px;font-size:12.5px;line-height:1.6;margin-bottom:14px;}
+.schedwarn{background:var(--warn-soft);color:var(--warn-deep);}
+.schedok{background:var(--ok-soft);color:var(--primary-ink);}
 
-/* evidence page */
+/* 能力卡（首页下半部分） */
+.features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:8px 0 4px;}
+.fcard{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:20px;box-shadow:var(--shadow-soft);}
+.ftile{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;margin-bottom:12px;}
+.ftile.dark{background:linear-gradient(150deg,var(--primary-600),var(--primary-700));color:#fff;}
+.ftile.light{background:var(--primary-soft);color:var(--primary-700);}
+.fhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.ftitle{font-weight:800;font-size:15px;color:var(--green-ink);}
+.fbody{font-size:12.5px;color:var(--ink-600);line-height:1.65;}
+.tag{font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;}
+.tagwarn{background:var(--warn-soft);color:var(--warn-deep);}
+.tagdanger{background:var(--risk-high-soft);color:var(--risk-high-ink);}
+
+/* 自有资产 */
+.assetgrid{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,0.7fr) minmax(0,2.2fr) minmax(0,0.5fr) minmax(0,0.9fr);gap:14px;padding:14px 20px;border-bottom:1px solid var(--hairline);align-items:start;}
+.assetgrid>div{min-width:0;overflow-wrap:anywhere;}
+.candgrid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1.1fr) minmax(0,0.7fr) minmax(0,1.4fr) minmax(0,1.1fr);gap:14px;padding:14px 20px;border-bottom:1px solid var(--hairline);align-items:start;}
+.candgrid>div{min-width:0;overflow-wrap:anywhere;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;flex:none;}
+.dotok{background:var(--ok);}.dotwarn{background:var(--warn);}.dotalarm{background:var(--risk-high);}
+.doterr{background:var(--orange);}.dotunknown{background:var(--ink-300);}
+.chkrow{display:flex;gap:8px;align-items:baseline;margin-bottom:5px;flex-wrap:wrap;}
+.chksub{font-size:11px;color:var(--ink-400);font-family:var(--font-mono);min-width:150px;}
+.chkpill{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:6px;}
+.chkok{background:var(--ok-soft);color:var(--primary-ink);}
+.chkbad{background:var(--risk-high-soft);color:var(--risk-high-ink);}
+.chkdeg{background:var(--warn-soft);color:var(--warn-deep);}
+.broken{background:var(--risk-high-soft);border:1px solid #eccaca;border-radius:14px;padding:14px 18px;margin-bottom:16px;}
+.orphan{background:var(--warn-soft);border:1px solid #ecdca6;border-radius:14px;padding:14px 18px;margin-bottom:16px;}
+.brokentitle{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px;color:var(--risk-high-ink);margin-bottom:8px;}
+.orphan .brokentitle{color:var(--warn-deep);}
+.brokenrow{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-size:12px;color:var(--ink-600);padding:4px 0;line-height:1.6;}
+.brokendom{font-family:var(--font-mono);font-weight:700;color:var(--ink-800);}
+.change{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow-xs);}
+.changehead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.sev{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;}
+.sevcritical{background:var(--risk-high-soft);color:var(--risk-high-ink);}
+.sevhigh{background:var(--orange-soft);color:var(--orange-ink);}
+.sevmedium{background:var(--warn-soft);color:var(--warn-deep);}
+.sevinfo{background:var(--surface-sunken);color:var(--ink-600);}
+.changedom{font-family:var(--font-mono);font-weight:800;font-size:13.5px;color:var(--ink-900);}
+.changeparent{font-size:11px;color:var(--ink-400);}
+.changetime{font-size:11.5px;color:var(--ink-400);margin-left:auto;}
+.changetitle{font-weight:800;font-size:14px;color:var(--ink-900);}
+.changehint{font-size:12px;color:var(--ink-500);margin-top:3px;line-height:1.6;}
+.changedetail{margin:10px 0 0;padding:11px 13px;background:var(--softer);border-radius:9px;font-family:var(--font-mono);font-size:11.5px;line-height:1.65;color:var(--ink-600);white-space:pre-wrap;word-break:break-all;max-height:150px;overflow:auto;}
+.changefoot{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap;}
+.codechip{font-family:var(--font-mono);font-size:11px;padding:3px 8px;border-radius:6px;background:var(--surface-sunken);color:var(--ink-600);}
+.acked{font-size:12px;color:var(--ok);display:inline-flex;align-items:center;gap:5px;}
+.muted{color:var(--ink-400);font-size:12.5px;}
+.wlfacts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:10px;}
+.wlfacts .k{font-size:11px;color:var(--ink-400);font-weight:600;}
+.wlfacts .v{font-weight:700;font-size:12.5px;margin-top:2px;}
+
+/* evidence card（详情页取证弹窗内复用） */
 .evcard{background:#fff;border:1px solid var(--border);border-radius:16px;padding:18px 20px;box-shadow:var(--shadow-soft);margin-bottom:14px;}
 
 /* audit page */
@@ -255,7 +336,10 @@ body.anno-on .anno-hint{display:flex;align-items:center;gap:8px;justify-content:
 .forminput{width:100%;border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13.5px;outline:none;}
 .forminput:focus{border-color:var(--primary-600);}
 
-@media(max-width:1080px){.dgrid{grid-template-columns:1fr;}.g-home-main{grid-template-columns:1fr;}.statstrip{grid-template-columns:repeat(2,1fr);}.wbrow{grid-template-columns:30px 2fr 1fr 90px;}.wbrow>.hide{display:none;}.piperow{grid-template-columns:1fr;gap:6px;}}
+@media(max-width:1080px){.dgrid{grid-template-columns:1fr;}.g-home-main{grid-template-columns:1fr;}.statstrip,.funnel,.features,.wlfacts{grid-template-columns:repeat(2,1fr);}.wbrow{grid-template-columns:30px 2fr 1fr 90px;}.wbrow>.hide{display:none;}
+  /* 窄屏塌成单列。这里绝不能只改列数而漏掉某张表 —— 一个 6 列的表头配
+     5 列的行，正是真实系统里那次"某一行跟上下对不齐"的来源。 */
+  .piperow,.assetgrid,.candgrid{grid-template-columns:1fr;gap:6px;}}
 </style>
 </head>
 <body class="anno-on">
@@ -315,7 +399,10 @@ let DOMAINS=[
   fpNote:"未命中白名单，未触发误报控制。", captures:[
     {ua:"pc",status:"200",flags:["登录表单"],size:"1.9 MB",time:"2026-08-06 09:41"},
     {ua:"mobile",status:"200",flags:["登录表单"],size:"640 KB",time:"2026-08-06 09:41"}],
-  timeline:[["v1","增强级证据包归档","人工确认仿冒后固定证据；共固定 12 个文件、9.4 MB；已向 ntp.aliyun.com 校时，偏差 6 ms；保留至 2029-08-06"]]},
+  // 还没判定，所以**还没有证据包** —— 取证只在点「确认仿冒并取证」时发生，
+  // 不存在"高风险自动取证"这条路径。这条留空正是为了走一遍那个流程：
+  // 「下载证据包 ZIP」此刻是灰的，确认之后当场变亮并自动弹出下载。
+  timeline:[]},
 
  {id:"d2",domain:"glp-parcel.cn",scene:"T2",risk:"medium",score:46,similarity:79,status:"reviewing",firstSeen:"2026-07-28 14:03",source:"variant_probe",
   note:"域名含品牌词，页面为博彩内容","registrar":"厦门易名科技有限公司",registeredAt:"2026-05-11",ip:"103.21.244.5",
@@ -430,12 +517,32 @@ const RULES=[
   {code:"FR-301",name:"域名相似度",weight:32,req:"无（仅需域名本身）",desc:"Damerau-Levenshtein 编辑距离 / 品牌词包含度 / 同形字归一化后一致，三路取最大"},
   {code:"FR-302",name:"品牌关键词命中",weight:21,req:"页面采集",desc:"title / meta / 正文 / img alt；拉丁品牌词按词边界匹配；先剔除页面中的自身域名"},
   {code:"FR-302B",name:"同行业语境共现",weight:12,req:"页面采集",desc:"域名含品牌词 且 页面出现物流/仓储/产业园等同行业词 —— 与 GLP-1 医药同名不同业相反"},
-  {code:"FR-306",name:"内容风险分类",weight:20,req:"页面采集",desc:"规则分类为赌博 / 色情 / 诈骗金融 / 灰产引流"},
-  {code:"FR-303",name:"Logo 图像识别",weight:18,req:"官网基线 + 页面采集",desc:"dHash 感知哈希比对，汉明距离 ≤10 判命中"},
-  {code:"FR-304",name:"官网结构指纹",weight:15,req:"官网基线 + 页面采集",desc:"DOM SimHash + CSS 类名 Jaccard 加权，相似度 ≥0.62 判命中"},
+  {code:"FR-306",name:"内容风险分类",weight:20,req:"页面采集",desc:"规则分类为赌博 / 色情 / 诈骗金融 / 灰产引流；LLM 辅助分类未接入（《待提供清单》第 33 项）"},
+  {code:"FR-303",name:"Logo 图像识别",weight:18,req:"官网基线 + 页面采集",desc:"dHash 感知哈希比对，基线含 11 个官方 Logo 哈希、8 个 favicon；汉明距离 ≤10 判命中"},
+  {code:"FR-304",name:"官网结构指纹",weight:15,req:"官网基线 + 页面采集",desc:"DOM SimHash + CSS 类名 Jaccard 加权，基线取自官网首页；相似度 ≥0.62 判命中"},
   {code:"FR-305",name:"钓鱼特征识别",weight:30,req:"页面采集",desc:"分级计分，凭据类三档取最强的一档，不叠加：密码字段跨域外发 30 分 · 企业入口伪装(mail/sso/vpn 等入口词+品牌词，且落地页即登录页) 22 分 · 页面存在登录表单 10 分 · 诱导下载 8 分 · 跨域表单但密码字段不在其中 3 分。前两档同时是 T3 的硬证据，命中即判高风险"},
-  {code:"FR-102",name:"证书 SAN 命中",weight:10,req:"CT 日志轮询",desc:"CertSpotter 每 15 分钟 + crt.sh 每 6 小时轮询。仅两种情况算命中：该域名由 CT 发现（字典未覆盖），或同一证书 SAN 上还挂着其他命中品牌词的名称"},
+  {code:"FR-102",name:"证书 SAN 命中",weight:10,req:"CT 日志轮询",desc:"CertSpotter 每 15 分钟 + crt.sh 每 6 小时轮询。命中口径不是「有 HTTPS 证书」—— 那样所有建站域名都会平白加分、区分不出任何东西；只有 ① 域名本身由 CT 发现（变体字典未覆盖）或 ② 同一张证书 SAN 上还挂着其他命中品牌词的名称 才算"},
   {code:"FR-308",name:"误报控制降权",weight:-40,req:"页面采集",desc:"命中医药/实验室等行业词 且 未出现物流语境词 → 降权，封顶 -40 分"},
+];
+
+/* 自有资产监控的判据 —— 与仿冒检测是**反方向**的两套规则，不共用评分与场景。
+   这里只列内容层与域名层各自在看什么，以及哪些被明确排除在外。 */
+const SELFWATCH_RULES=[
+  ["域名层 · 每小时","DNS 解析","A/AAAA/NS/MX 全量比对。<b>新旧 IP 完全不相交</b>才判劫持 —— 只判「变了」的话，CDN 每天轮换地址就会天天报警，报到没人看。"],
+  ["域名层 · 每小时","子域名 CNAME","CNAME 指向被改，以及<b>悬挂 CNAME</b>（指向的云资源已释放，任何人都能注册回来接管这个子域名，还能自行申请到有效证书）。"],
+  ["内容层 · 每 6 小时","结构指纹","Playwright 渲染后比对 DOM + CSS 类名，相似度 &lt; 0.75 判改版。官网改版是这个表现，页面被替换也是 —— 结论要人工对照截图确认。"],
+  ["内容层 · 每 6 小时","外链脚本 / 暗链","新出现的第三方脚本来源、新增的隐藏站外链接。这是网站被植入代码与被挂暗链最典型的形态。"],
+  ["内容层 · 每 6 小时","跳转与不良信息","最终落地域名不在自有域名内即报；正文按 FR-306 同一套关键词规则扫赌博/色情/诈骗特征词。"],
+  ["已排除","证书与注册信息","<b>按业务侧要求不看</b>。代码里 tls / rdap 两层已实现，配置里关掉了 —— 不是没做，是决定不看。"],
+];
+
+/* 放行清单：把「已知且合理」的跳转与脚本来源写进配置，从告警里摘掉。
+   两条铁律都在真实系统里用反向断言测过：
+   ① 必须按 **来源 + 目标** 成对放行，只按目标放行等于给自己开洞；
+   ② 放行 ≠ 不记录，仍产出 info 级发现，变化照样看得见。 */
+const ALLOWLIST=[
+  {kind:"跳转放行",to:"microsoftonline.com",from:"autodiscover.glp.com 等 4 个邮件端点",why:"Exchange / Microsoft 365 的标准登录跳转，联邦到微软身份是设计如此，不是劫持"},
+  {kind:"脚本来源放行",to:"msauth.net · msftauth.net · aadcdn.microsoftonline-p.com",from:"同上 4 个邮件端点",why:"微软 Entra 登录页的 CDN"},
 ];
 const THRESHOLDS=[["入库门槛（相似度，非综合得分）","≥ 60"],["高风险线（综合得分）","≥ 70"],["中风险线（综合得分）","≥ 45"],["短品牌词纯编辑距离命中封顶","45 分"]];
 const SCENERULES=[
@@ -445,29 +552,141 @@ const SCENERULES=[
   ["T4","证书/子域名滥用","品牌词出现在第三方注册主域的子域中，注册主体本身与品牌无关，且命中品牌关键词即判高风险"],
 ];
 
-/* 运营看板：流水线阶段（与真实 schedule.json 结构一致） */
+/* 运营看板：流水线阶段（与真实 schedule.json 的 stages 一一对应，12 个阶段）。
+   「频率」是配置说它应该多久跑一次，「调度」是操作系统里它还会不会再跑，
+   「上次运行」是审计日志里它真的跑过的记录 —— 三件事分开显示，因为它们
+   对不上正是最需要被看见的那种故障。 */
 const PIPELINE=[
-  {label:"CT 证书监测 · CertSpotter",freq:"每 15 分钟",scope:"incremental",scopeDetail:"按位点只取新签发证书；首次运行返回全量历史",lastRun:"6 分钟前",summary:"取回相关域名 1 个，新入台账 0 个"},
-  {label:"CT 证书监测 · crt.sh",freq:"每 6 小时",scope:"incremental",scopeDetail:"按 72 小时窗口回看，窗口是间隔的 12 倍，502 下轮重叠捞回",lastRun:"2 小时前",summary:"取回相关域名 0 个，1/4 个查询模式失败"},
-  {label:"DNS 探活",freq:"每天 02:30",scope:"full",scopeDetail:"变体字典全量重跑，强制走公共解析器",lastRun:"6 小时前",summary:"探活 71,940 条，有解析 1,412 条"},
-  {label:"建站探测",freq:"每天 02:30",scope:"full",scopeDetail:"对全部有解析域名发 GET，判定有无实质网站",lastRun:"6 小时前",summary:"探测 1,412 条，有实质网站 492 条"},
-  {label:"入库与情报增强",freq:"每天 02:30",scope:"mixed",scopeDetail:"研判全量；RDAP/TLS 只给当轮新发现域名开个头（20条），存量交给下一步补齐",lastRun:"6 小时前",summary:"进队列 68 条，监控池 1,344 条，保留人工判定 6 条"},
-  {label:"情报补齐（RDAP/TLS）",freq:"每天 02:30",scope:"incremental",scopeDetail:"库驱动，按「谁还没成功查到就先给谁」排队，RDAP 限流 1 次/秒并对 429 退避重试",lastRun:"6 小时前",summary:"补齐 84 条（RDAP 成功 61），队列情报覆盖 141/152"},
-  {label:"页面采集（Playwright）",freq:"每天 02:30",scope:"incremental",scopeDetail:"库驱动，没采过的排最前，每条 PC + 移动双 UA",lastRun:"6 小时前",summary:"采集 60 条（12 条首次），队列采集覆盖 149/152"},
-  {label:"重新研判",freq:"每天 02:30",scope:"full",scopeDetail:"台账全量重算，零外部请求，人工判定只更新分数不改状态",lastRun:"6 小时前",summary:"重算 1,412 条，结论变化 9 条，保留 6 条人工判定"},
-  {label:"官网基线重建",freq:"每周一 03:30",scope:"full",scopeDetail:"重采官网页面，重建结构指纹与 Logo 哈希，覆盖变少时拒绝写入",lastRun:"2 天前",summary:"2 个页面，Logo 哈希 11 个"},
+  {label:"CT 证书监测 · CertSpotter",task:"CertSpotter",req:"FR-102",target:"受保护域名及其全部子域",freq:"每 15 分钟",scope:"incremental",scopeDetail:"按位点（after_id）只取上次之后新签发的证书；首次运行返回全量历史",vol:null,sched:"interactive",next:"18:35",lastRun:"6 分钟前",lastAt:"2026-08-16 17:20 · 定时任务",summary:"取回相关域名 0 个，新入台账 0 个"},
+  {label:"CT 证书监测 · crt.sh",task:"CrtSh",req:"FR-102",target:"品牌词通配检索（出字典发现）",freq:"每 6 小时",scope:"incremental",scopeDetail:"按 72 小时时间窗回看；窗口是间隔的 12 倍，某次 502 下轮重叠捞回，不会漏",vol:null,sched:"interactive",next:"18:27",lastRun:"5 小时前",lastAt:"2026-08-16 12:08 · 定时任务",summary:"⚠ 4 个查询模式全部失败（HTTP 503 等），本轮未取到数据"},
+  {label:"DNS 探活",task:"Daily",req:"FR-201 / FR-702",target:"变体字典全量",freq:"每天 02:30",scope:"full",scopeDetail:"变体字典全量重跑，强制走公共解析器（1.1.1.1 / 8.8.8.8 / 9.9.9.9）",vol:70268,sched:"interactive",next:"明日 02:30",lastRun:"14 小时前",lastAt:"2026-08-16 02:42 · 定时任务 · 用时 716.7s",summary:"探活 70,268 条，有解析 1,398 条"},
+  {label:"建站探测",task:"Daily",req:"FR-202",target:"全部有解析域名",freq:"每天 02:30",scope:"full",scopeDetail:"对全部有解析域名发 GET，判定有无实质网站。这是 Playwright 渲染前的廉价过滤",vol:1398,sched:"interactive",next:"明日 02:30",lastRun:"14 小时前",lastAt:"2026-08-16 02:45 · 定时任务 · 用时 205.2s",summary:"探测 1,398 条，有实质网站 505 条"},
+  {label:"入库与情报增强",task:"Daily",req:"FR-501",target:"全部建站探测结果",freq:"每天 02:30",scope:"mixed",scopeDetail:"研判全量；RDAP / TLS 只给当轮新发现的域名开个头（20 条），存量补齐交给下一步 enrich",vol:505,sched:"interactive",next:"明日 02:30",lastRun:"14 小时前",lastAt:"2026-08-16 02:45 · 定时任务 · 用时 30.2s",summary:"进队列 69 条，监控池 1,345 条"},
+  {label:"情报补齐（RDAP / TLS）",task:"Daily",req:"FR-501",target:"研判队列中缺 RDAP 情报的域名",freq:"每天 02:30",scope:"incremental",scopeDetail:"库驱动，按「谁还没成功查到就先给谁」排队，一轮 120 条，跑不完下一轮接着推进。RDAP 限流 1 次/秒并对 429 退避重试 —— rdap.org 实测限额远低于 4 次/秒",vol:null,sched:"interactive",next:"明日 02:30",lastRun:"14 小时前",lastAt:"2026-08-16 02:46 · 定时任务 · 用时 4.7s",summary:"部分 TLD 不参与 rdap.org bootstrap，需商业 WHOIS API（清单第 4 项）"},
+  {label:"页面采集（Playwright）",task:"Daily",req:"FR-401 / FR-503",target:"研判队列中未采集或采集已过期的域名",freq:"每天 02:30",scope:"incremental",scopeDetail:"库驱动，没采过的排最前、采集最久远的次之，同档内得分高的先来。每条 PC + 移动双 UA。浏览器渲染很重，单轮 60 条，跑不完下一轮接着推进",vol:null,sched:"interactive",next:"明日 02:30",lastRun:"14 小时前",lastAt:"2026-08-16 03:04 · 定时任务 · 用时 1130.2s",summary:"截图落 backend/data/captures，每张写 SHA-256"},
+  {label:"重新研判",task:"Daily",req:"FR-702 / FR-704",target:"台账全量",freq:"每天 02:30",scope:"full",scopeDetail:"台账全量重算，零外部请求。改规则后也可随时手动跑，结论可复现",vol:1423,sched:"interactive",next:"明日 02:30",lastRun:"14 小时前",lastAt:"2026-08-16 03:04 · 定时任务 · 用时 5.8s",summary:"人工判定只更新分数不改状态"},
+  {label:"官网基线重建",task:"Baseline",req:"FR-303 / FR-304",target:"官网基线页面",freq:"每周一 03:30",scope:"full",scopeDetail:"重采官网页面，重建结构指纹与 Logo 哈希。覆盖页面变少时拒绝写入，防止静默降级",vol:null,sched:"interactive",next:"明日 03:30",lastRun:"6 天前",lastAt:"2026-08-10 03:30 · 产物文件时间（早于审计接入）",summary:"2 个页面，Logo 哈希 11 个，favicon 8 个"},
+  {label:"自有资产监控 · 域名层",task:"SelfWatchDomain",req:"自监控",target:"self_watch.assets 清单",freq:"每小时",scope:"full",scopeDetail:"自有域名全量。DNS 走公共解析器取公网视角；TLS 按公共解析器查到的 A 记录直连，不走系统解析器（内网 split-horizon 下会连到内网服务器）",vol:null,sched:"interactive",next:"18:12",lastRun:"14 分钟前",lastAt:"2026-08-16 17:12 · 定时任务",summary:"10 个资产、27 个检查目标"},
+  {label:"自有资产监控 · 内容层",task:"SelfWatchContent",req:"自监控",target:"self_watch.watch_urls 清单",freq:"每 6 小时",scope:"full",scopeDetail:"Playwright 渲染官网页面，比对结构指纹、外链脚本、隐藏站外链接，并按 FR-306 规则扫描正文不良信息",vol:null,sched:"interactive",next:"18:42",lastRun:"1 小时前",lastAt:"2026-08-16 15:38 · 定时任务",summary:"新增 2 条待确认发现"},
+  {label:"自有子域名发现",task:"SubdomainDiscover",req:"自监控",target:"self_watch.assets 全部主域",freq:"每周一 04:30",scope:"full",scopeDetail:"四路来源：证书日志 / 字典枚举（330 词，先探随机名排除通配 DNS）/ 证书 SAN / 官网自链接。对无解析的名字补查 CNAME 以捕捉悬挂 CNAME（子域名接管）。结果进候选池等人工确认，不自动纳管",vol:null,sched:"interactive",next:"明日 04:30",lastRun:"3 天前",lastAt:"2026-08-13 21:09 · 手动",summary:"候选池待处理 3 条"},
 ];
 const SCOPE_STYLE={full:{label:"全量",bg:"var(--primary-soft)",fg:"var(--primary-ink)"},incremental:{label:"增量",bg:"var(--info-soft)",fg:"var(--info-ink)"},mixed:{label:"全量+限额",bg:"var(--warn-soft)",fg:"var(--warn-deep)"}};
+const SCHED_STYLE={registered:{label:"已注册",cls:"",bg:"var(--primary-soft)",fg:"var(--primary-ink)",tip:"已注册且可在后台运行"},
+  interactive:{label:"仅登录时",bg:"var(--warn-soft)",fg:"var(--warn-deep)",tip:"任务只在用户登录时运行，注销后不会跑"},
+  missing:{label:"未注册",bg:"var(--risk-high-soft)",fg:"var(--risk-high-ink)",tip:"任务没有注册到任务计划程序，该阶段不会自动运行"},
+  unknown:{label:"未知",bg:"var(--neutral-bg)",fg:"var(--ink-600)",tip:"非 Windows 或 schtasks 不可用，查不到"}};
 
-/* 证据包 */
+/* 调度层面的问题单独拎出来 —— 淹在十二行表格里等于没说：
+   "任务根本不会跑"这件事，界面上每一行看起来都很正常。 */
+const SCHED_PROBLEM="7 个任务是「仅在用户登录时运行」：Baseline、CertSpotter、CrtSh、Daily、SelfWatchContent、SelfWatchDomain、SubdomainDiscover。当前账户没有注册后台任务的权限，<b>用户注销后这些任务不会跑</b>，而任务状态仍然显示 Ready。用管理员权限重跑 .\\schedule.ps1 -Install 可修正。";
+
+/* 漏斗：每一层实际收敛到多少。研判队列那格必须把被排除的两类都写出来，
+   否则 69 与台账 1,423 之间的差额没人对得上。 */
+const FUNNEL=[
+  {label:"变体字典",value:70268,note:"10 种算法生成"},
+  {label:"有 DNS 解析",value:1398,note:"公共解析器实测"},
+  {label:"有实质网站",value:505,note:"本系统只看这一类"},
+  {label:"研判队列",value:69,note:"另有监控池 1,345 条 · 已加白 9 条"},
+];
+
+/* 首页四张能力卡。正文不是宣传语，是后端按当前配置与库里数据现算出来的
+   —— 缺什么就写缺什么，state 决定角标。
+   第四格原来是「分级告警」，写着"高风险实时推送"，而告警早已按需求方要求
+   关停、一条都没发过 —— 首页在替一个关停的功能作保。换成当前真正在跑的
+   自有资产监控。 */
+const CAPABILITIES=[
+  {key:"discover",title:"持续发现",state:"partial",
+   body:"变体字典 70,268 条，每日全量 DNS 探活 → 有解析 1,398 条、有实质网站 505 条；CT 日志 15 分钟轮询。NRD 新注册域名与被动 DNS 未接入（需采购）。"},
+  {key:"analyze",title:"自动研判",state:"on",
+   body:"规则 v5，官网基线 2 页 · Logo 哈希 11 个 · favicon 8 个；相似度评分 + 结构指纹 + Logo 比对，输出高/中/低分级。"},
+  {key:"evidence",title:"增强取证",state:"partial",
+   body:"已生成证据包 11 个、存证文件 192 个，双端截图 + HTML 快照 + WHOIS/DNS/证书链，SHA-256 哈希清单可独立校验。存普通文件系统，无 WORM 锁与司法存证。"},
+  {key:"selfwatch",title:"自有资产监控",state:"partial",
+   body:"自有域名 10 个 · 监控目标 27 个；每小时核 DNS（A/AAAA/NS/MX，新旧 IP 完全不相交才判劫持），每 6 小时渲染页面比对结构指纹（相似度<0.75 判改版）、外链脚本与隐藏站外链接。按业务侧要求不看证书与注册信息。当前未处置发现 2 条，3 项检查取不到数据。"},
+];
+const FEATURE_ICON={discover:{icon:"globe",dark:true},analyze:{icon:"list"},evidence:{icon:"file"},selfwatch:{icon:"shield"}};
+const STATE_TAG={on:null,partial:{text:"有缺口",cls:"tagwarn"},off:{text:"未生效",cls:"tagdanger"}};
+
+/* ============================ 自有资产（自监控，演示数据） ============================ */
+/* 与仿冒检测是相反方向的监测：前面几页看别人有没有仿冒我们，这一页看
+   我们自己的域名和官网有没有出事。所以这里既没有风险分也没有 T1~T4。 */
+/* 每个检查项写成 [标签, 状态, 说明]：
+     ok  查过了，没问题
+     deg 查到了，但是**绕道**查到的（降级）—— 结论可用，但取得方式打了折
+     bad 根本没查到 —— 这不等于"没问题"
+   deg 和 ok 必须分开显示。全绿而其中一半是绕过去测的，等于把「测过了」和
+   「绕过去测的」混为一谈；bad 更要单独拎出来，否则挂掉的探针会伪装成正常。 */
+const ASSETS=[
+  {domain:"glp.com",health:"ok",sites:["https://www.glp.com/","https://autodiscover.glp.com/"],open:1,last:"2026-08-16 17:12",
+   checks:[{sub:"glp.com",pills:[["DNS 解析","ok",""]]},
+     {sub:"autodiscover.glp.com",pills:[["DNS 解析","ok",""],["网站内容","ok",""]]},
+     {sub:"www.glp.com",pills:[["网站内容","ok",""]]}]},
+  {domain:"glp.com.cn",health:"alarm",sites:["https://www.glp.com.cn/","https://user.glp.com.cn/","https://hr.glp.com.cn/"],open:1,last:"2026-08-16 17:12",
+   checks:[{sub:"glp.com.cn",pills:[["DNS 解析","deg","三家公共解析器中 9.9.9.9 超时，结论取自 1.1.1.1 与 8.8.8.8 的一致结果"]]},
+     {sub:"crm.glp.com.cn",pills:[["DNS 解析","bad","公共解析器无 A/AAAA 记录，站点不可达"]]},
+     {sub:"hr.glp.com.cn",pills:[["DNS 解析","ok",""],["网站内容","bad","采集被拦截：返回企业 WAF 的人机校验页"]]},
+     {sub:"user.glp.com.cn",pills:[["DNS 解析","ok",""],["网站内容","ok",""]]},
+     {sub:"www.glp.com.cn",pills:[["网站内容","bad","本轮返回 Verification 页，已判为采集被拦截而非内容变更"]]}]},
+  {domain:"glprop.com",health:"ok",sites:["https://webmail.glprop.com/"],open:0,last:"2026-08-16 17:12",
+   checks:[{sub:"glprop.com",pills:[["DNS 解析","ok",""]]},{sub:"webmail.glprop.com",pills:[["DNS 解析","ok",""],["网站内容","ok",""]]}]},
+  {domain:"gcp.com",health:"ok",sites:[],open:0,last:"2026-08-16 17:12",checks:[{sub:"gcp.com",pills:[["DNS 解析","ok",""]]}]},
+  {domain:"gcp.com.cn",health:"ok",sites:[],open:0,last:"2026-08-16 17:12",checks:[{sub:"gcp.com.cn",pills:[["DNS 解析","ok",""]]}]},
+];
+/* 失败清单不是另写一份，而是从上面的检查项里**算出来**的 ——
+   两份手写数据一定会漂：表格里三个红点、上面写着"2 项失败"，谁也说不清哪个对。 */
+const BROKEN_EXTRA={
+  "hr.glp.com.cn|网站内容":"（需为采集出口 IP 加白，《待提供清单》第 19 项）",
+};
+function brokenChecks(){
+  const out=[];
+  ASSETS.forEach(a=>a.checks.forEach(g=>g.pills.forEach(([label,st,note])=>{
+    if(st==="bad")out.push({domain:g.sub,label,err:note+(BROKEN_EXTRA[g.sub+"|"+label]||"")});
+  })));
+  return out;
+}
+const ASSET_CHANGES=[
+  {id:47,domain:"glp.com.cn",target:"https://user.glp.com.cn/",kind:"网站内容",code:"STRUCTURE_CHANGED",sev:"high",status:"open",
+   title:"页面结构大幅变化",at:"2026-08-16 15:37",
+   detail:"结构相似度 0.00（DOM 0.00 / CSS 类名 0.00），低于阈值 0.75。\n官网改版会是这个表现，页面被替换也会 —— 对照截图确认。"},
+  {id:45,domain:"glp.com",target:"https://autodiscover.glp.com/",kind:"网站内容",code:"REDIRECT_ALLOWED",sev:"info",status:"open",
+   title:"跳转到已放行的第三方域名",at:"2026-08-16 15:28",
+   detail:"访问 https://autodiscover.glp.com/ 最终落在 https://login.microsoftonline.com/common/oauth2/authorize?…\nmicrosoftonline.com 在 content.allow_redirect_to 放行清单里，按预期处理。\n放行理由：Exchange / Microsoft 365 的标准登录跳转，这四个都是邮件类端点，联邦到微软身份是设计如此，不是劫持。"},
+  {id:38,domain:"glprop.com",target:"https://webmail.glprop.com/",kind:"网站内容",code:"NEW_SCRIPT_HOST_ALLOWED",sev:"info",status:"acknowledged",
+   title:"新增第三方脚本来源（已放行）",at:"2026-08-15 09:42",ackBy:"分析师 · 当前用户",ackAt:"2026-08-15 10:05",
+   detail:"新增 aadcdn.microsoftonline-p.com。该来源在 content.allow_script_hosts 放行清单里（微软 Entra 登录页 CDN）。\n放行不等于不记录 —— 仍产出 info 级发现，变化照样看得见。"},
+];
+const CODE_HINT={
+  NS_CHANGED:"权威 DNS 被换掉，是域名被接管最直接的信号",
+  MX_CHANGED:"邮件路由被改，可能被用来收验证码或以公司名义发信",
+  STRUCTURE_CHANGED:"页面结构大幅变化，改版或被替换",
+  REDIRECT_OFFSITE:"官网跳到了非自有域名",
+  REDIRECT_ALLOWED:"跳转目标在放行清单里，按预期处理 —— 仍记录，不告警",
+  NEW_SCRIPT_HOST:"页面新增第三方脚本来源，网站被植入代码时的典型表现",
+  NEW_SCRIPT_HOST_ALLOWED:"新增脚本来源在放行清单里 —— 仍记录，不告警",
+  NEW_HIDDEN_LINK_HOST:"新增隐藏的站外链接 —— 被挂暗链的典型形态",
+  DANGLING_CNAME:"CNAME 指向的云资源已失效 —— 别人可以把它注册回来接管这个子域名",
+  CONTENT_ILLICIT:"正文出现赌博/色情/诈骗类特征词",
+};
+/* 发现 ≠ 纳管。里面会有测试环境、已下线的旧站、第三方托管的营销页，
+   哪些需要保护是业务判断，所以不自动加入监控。 */
+const CANDIDATES=[
+  {host:"vpn.glp.com.cn",src:["证书日志","字典枚举"],state:"portal",title:"GLP VPN 门户",portal:true,cname:"",status:"new",decidedAt:""},
+  {host:"legacy-cms.glp.com.cn",src:["字典枚举"],state:"dangling",title:"—",portal:false,cname:"glp-cms-prod.azurewebsites.net",status:"new",decidedAt:""},
+  {host:"events.glprop.com",src:["官网自链接","证书 SAN"],state:"site",title:"GLP Events 2026",portal:false,cname:"",status:"new",decidedAt:""},
+  {host:"old-intranet.glprop.com",src:["字典枚举"],state:"resolve",title:"—",portal:false,cname:"",status:"ignored",decidedAt:"2026-08-14 11:02"},
+];
+
+/* 证据包（详情页下载弹窗用）。只有走过「确认仿冒并取证」的域名才在这里 ——
+   不存在"高风险自动取证"这条路径，取证是人工判定的副作用，不是自动发生的。 */
 const EVIDENCE=[
   {domain:"glp-invest.io",version:1,trigger:"人工确认仿冒后固定证据",files:16,size:"18.4 MB",ntp:true,ntpSrc:"ntp.aliyun.com",ntpOffset:4,retention:"2029-08-05",hash:"8f2a91c3e0b7d4f6a1c9e2b8d5f0a3c7",at:"2026-08-05 15:40"},
-  {domain:"mail-glpsso.com",version:1,trigger:"高风险自动取证",files:12,size:"9.4 MB",ntp:true,ntpSrc:"ntp.aliyun.com",ntpOffset:6,retention:"2029-08-06",hash:"3b7e40a1c6f2d9b5e8a0c4f7b1d6e3a9",at:"2026-08-06 09:41"},
 ];
 
 /* 审计日志（含哈希链、覆盖 review/batch_review/whitelist/reanalyze/enrich 等真实动作） */
 let AUDIT=[
-  {action:"review",cat:"研判",target:"glp1-clinic.com",detail:"判定「误报」· 判定时得分 12 · 产出 1 条白名单建议",actor:"分析师 · 当前用户",at:"2026-08-02 11:20:03"},
+  // 「产出 1 条白名单建议」是 mock 阶段留下的假提示 —— 判为误报**不会**自动
+  // 产出加白建议，加白必须是独立的第二次显式操作。审计里只写系统真做过的事。
+  {action:"review",cat:"研判",target:"glp1-clinic.com",detail:"判定「误报」· 判定时得分 12 · 域名仍在检测中",actor:"分析师 · 当前用户",at:"2026-08-02 11:20:03"},
   {action:"whitelist_approve",cat:"白名单",target:"theglpgroup.org",detail:"加入白名单 · 写入 whitelist_approved.yaml · 已退出检测 · 备注：欧洲某教育培训机构，GLP 是其自有缩写",actor:"分析师 · 当前用户",at:"2026-08-05 22:35:10"},
   {action:"review",cat:"研判",target:"glp-invest.io",detail:"判定「确认仿冒」· 自动触发增强级取证，生成证据包 v1",actor:"分析师 · 当前用户",at:"2026-08-05 15:40:12"},
   {action:"enrich",cat:"流水线",target:"job",detail:"情报补齐 84 条（RDAP 成功 61），队列情报覆盖 141/152",actor:"system",at:"2026-08-06 02:41:20"},
@@ -475,14 +694,19 @@ let AUDIT=[
   {action:"reanalyze",cat:"流水线",target:"job",detail:"重算 1,412 条，结论变化 9 条，保留 6 条人工判定",actor:"system",at:"2026-08-06 02:50:30"},
   {action:"ct_poll",cat:"流水线",target:"job",detail:"CertSpotter 轮询：取回相关域名 1 个，新入台账 0 个",actor:"system",at:"2026-08-06 09:35:02"},
   {action:"instant_scan",cat:"研判",target:"g1p-secure.com",detail:"即时研判：DNS+建站探测+Playwright采集+RDAP/TLS/CT，综合得分 63",actor:"分析师 · 当前用户",at:"2026-08-06 09:55:40"},
+  // 自监控与仿冒检测共用同一条审计链 —— 两套监测方向不同，但留痕不分家
+  {action:"selfwatch_run:domain",cat:"自监控",target:"job",detail:"域名层巡检：10 个资产、27 个目标，DNS/CNAME 无变化",actor:"system",at:"2026-08-16 17:12:40"},
+  {action:"selfwatch_run:content",cat:"自监控",target:"job",detail:"内容层巡检：新增发现 2 条（STRUCTURE_CHANGED high · REDIRECT_ALLOWED info）",actor:"system",at:"2026-08-16 15:38:51"},
+  {action:"asset_change_ack",cat:"自监控",target:"webmail.glprop.com",detail:"确认「新增第三方脚本来源（已放行）」为正常变更 · NEW_SCRIPT_HOST_ALLOWED",actor:"分析师 · 当前用户",at:"2026-08-15 10:05:12"},
+  {action:"subdomain_discover",cat:"自监控",target:"job",detail:"子域名发现：四路来源合并，候选池新增 3 条（含 1 条悬挂 CNAME），均未自动纳管",actor:"分析师 · 当前用户",at:"2026-08-13 21:09:04"},
 ];
 
 /* ============================ 注释 ============================ */
 const ANNOS={
   "a-search":{n:1,title:"检索与即时研判",src:"api.py · POST /search, /domains/instant-scan",body:"输入域名 / 品牌关键词 / 证书 SAN / IP。台账内有命中 → 带关键词跳复核队列（落到哪个视图由后端按命中真实状态计算，避免「查到了却显示没有」）；台账没有但输入像域名 → <b>真实发起</b> DNS + 建站探测 + Playwright 采集 + RDAP/TLS/CT，当场评分入库。"},
   "a-range":{n:2,title:"发现时间范围",src:"Home · 写入审计",body:"用于标注排查语境并写入审计，<b>不是结果的硬过滤器</b>——真实发现时间以台账 first_seen_at 为准。"},
-  "a-scenes":{n:3,title:"四类威胁场景",src:"analyze.py · 场景判定",body:"T1 相似域名抢注 → T2 无关内容滥用 → T3 仿冒官网/钓鱼 → T4 证书/子域名滥用。<b>T3/T4 命中硬证据即直接判高风险</b>，与综合得分无关——这是最容易被误读的一点，详情页会显式说明理由。"},
-  "a-scope":{n:4,title:"复核队列的五个视图",src:"api.py · _SCOPE_SQL",body:"待复核 / 已判误报 / 已确认仿冒 / 监控池 / 全部。<b>人工判定过的域名不会被自动流程冲掉</b>：reanalyze / capture_run / ingest 三处统一守着 <code>MANUAL_VERDICTS</code> 常量，只更新分数不改状态；只有分数比判定当时升高，才退回待复核并标出理由。"},
+  "a-scenes":{n:3,title:"四类威胁场景",src:"api.py · /monitor/overview · scenes",body:"标题、说明、条数<b>全部由后端现算</b>，前端只留配色 —— 改规则或改口径时不用回来改首页。右侧原本是装饰性的 01/02/03/04，现在换成真实条数：序号在标题里写着 T1~T4，重复一遍没有信息量，那个位置更该放会变的东西。每行可点，跳到复核队列的对应筛选。<br><br>T3/T4 命中硬证据即<b>直接判高风险</b>，与综合得分无关。"},
+  "a-scope":{n:4,title:"复核队列的六个视图",src:"api.py · _SCOPE_SQL",body:"待复核 / 已判误报 / 已确认仿冒 / 已加白 / 监控池 / 全部。<b>「全部」不含监控池与已加白</b> —— 加白的语义就是退出检测，让它出现在日常视图里等于加白没生效；这个口径与首页场景卡、看板场景分布是同一份定义。<br><br><b>人工判定过的域名不会被自动流程冲掉</b>：reanalyze / capture_run / ingest 三处统一守着 <code>MANUAL_VERDICTS</code> 常量，只更新分数不改状态；只有分数比判定当时升高，才退回待复核并标出理由。"},
   "a-scorecol":{n:5,title:"综合得分 ≠ 相似度",src:"analyze.py · total_score vs similarity.score",body:"综合得分是加权和（风险分级看它），相似度是纯字符串匹配结果（入库门槛看它），<b>两个不同的数，故意分开</b>。列表上一并展示，避免「50 分却是高风险」看起来像算错了。"},
   "a-forced":{n:6,title:"按 T3/T4 判定 的高风险标注",src:"api.py · risk_forced_by",body:"高风险如果来自场景硬证据而不是分数堆出来的，会单独标出并在详情页说明「与综合得分无关」——否则一个 50~60 分的高风险会让人怀疑系统出错。"},
   "a-cluster":{n:7,title:"同源聚类",src:"domainguard/cluster.py",body:"只认<b>同 IP 且页面 DOM 指纹一致</b>，或<b>同一张证书 SAN</b>（签发时 CA 验证过控制权）。单独同 IP 不算数——那会把整个共享主机/CDN 误判成一伙。停放页/空壳（T1）不参与聚类，避免同一套错误页模板被误判成同源。"},
@@ -491,10 +715,16 @@ const ANNOS={
   "a-fp":{n:10,title:"误报控制",src:"analyze.py · _fp_control · FR-308",body:"GLP 是高频通用缩写（GLP-1 减肥药、Good Laboratory Practice）。命中医药/实验室语境词 <b>且</b> 未出现物流/仓储语境词才降权，封顶 -40 分——防止降权规则本身被滥用来洗白真仿冒。"},
   "a-capture":{n:11,title:"采集快照",src:"domainguard/capture.py",body:"Playwright 无痕上下文，<b>仅 GET、禁用下载、不提交表单、单域名限流</b>——采集目标可能是真实恶意页面。每张截图落 SHA-256，写进 MANIFEST 作为完整性凭据。"},
   "a-intel":{n:12,title:"域名情报 · RDAP / TLS",src:"domainguard/intel.py",body:"真实查询，非模拟。RDAP 单独限流 1 次/秒并对 429 退避重试——公共 RDAP 入口的实际限额比想象中低得多；部分 TLD（如 .cn 家族）不参与免费 RDAP，需要商业 WHOIS API 才能补齐。"},
-  "a-evidence":{n:13,title:"取证时间线",src:"domainguard/evidence.py",body:"每次归档记录文件数、体积、NTP 校时偏差、留存期限。<b>当前没有 WORM 存储</b>，防篡改仅靠审计哈希链自证；界面与取证说明单里如实标注这一限制，不夸大证据强度。"},
+  "a-evidence":{n:13,title:"取证时间线",src:"domainguard/evidence.py",body:"每次归档记录文件数、体积、NTP 校时偏差、留存期限。<b>顶部原本的「取证存档」页签已下线</b> —— 证据包在点「确认仿冒并取证」时当场产出，导出弹窗随即弹出，ZIP 在那一步就能拿到；历史版本留在这条时间线里。单开一个归档页等于让人为了下载再找一次路。<br><br><b>当前没有 WORM 存储</b>，防篡改仅靠审计哈希链自证；界面与取证说明单里如实标注这一限制，不夸大证据强度。"},
   "a-rules":{n:14,title:"评分维度与权重",src:"config/assets.yaml · scoring.weights",body:"权重表直接读自后端配置，与研判时实际使用的完全一致，不是写死在前端的说明文字。FR-305 是<b>分级</b>而非固定分——凭据跨域外发和「页面上恰好有个登录框」是天差地别的证据，不能同分。"},
   "a-thresholds":{n:15,title:"阈值与分级规则",src:"config/assets.yaml · scoring.thresholds",body:"入库看<b>相似度</b>（发现标准），分级看<b>综合得分</b>（风险标准）——一个赌博站点综合得分可能只有 50，但域名高度相似，必须进台账研判。"},
-  "a-board":{n:16,title:"检测节奏与覆盖范围",src:"config/schedule.json · /api/v1/pipeline",body:"每个阶段标明频率、全量/增量/抽样、上次<b>真实</b>运行时间——数据来自审计日志，不是猜的。「上次运行」显示「从未运行」时说明定时任务还没注册或已连续失败，不会拿产物文件的修改时间伪装成「刚跑过」。"},
+  "a-board":{n:16,title:"检测节奏与覆盖范围",src:"config/schedule.json · /api/v1/pipeline",body:"三件事被<b>刻意拆成三列</b>：<b>频率</b>是配置说它该多久跑一次；<b>调度状态</b>是去问任务计划程序它还会不会再跑；<b>上次运行</b>取自审计日志，是它真的跑过的记录。三者对不上，正是最需要被看见的那种故障 —— 「仅登录时」这一整片黄色角标就是这么露出来的：任务状态全是 Ready，但注销后一个都不会跑。<br><br>不会拿产物文件的修改时间伪装成「刚跑过」；确实只有产物时间可依据时，会在旁边注明来源。"},
+  "a-sched":{n:20,title:"调度问题为什么单独一条横幅",src:"api.py · pipeline.scheduling",body:"因为它淹在十二行表格里等于没说。<b>「任务根本不会跑」这件事，表格里每一行看起来都很正常</b>：频率写着每 15 分钟，状态写着 Ready，上次运行也有时间。只有把 7 个任务一起点名，才看得出这是全局性的权限问题，而不是某一行的偶发失败。"},
+  "a-capability":{n:21,title:"四张能力卡的正文是算出来的",src:"api.py · _capabilities()",body:"标题与正文都由后端读<b>当前配置 + 库里真实计数</b>现算，缺什么就写缺什么，角标（有缺口 / 未生效）也是算出来的，不是写死的文案。<br><br>第四格原来是「分级告警」，正文写着『高风险实时推送』 —— 而告警早已按需求方要求关停、一条都没发过。<b>首页在替一个关停的功能作保</b>，是最容易骗到人的那种界面。现在换成当前真正在跑的自有资产监控。"},
+  "a-selfwatch":{n:22,title:"自有资产监控 · 反方向的监测",src:"domainguard/selfwatch.py",body:"前面几页问「别人有没有在仿冒我」，这一页问「我自己的域名和网站有没有出事」。所以这里<b>既没有风险分也没有 T1~T4</b> —— 那套语义对自己的域名不成立，只有两件事：现在是什么状态、跟上次比变了什么。<br><br>刻意把「查过了，没问题」和「探针根本没查到」分成两种显示：混为一谈的话，页面会一片绿而其实什么都没在查，那是监控系统最坏的一类故障。"},
+  "a-broken":{n:23,title:"探测失败必须单列",src:"AssetsPage · brokenChecks",body:"「N 项检查没能取到数据」—— 这些<b>不等于「没问题」，是「没查到」</b>。不显式列出来的话，一个挂掉的探针会安静地伪装成『这个资产正常』。当前这三条里有两条是采集出口 IP 被企业 WAF 拦截，需要加白（《待提供清单》第 19 项）。"},
+  "a-candidate":{n:24,title:"发现子域名 ≠ 纳入监控",src:"discover.py · /assets/candidates",body:"四路来源合并：证书日志 / 字典枚举（330 词，先探随机名排除通配 DNS）/ 证书 SAN / 官网自链接。<b>发现不自动纳管</b> —— 里面会有测试环境、已下线的旧站、第三方托管的营销页，哪些需要保护是业务判断。<br><br>但没纳管的子域名等于没在监控，而攻击者恰恰偏爱那些没人记得的老子域名。<b>悬挂 CNAME</b> 是其中最危险的一类：指向的云资源已释放，任何人都能把它注册回来接管这个子域名，还能自行申请到有效证书。"},
+  "a-allowlist":{n:25,title:"放行清单的两条铁律",src:"selfwatch.py · allow_redirect_to / allow_script_hosts",body:"① <b>必须按「来源 + 目标」成对放行</b>。只按目标放行 —— 比如『凡是跳到 microsoftonline.com 都算正常』 —— 等于给自己开一个洞：任何一个自有域名被劫持后跳到那里都会被静音。<br><br>② <b>放行不等于不记录</b>。命中放行清单的仍然产出 <code>info</code> 级发现（REDIRECT_ALLOWED / NEW_SCRIPT_HOST_ALLOWED），变化照样看得见，只是不再当作告警。<br><br>两条都用反向断言测过：把来源换成别的域名，必须重新报警。"},
   "a-whitelist":{n:17,title:"批准加入白名单 · FR-403",src:"domainguard/whitelist.py · POST /domains/{id}/whitelist",body:"只在<b>已判误报</b>的域名上出现，且不提供驳回——不批就是不批，域名照常检测。加白必须是独立于「判为误报」的第二次显式操作：自动加白会被攻击者利用来给自己洗白，只要把仿冒站做得像正常业务、骗一次误报判定，域名就永久免检了。加白后彻底退出检测（不采集、不富化、不评分告警），写入独立的 <code>whitelist_approved.yaml</code>（不改写手写的 assets.yaml），随时可在详情页撤销恢复检测。不提供批量/整组加白。"},
   "a-audit":{n:18,title:"审计追踪 · 哈希链",src:"domainguard/storage.py · write_audit / verify_audit_chain",body:"每条记录带上一条的哈希，任一条被改动都会在校验时立刻暴露——这是<b>没有 WORM 存储时的技术兜底</b>，不等同于司法级防篡改，页面上会如实说明。"},
   "a-intake":{n:19,title:"人工提报",src:"api.py · POST /intake",body:"员工/外部举报入口。提交后进入监控池或直接研判队列，与自动发现的域名走同一套评分与处置流程，不特殊对待。"},
@@ -506,6 +736,11 @@ function pin(k,corner){return `<span class="anno-pin${corner?' corner':''}" data
 function fmtScene(s){const m=SCENE[s]||SCENE.T1;return `<span class="scenepill" style="background:${m.bg};color:${m.c}">${s} · ${m.label}</span>`;}
 function fmtRisk(r){const m=riskStyle(r);return `<span class="riskpill" style="background:${m.bg};color:${m.c}">${m.label}</span>`;}
 function findDomain(id){return DOMAINS.find(d=>d.id===id);}
+/* 「在检测口径内」的**唯一定义** —— 对应后端 api.py 的 _SCOPE_SQL["all"]。
+   首页场景卡、复核队列的「全部」页签、运营看板的场景分布三处共用它。
+   之前三处各写各的 WHERE，数字互相对不上；口径这种东西只能有一份定义。
+   监控池 = 还没有实质网站，加白 = 已经退出检测，两类都不算在内。 */
+function inScope(d){return d.status!=="monitoring"&&d.status!=="whitelisted";}
 function pushAudit(action,cat,target,detail){AUDIT.unshift({action,cat,target,detail,actor:"分析师 · 当前用户",at:new Date().toISOString().slice(0,19).replace("T"," ")});}
 
 /* ============================ 状态 ============================ */
@@ -514,7 +749,11 @@ let STATE={view:"home",q:"mail-glpsso.com",range:"3d",reason:"",scope:"pending",
 
 /* ============================ 顶部导航 ============================ */
 function topnav(active){
-  const items=[["home","监测台"],["queue","复核队列"],["evidence","取证存档"],["rules","风险规则"],["board","运营看板"],["audit","审计日志"]];
+  // 「取证存档」已下线：证据包在点「确认仿冒并取证」时当场产出、当场可下载，
+  // 历史版本在详情页的取证时间线里。单开一个归档页等于让人为了下载再找一次路。
+  // 新增「自有资产」：它是**反方向**的监测 —— 前面几项看别人有没有仿冒我们，
+  // 这一项看我们自己的域名与官网有没有出事，和复核一样是每天要看的运营页。
+  const items=[["home","监测台"],["queue","复核队列"],["assets","自有资产"],["rules","风险规则"],["board","运营看板"],["audit","审计日志"]];
   return `<div class="g-topnav"><div class="inner">
     <div class="brandmark" data-view="home"><div class="glyph">${icon("shield",22,2,"#fff")}</div><div><div class="t1">DomainGuard</div><div class="t2">仿冒域名监测与取证</div></div></div>
     <nav>${items.map(([id,l])=>`<button data-view="${id}" class="${active===id?'on':''}">${l}</button>`).join("")}</nav>
@@ -524,12 +763,24 @@ function topnav(active){
 
 /* ============================ 监测台 ============================ */
 function renderHome(){
-  const pending=DOMAINS.filter(d=>d.status==="reviewing"||d.status==="watching").length;
-  const high=DOMAINS.filter(d=>d.status!=="monitoring"&&d.risk==="high").length;
-  const tiers=[["T1",SCENE.T1,DOMAINS.filter(d=>d.scene==="T1"&&d.status!=="monitoring").length,"停放页、无解析、空站 —— 潜在风险储备，持续监控"],
-    ["T2",SCENE.T2,DOMAINS.filter(d=>d.scene==="T2").length,"赌博、色情、诈骗、灰产内容 —— 品牌污染与公众误导"],
-    ["T3",SCENE.T3,DOMAINS.filter(d=>d.scene==="T3").length,"含品牌词、Logo 或登录表单 —— 凭据窃取、商业诈骗"],
-    ["T4",SCENE.T4,DOMAINS.filter(d=>d.scene==="T4").length,"第三方证书或子域名嵌入品牌词 —— 定向钓鱼"]];
+  // 「今日新发现」就该数今天的，不能拿"待处理条数"顶替 —— 那是另一个指标，
+  // 换个名字挂上去只会让人按错的口径做判断。演示数据的发现时间固定在过去，
+  // 所以这里通常是 0；发起一次即时研判，它会真的 +1。
+  const today=new Date().toISOString().slice(0,10);
+  const foundToday=DOMAINS.filter(d=>(d.firstSeen||"").slice(0,10)===today).length;
+  const high=DOMAINS.filter(d=>inScope(d)&&d.risk==="high").length;
+  // 场景计数与复核队列的「全部」页签共用 inScope() 一个定义。
+  // 曾经这里 T1 写 status!=="monitoring"、T2~T4 干脆不过滤，于是首页 T1=18、
+  // 队列 T1=9 —— 同一个标签两个数字，差额正是已加白的那几条。口径必须只有
+  // 一处定义然后被引用，各写各的一定会漂。
+  const tiers=[["T1",SCENE.T1,"停放页、无解析、空站 —— 潜在风险储备，持续监控"],
+    ["T2",SCENE.T2,"赌博、色情、诈骗、灰产内容 —— 品牌污染与公众误导"],
+    ["T3",SCENE.T3,"含品牌词、Logo 或登录表单 —— 凭据窃取、商业诈骗"],
+    ["T4",SCENE.T4,"第三方证书或子域名嵌入品牌词 —— 定向钓鱼"]]
+    .map(([code,m,d])=>[code,m,DOMAINS.filter(x=>x.scene===code&&inScope(x)).length,d]);
+  const nMon=DOMAINS.filter(d=>d.status==="monitoring").length;
+  const nWl=DOMAINS.filter(d=>d.status==="whitelisted").length;
+  const scenesNote=`点击行可在复核队列查看。口径同队列：另有监控池 ${nMon} 条（无实质网站）与已加白 ${nWl} 条未计入。`;
   $("#app").innerHTML=`${topnav("home")}
   <div class="g-home fade"><div class="wrap"><div class="g-home-main">
     <div>
@@ -551,26 +802,46 @@ function renderHome(){
       </div>
 
       <div class="statrow3">
-        <div><div class="n">${pending}</div><div class="k">今日新发现</div></div>
+        <div><div class="n">${foundToday}</div><div class="k">今日新发现</div>
+          ${foundToday===0?`<div style="font-size:10.5px;color:var(--ink-400);margin-top:3px;line-height:1.4">演示数据的发现时间固定在过去；跑一次即时研判它会 +1</div>`:''}</div>
         <div><div class="n" style="color:${high>0?'var(--risk-high-ink)':'var(--ink-900)'}">${high}</div><div class="k">高风险待复核</div></div>
-        <div><div class="n">—</div><div class="k">端到端延迟</div></div>
+        <!-- 破折号后面必须跟一句为什么 —— 否则分不清是"没数据"还是"没实现"。
+             端到端延迟 = 域名首次发现到出研判结论，统计时刻意剔除了批量导入日
+             （单日新增 >200 条那种），否则一次字典扩容会把中位数拉成假的好看。 -->
+        <div><div class="n">—</div><div class="k">端到端延迟</div>
+          <div style="font-size:10.5px;color:var(--ink-400);margin-top:3px;line-height:1.4">近 14 天仅 1 条可测，样本不足</div></div>
       </div>
       <div class="iconrow">
         <button data-view="board" title="运营看板">${icon("history",18,1.8)}</button>
-        <button data-view="evidence" title="取证存档">${icon("file",18,1.8)}</button>
+        <button data-view="assets" title="自有资产监控">${icon("shield",18,1.8)}</button>
         <button data-view="audit" title="审计日志">${icon("list",18,1.8)}</button>
-        <button title="告警通道（未接入 SMTP/企微）" onclick="toast('演示：告警通道尚未接入 SMTP/企业微信，见《待提供清单》')">${icon("alert",18,1.8)}</button>
+        <!-- 原来这里还有一个铃铛，点了没有任何反应 —— 告警（FR-601/602）尚未接入
+             SMTP 与企微凭据。一个不工作的铃铛是在假装系统有它不具备的能力，已移除。 -->
       </div>
     </div>
 
     <aside class="g-ev-card anno-anchor">${pin("a-scenes","corner")}
       <div class="g-ev-head"><span>四类威胁场景，一眼看懂</span><b>FOUR THREAT TIERS</b></div>
-      ${tiers.map(([code,m,n,d],i)=>`<div class="g-ev-tier" style="background:${m.bg}"><div style="flex:1"><strong style="color:${m.c}">${code} · ${m.label}</strong><p>${d}</p></div><div class="no" style="color:${m.c}">${String(i+1).padStart(2,'0')}</div></div>`).join("")}
-      <div style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--linefaint);font-size:12px;color:var(--ink-500);line-height:1.6">T3/T4 命中硬证据即直接判高风险，与综合得分无关；发现阶段（未采集页面）不允许评为高风险。</div>
+      ${tiers.map(([code,m,n,d])=>`<button class="g-ev-tier" data-scene-jump="${code}" style="background:${m.bg};border:none;border-left:3px solid ${m.c};width:100%;text-align:left;cursor:pointer" title="在复核队列中查看 ${code} · ${m.label}"><div style="flex:1"><strong style="color:${m.c}">${code} · ${m.label}</strong><p>${d}</p></div><div class="no" style="color:${m.c};opacity:1;font-size:22px">${n}</div></button>`).join("")}
+      <div style="margin-top:14px;font-size:11.5px;color:var(--ink-400);line-height:1.6">${scenesNote}</div>
+      <div style="margin-top:12px;padding-top:14px;border-top:1px dashed var(--linefaint);font-size:12px;color:var(--ink-500);line-height:1.6">T3/T4 命中硬证据即直接判高风险，与综合得分无关；发现阶段（未采集页面）不允许评为高风险。</div>
     </aside>
   </div>
+
+  <div style="padding-bottom:8px" class="anno-anchor">${pin("a-capability","corner")}
+    <div class="features">
+      ${CAPABILITIES.map(f=>{const ic=FEATURE_ICON[f.key]||{icon:"list"};const tg=STATE_TAG[f.state];return `
+      <div class="fcard">
+        <div class="ftile ${ic.dark?'dark':'light'}">${icon(ic.icon,20,1.8)}</div>
+        <div class="fhead"><span class="ftitle">${f.title}</span>${tg?`<span class="tag ${tg.cls}">${tg.text}</span>`:''}</div>
+        <div class="fbody">${f.body}</div>
+      </div>`;}).join("")}
+    </div>
+  </div>
+
   <div class="home-foot">研判结论为线索，非最终法律结论 · 采集仅 GET、禁用下载、不提交表单 · 全部操作记入审计日志</div>
   </div></div>`;
+  $$("[data-scene-jump]").forEach(b=>b.onclick=()=>{STATE.scene=b.dataset.sceneJump;STATE.scope="all";STATE.risk="all";STATE.qq="";go("queue");});
   $("#chips").onclick=e=>{const s=e.target.closest("[data-q]");if(s){STATE.q=s.dataset.q;renderHome();}};
   $("#rangeseg").onclick=e=>{const b=e.target.closest("[data-r]");if(b){STATE.range=b.dataset.r;renderHome();}};
   $("#reason").oninput=e=>STATE.reason=e.target.value;
@@ -662,7 +933,10 @@ function renderQueue(){
     </div>
 
     <div class="wbtable">
-      <div class="wbrow wbhd"><div></div><div>域名</div><div>场景</div><div>综合得分</div><div>风险</div><div>状态</div><div>发现时间</div><div style="text-align:right">操作${pin("a-scorecol")}${pin("a-forced")}${pin("a-cluster")}</div></div>
+      <!-- 注释角标必须挂在它解释的那一列上。原来三个全塞进最窄的「操作」列
+           （78px），开注释模式就换行挤成一团，而且指向也不对：5 讲的是综合得分、
+           6 讲的是风险标注、7 讲的是域名列上的同源聚类标签。 -->
+      <div class="wbrow wbhd"><div></div><div>域名${pin("a-cluster")}</div><div>场景</div><div>综合得分${pin("a-scorecol")}</div><div>风险${pin("a-forced")}</div><div>状态</div><div>发现时间</div><div style="text-align:right">操作</div></div>
       ${list.length===0?`<div style="padding:40px;text-align:center;color:var(--ink-400)">没有符合条件的域名</div>`:list.map(d=>{
         const cl=clusterOf(d.id);
         return `<div class="wbrow wbtr" data-open="${d.id}">
@@ -761,7 +1035,7 @@ function renderDetail(){
           <button class="btn-primary btn-sm" id="btnConfirm" ${d.status==='confirmed'?'disabled':''}>确认仿冒并取证${pin("a-verdict")}</button>
           <button class="btn-ghost btn-sm" id="btnFp" ${d.status==='false_positive'?'disabled':''}>判为误报</button>
           <button class="btn-ghost btn-sm" id="btnWatch" ${d.status==='watching'?'disabled':''}>持续观察</button>
-          <button class="btn-ghost btn-sm" id="btnExport">导出证据包 ZIP</button>
+          <button class="btn-ghost btn-sm" id="btnExport" ${(!d.timeline||d.timeline.length===0)?'disabled title="该域名尚未产生证据包，先点「确认仿冒并取证」"':''}>下载证据包 ZIP</button>
           ${d.status==='false_positive'?`<button class="btn-ghost btn-sm" id="btnWl" title="加入白名单后该域名退出检测：不再采集、不再评分告警">批准加入白名单${pin("a-whitelist")}</button>`:''}
           ${d.status==='whitelisted'?`<button class="btn-ghost btn-sm" id="btnRevokeWl">撤销加白，恢复检测${pin("a-whitelist")}</button>`:''}
         </div>
@@ -810,10 +1084,14 @@ function renderDetail(){
       </div>
     </div>
   </div>`;
-  $("#btnConfirm").onclick=()=>{applyVerdict(d.id,"confirmed");toast("已确认仿冒 · 证据包已生成");renderDetail();};
+  // 「取证存档」页签下线后，这里就是拿到 ZIP 的**主路径**：确认即取证，
+  // 取证即弹下载。判定完先重渲染再开弹窗 —— 弹窗读的是刚产出的证据包清单，
+  // 顺序反了会拿到判定前的旧数据，首次确认时干脆是空的，明明刚取完证，
+  // 界面却说"该域名尚未产生证据包"。
+  $("#btnConfirm").onclick=()=>{applyVerdict(d.id,"confirmed");toast("已确认仿冒 · 证据包已生成，可直接下载");renderDetail();openExport(d.id);};
   $("#btnFp").onclick=()=>{applyVerdict(d.id,"false_positive");toast("已判为误报 · 移出待复核，仍在检测中，分数升高会自动退回");renderDetail();};
   $("#btnWatch").onclick=()=>{applyVerdict(d.id,"watch");toast("已转入持续观察 · 每日复查已启用");renderDetail();};
-  $("#btnExport").onclick=()=>{pushAudit("evidence_export","取证",d.domain,"导出证据包 ZIP");toast(`证据包已生成 · evidence_${d.domain.replace(/\./g,'_')}.zip`);};
+  $("#btnExport").onclick=()=>{if(!d.timeline||d.timeline.length===0)return;openExport(d.id);};
   const wlBtn=$("#btnWl");if(wlBtn)wlBtn.onclick=()=>{approveWhitelist(d.id);toast("已加入白名单 · 该域名退出检测，不再采集与评分");renderDetail();};
   const wlRevoke=$("#btnRevokeWl");if(wlRevoke)wlRevoke.onclick=()=>{revokeWhitelist(d.id);toast("已撤销加白 · 该域名恢复检测，下一轮重新评分");renderDetail();};
   $$("[data-open]").forEach(b=>b.onclick=()=>{STATE.detailId=b.dataset.open;renderDetail();});
@@ -821,24 +1099,189 @@ function renderDetail(){
 }
 function fakeHash(seed){let h=0;for(const ch of seed)h=(h*31+ch.charCodeAt(0))>>>0;return h.toString(16).padStart(8,'0')+"…"+((h*2654435761)>>>0).toString(16).padStart(8,'0');}
 
-/* ============================ 取证存档 ============================ */
-function renderEvidence(){
-  $("#app").innerHTML=`${topnav("evidence")}<div class="wrap pageband fade">
-    ${pageHead("取证存档","EVIDENCE ARCHIVE · FR-501 / FR-504","已生成的增强级证据包，含截图、HTML、DNS/RDAP/TLS 快照与 SHA-256 清单。导出为一次性下载链接，15 分钟内有效。")}
-    ${EVIDENCE.map(e=>`<div class="evcard">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap">
-        <div><div style="font-weight:800;font-size:15px;color:var(--ink-900)" class="mono">${e.domain} · v${e.version}</div><div style="font-size:12.5px;color:var(--ink-500);margin-top:3px">${e.trigger} · ${e.at}</div></div>
-        <button class="btn-ghost btn-sm" onclick="toast('演示：一次性下载链接已生成，15 分钟内有效')">${icon("download",14,2)} 导出 ZIP</button></div>
-      <div class="wlfacts" style="margin-top:12px">
+/* ============================ 证据包下载弹窗 ============================ */
+/* 原本的「取证存档」独立页签已下线。证据包在确认仿冒的那一刻当场产出，
+   这个弹窗随即弹出 —— 拿 ZIP 就在这一步，不用再去别的页面找一次。
+   历史版本仍然完整保留在详情页的「取证时间线」里。 */
+function openExport(id){
+  const d=findDomain(id);if(!d)return;
+  const e=EVIDENCE.find(x=>x.domain===d.domain)||EVIDENCE[0];
+  const versions=(d.timeline||[]).length||1;
+  $("#overlay").innerHTML=`<div class="scrim" id="exScrim"><div class="intro" style="max-width:560px">
+    <div class="ih"><h2 style="font-size:18px">下载证据包</h2><p>${d.domain} · 共 ${versions} 个版本，将打包为一个 ZIP。一次性下载链接，15 分钟内有效。</p></div>
+    <div class="modalbody">
+      <div class="wlfacts">
         <div><div class="k">文件数</div><div class="v">${e.files} 个</div></div>
         <div><div class="k">体积</div><div class="v">${e.size}</div></div>
-        <div><div class="k">NTP 校时</div><div class="v">${e.ntp?`已同步 · 偏差 ${e.ntpOffset}ms`:'未完成'}</div></div>
+        <div><div class="k">NTP 校时</div><div class="v">偏差 ${e.ntpOffset}ms</div></div>
         <div><div class="k">留存至</div><div class="v">${e.retention}</div></div>
       </div>
-      <div style="font-size:11px;color:var(--ink-400)" class="mono">MANIFEST SHA-256 · ${e.hash}</div>
+      <div style="font-size:12px;color:var(--ink-500);line-height:1.7;margin-bottom:12px">
+        包含 PC + 移动双端整页截图、原始 HTML、DNS / RDAP / TLS 快照、跳转链记录，
+        以及一份 <code class="mono">MANIFEST</code>（每个文件的 SHA-256）。
+        <span class="mono" style="font-size:11px;color:var(--ink-400);display:block;margin-top:6px">MANIFEST SHA-256 · ${e.hash}</span>
+      </div>
+      <div class="formfield"><label>导出用途 · 选填，会写入审计日志</label>
+        <input class="forminput" id="exPurpose" placeholder="例如：提交法务 / 域名投诉材料 / 工单 #4821"/></div>
+      <div style="padding:11px 14px;background:var(--warn-soft);border-radius:9px;font-size:12px;color:var(--warn-deep);line-height:1.6">
+        技术存证，非司法存证：存放在普通文件系统，防篡改仅靠审计哈希链，未接入具备 Object Lock 的对象存储。
+      </div>
+    </div>
+    <div class="if"><button class="btn-ghost btn-sm" id="exCancel" style="margin-right:10px">取消</button>
+      <button class="btn-primary" id="exGo">${icon("download",15,2,"#fff")} 确认下载</button></div>
+  </div></div>`;
+  $("#exScrim").onclick=e2=>{if(e2.target.id==="exScrim")$("#overlay").innerHTML="";};
+  $("#exCancel").onclick=()=>$("#overlay").innerHTML="";
+  $("#exGo").onclick=()=>{
+    const p=$("#exPurpose").value.trim();
+    pushAudit("evidence_export","取证",d.domain,`导出证据包 ZIP · 用途「${p||'（未填写）'}」`);
+    $("#overlay").innerHTML="";
+    toast(`证据包已生成 · evidence_${d.domain.replace(/\./g,'_')}.zip`);
+  };
+}
+
+/* ============================ 自有资产（自监控） ============================ */
+/* 与其余页面回答的是相反的问题：
+     监测台 / 复核队列   别人有没有在仿冒我
+     本页               我自己的域名和网站有没有出事
+   所以这里既没有风险分也没有 T1~T4 —— 那套语义对自己的域名不成立。 */
+const HEALTH_LABEL={ok:["正常","dotok"],warn:["有待确认","dotwarn"],alarm:["异常","dotalarm"],error:["探测失败","doterr"],unknown:["尚未检查","dotunknown"]};
+const SEV_LABEL={critical:["严重","sevcritical"],high:["高","sevhigh"],medium:["中","sevmedium"],info:["提示","sevinfo"]};
+const CHK_CLS={ok:"chkok",bad:"chkbad",deg:"chkdeg"};
+let ASSET_SCOPE="open", CAND_SCOPE_V="new";
+
+function renderAssets(){
+  const openCh=ASSET_CHANGES.filter(c=>c.status==="open");
+  const sevCount={};openCh.forEach(c=>sevCount[c.sev]=(sevCount[c.sev]||0)+1);
+  const list=ASSET_CHANGES.filter(c=>c.status===ASSET_SCOPE);
+  const cands=CANDIDATES.filter(c=>c.status===CAND_SCOPE_V);
+  const nNew=CANDIDATES.filter(c=>c.status==="new").length;
+  const dangling=CANDIDATES.filter(c=>c.state==="dangling"&&c.status==="new");
+
+  $("#app").innerHTML=`${topnav("assets")}<div class="wrap pageband fade">
+    <div class="wbhead"><div>
+      <div class="eyebrow">SELF WATCH · 自有资产</div>
+      <h2 class="h2">自有资产监控${pin("a-selfwatch")}</h2>
+      <div style="font-size:13.5px;color:var(--ink-500);margin-top:8px;max-width:860px;line-height:1.6">
+        只盯两件事：<b>网站内容有没有被篡改</b>（结构被改、挂暗链、植入第三方脚本、出现不良信息）、
+        <b>网站有没有被劫持</b>（解析被改到别处、NS/MX 被改、子域名接管、跳转到站外）。
+        证书与域名注册信息<b>不在监控范围内</b> —— 代码里已实现，按业务侧要求关掉了。
+      </div></div>
+      <div style="text-align:right">
+        <div style="display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap">
+          ${Object.keys(sevCount).length===0?`<span class="acked">${icon("check",15,2.4)} 没有待确认的变更</span>`:
+            ["critical","high","medium","info"].filter(s=>sevCount[s]).map(s=>`<span class="sev ${SEV_LABEL[s][1]}">${SEV_LABEL[s][0]} ${sevCount[s]}</span>`).join("")}
+        </div>
+        <div style="font-size:11.5px;color:var(--ink-400);margin-top:8px">最近检查 2026-08-16 17:12</div>
+      </div>
+    </div>
+
+    ${(()=>{const bc=brokenChecks();return bc.length===0?'':`
+    <div class="broken anno-anchor" style="position:relative">${pin("a-broken","corner")}
+      <div class="brokentitle">${icon("alert",15,2)}${bc.length} 项检查没能取到数据 —— 这些不等于「没问题」，是「没查到」</div>
+      ${bc.map(c=>`<div class="brokenrow"><span class="brokendom">${c.domain}</span><span class="chkpill chkbad">${c.label}</span><span>${c.err}</span></div>`).join("")}
+    </div>`;})()}
+
+    <div class="wbtable" style="margin-bottom:8px">
+      <div class="assetgrid pipehd" style="background:var(--softer);border-bottom:1px solid var(--border);align-items:center">
+        <div>资产域名</div><div>状态</div><div>各项检查</div><div>待确认</div><div>最近检查</div></div>
+      ${ASSETS.map(a=>{const h=HEALTH_LABEL[a.health];return `<div class="assetgrid">
+        <div><div style="font-weight:800;font-size:13.5px;color:var(--ink-900)">${a.domain}</div>
+          ${a.sites.map(s=>`<div style="font-size:11px;color:var(--ink-400);margin-top:2px">${s}</div>`).join("")}</div>
+        <div style="font-size:12.5px;display:flex;align-items:center"><span class="dot ${h[1]}"></span>${h[0]}</div>
+        <div>${a.checks.map(g=>`<div class="chkrow"><span class="chksub">${g.sub}</span><span>${g.pills.map(([l,st,note])=>`<span class="chkpill ${CHK_CLS[st]}" title="${g.sub} · ${st==='bad'?'没查到 —— '+note:st==='deg'?l+' 正常（降级）：'+note:l+' 正常'}">${st==='deg'?'≈ ':''}${l}</span> `).join("")}</span></div>`).join("")}</div>
+        <div>${a.open>0?`<span class="tag tagwarn">${a.open}</span>`:'<span class="muted">—</span>'}</div>
+        <div style="font-size:12px;color:var(--ink-500)">${a.last}</div>
+      </div>`;}).join("")}
+      <div style="display:flex;justify-content:space-between;padding:12px 20px;font-size:11.5px;color:var(--ink-400);background:var(--softer)">
+        <span>共 ${ASSETS.length} 个资产 · 27 个检查目标</span><span>域名层每小时一轮，内容层每 6 小时一轮</span></div>
+    </div>
+    <div style="font-size:11.5px;color:var(--ink-400);margin-bottom:26px;line-height:1.6">
+      ≈ 表示该结论是<b>降级取到</b>的（绕道测的）。全绿而其中一半是绕过去测的，等于把「测过了」和「绕过去测的」混为一谈。
+    </div>
+
+    <div class="wbhead" style="margin-bottom:6px"><h3 class="h2" style="font-size:20px">发现的子域名，尚未纳入监控${pin("a-candidate")} ${nNew?`<span class="tag tagwarn">${nNew}</span>`:''}</h3>
+      <div class="seg" id="candSeg">${[["new","待处理"],["adopted","已纳管"],["ignored","已忽略"]].map(([v,l])=>`<button data-cs="${v}" class="${CAND_SCOPE_V===v?'on':''}">${l}</button>`).join("")}</div></div>
+    <p style="font-size:12.5px;color:var(--ink-500);margin:0 0 14px;max-width:880px;line-height:1.7">
+      由证书日志、字典枚举、证书 SAN、官网自链接四路发现。<b>发现不等于纳管</b> ——
+      里面会有测试环境、已下线的旧站、第三方托管的营销页，哪些需要保护是业务判断，所以不自动加入监控。
+      没纳管的子域名等于没在监控，而攻击者恰恰偏爱那些没人记得的老子域名。
+    </p>
+    ${dangling.length&&CAND_SCOPE_V==="new"?`<div class="orphan">
+      <div class="brokentitle">${icon("alert",15,2)}${dangling.length} 个子域名存在悬挂 CNAME —— 子域名接管风险，优先处置</div>
+      <div class="brokenrow"><span>CNAME 指向的目标解析不出地址。若该云资源已被释放，任何人都能重新注册它，从而在你的子域名上托管任意内容，还能自行申请到有效证书。处置方式：确认服务是否已下线，是就把这条 CNAME 从 DNS 里删掉。</span></div>
+    </div>`:''}
+    <div class="wbtable" style="margin-bottom:30px">
+      <div class="candgrid pipehd" style="background:var(--softer);border-bottom:1px solid var(--border);align-items:center">
+        <div>子域名</div><div>发现来源</div><div>状态</div><div>标题</div><div></div></div>
+      ${cands.length===0?`<div style="padding:36px;text-align:center;color:var(--ink-400)">这一类是空的</div>`:cands.map(c=>`<div class="candgrid">
+        <div><div style="font-weight:800;font-size:13px;color:var(--ink-900)" class="mono">${c.portal?'<span title="域名冒充企业入口" style="color:var(--risk-high)">★ </span>':''}${c.host}</div>
+          ${c.cname?`<div style="font-size:11px;margin-top:3px;color:${c.state==='dangling'?'var(--risk-high-ink)':'var(--ink-400)'}">CNAME → ${c.cname}${c.state==='dangling'?' · 目标解析不出地址，可能被他人接管':''}</div>`:''}</div>
+        <div>${c.src.map(s=>`<span class="chkpill" style="background:var(--surface-sunken);color:var(--ink-600)">${s}</span> `).join("")}</div>
+        <div>${c.state==='dangling'?'<span class="sev sevcritical">悬挂 CNAME</span>':c.state==='site'||c.state==='portal'?'<span class="sev sevmedium">有网站</span>':c.state==='resolve'?'<span class="muted">有解析</span>':'<span class="muted">无解析</span>'}</div>
+        <div style="font-size:12px;color:var(--ink-600)">${c.title}</div>
+        <div>${c.status==="new"?`<button class="btn-primary btn-sm" data-adopt="${c.host}">纳入监控</button>
+          <button class="btn-ghost btn-sm" data-ignore="${c.host}" style="margin-left:6px">不需要</button>`:
+          `<span class="muted">${c.status==='adopted'?'已纳管':'已忽略'}${c.decidedAt?' · '+c.decidedAt:''}</span>`}</div>
+      </div>`).join("")}
+      <div style="display:flex;justify-content:space-between;gap:16px;padding:12px 20px;font-size:11.5px;color:var(--ink-400);background:var(--softer);line-height:1.6">
+        <span>★ = 域名冒充企业入口（webmail / vpn / sso / hr 等），被劫持即成收凭据的钓鱼页</span>
+        <span>「纳入监控」即时生效，下一轮巡检就会检查它</span></div>
+    </div>
+
+    <div class="wbhead" style="margin-bottom:6px"><h3 class="h2" style="font-size:20px">变更与异常${pin("a-allowlist")}</h3>
+      <div class="seg" id="chSeg">${[["open","待确认"],["acknowledged","已确认正常"]].map(([v,l])=>`<button data-ch="${v}" class="${ASSET_SCOPE===v?'on':''}">${l}</button>`).join("")}</div></div>
+    <p style="font-size:12.5px;color:var(--ink-500);margin:0 0 14px;max-width:880px;line-height:1.7">
+      变更不等于事故 —— 官网改版、CDN 切换、正常换证书都会出现在这里。
+      确认过的会移出待确认，状态不变就不再重复提示；状态再变还会重新报。
+    </p>
+    ${list.length===0?`<div style="padding:40px;text-align:center;color:var(--ink-400);background:#fff;border:1px solid var(--border);border-radius:14px">${ASSET_SCOPE==='open'?'没有待确认的变更':'还没有确认过的变更'}</div>`:
+      list.map(c=>`<div class="change">
+      <div class="changehead"><span class="sev ${SEV_LABEL[c.sev][1]}">${SEV_LABEL[c.sev][0]}</span>
+        <span class="changedom">${c.target||c.domain}</span><span class="changeparent">${c.domain}</span>
+        <span class="chkpill" style="background:var(--surface-sunken);color:var(--ink-600)">${c.kind}</span>
+        <span class="changetime">${c.at}</span></div>
+      <div class="changetitle">${c.title}</div>
+      ${CODE_HINT[c.code]?`<div class="changehint">${CODE_HINT[c.code]}</div>`:''}
+      <pre class="changedetail">${c.detail}</pre>
+      <div class="changefoot"><code class="codechip">${c.code}</code>
+        ${c.status==="open"?`<button class="btn-ghost btn-sm" data-ack="${c.id}">确认为正常变更</button>`:
+          `<span class="acked">${icon("check",13,2.4)} 已由 ${c.ackBy} 于 ${c.ackAt} 确认</span>`}</div>
     </div>`).join("")}
-    <div style="margin-top:8px;padding:14px 16px;background:var(--warn-soft);border-radius:12px;font-size:12.5px;color:var(--warn-deep);line-height:1.6">本证据包为技术存证，非司法存证；当前存放在普通文件系统，防篡改仅靠哈希链，未接入具备 Object Lock 的对象存储。</div>
-  </div>`;bindView();
+
+    <div class="panel" style="margin-top:22px">
+      <div style="font-weight:800;font-size:14px;color:var(--green-ink);margin-bottom:10px">放行清单 · 已知且合理的跳转与脚本来源</div>
+      <table class="ruletable" style="box-shadow:none"><thead><tr><th>类型</th><th>放行目标</th><th>仅对以下来源生效</th><th>理由</th></tr></thead>
+      <tbody>${ALLOWLIST.map(a=>`<tr><td style="font-weight:700;white-space:nowrap">${a.kind}</td><td class="mono">${a.to}</td><td>${a.from}</td><td>${a.why}</td></tr>`).join("")}</tbody></table>
+      <div style="margin-top:12px;font-size:12.5px;color:var(--ink-600);line-height:1.7">
+        <b>必须按「来源 + 目标」成对放行。</b>只按目标放行 —— 比如『凡是跳到 microsoftonline.com 都算正常』 ——
+        等于给自己开一个洞：任何一个自有域名被劫持后跳到那里都会被静音。<br>
+        <b>放行不等于不记录。</b>命中放行清单的仍然产出 <code class="mono">info</code> 级发现
+        （<code class="mono">REDIRECT_ALLOWED</code> / <code class="mono">NEW_SCRIPT_HOST_ALLOWED</code>），变化照样看得见，只是不再当作告警。
+      </div>
+    </div>
+
+    <div style="margin-top:20px;padding:16px 18px;background:var(--warn-soft);border-radius:14px;font-size:12.5px;color:var(--warn-deep);line-height:1.7">
+      <b>能力边界</b>：本页是<b>外部黑盒视角</b>的监测 —— 能看到「首页被改了」「解析被换了」，
+      看不到「服务器上被放了 webshell 但页面没变」，不能替代主机侧的 EDR / WAF。
+      发现延迟等于检查间隔，不是实时。不良信息识别为关键词规则（与 FR-306 同一套），覆盖不全且会误报，结论需人工确认。
+    </div>
+  </div>`;
+  $("#chSeg").onclick=e=>{const b=e.target.closest("[data-ch]");if(b){ASSET_SCOPE=b.dataset.ch;renderAssets();}};
+  $("#candSeg").onclick=e=>{const b=e.target.closest("[data-cs]");if(b){CAND_SCOPE_V=b.dataset.cs;renderAssets();}};
+  $$("[data-ack]").forEach(b=>b.onclick=()=>{
+    const c=ASSET_CHANGES.find(x=>String(x.id)===b.dataset.ack);if(!c)return;
+    c.status="acknowledged";c.ackBy="分析师 · 当前用户";c.ackAt=new Date().toISOString().slice(0,16).replace("T"," ");
+    pushAudit("asset_change_ack","自监控",c.target||c.domain,`确认「${c.title}」为正常变更 · ${c.code}`);
+    toast(`已确认 ${c.target||c.domain} 的「${c.title}」为正常变更`);renderAssets();});
+  const decide=(host,st)=>{const c=CANDIDATES.find(x=>x.host===host);if(!c)return;
+    c.status=st;c.decidedAt=new Date().toISOString().slice(0,16).replace("T"," ");
+    pushAudit(st==="adopted"?"asset_adopt":"asset_ignore","自监控",host,
+      st==="adopted"?"纳入监控 · 写入 watch_urls_adopted.yaml · 下一轮巡检开始检查":"标记为不需要监控");
+    toast(st==="adopted"?`${host} 已纳入监控，下一轮巡检开始检查`:`已忽略 ${host}`);renderAssets();};
+  $$("[data-adopt]").forEach(b=>b.onclick=()=>decide(b.dataset.adopt,"adopted"));
+  $$("[data-ignore]").forEach(b=>b.onclick=()=>decide(b.dataset.ignore,"ignored"));
+  bindView();
 }
 
 /* ============================ 风险规则 ============================ */
@@ -866,6 +1309,20 @@ function renderRules(){
       <div style="margin-top:14px;font-weight:700;margin-bottom:8px">官方资产白名单</div>
       <div style="font-size:13px;color:var(--ink-700);line-height:1.6">精确匹配 + 子域后缀匹配。手写条目在 <code class="mono">assets.yaml</code>，FR-403 审批通过的条目在独立的 <code class="mono">whitelist_approved.yaml</code>，配置加载时合并，互不污染。</div>
     </div>
+
+    <div class="wbhead" style="margin-top:32px"><h3 class="h2" style="font-size:20px">自有资产监控判据${pin("a-selfwatch")}</h3></div>
+    <p style="font-size:12.5px;color:var(--ink-500);margin:0 0 14px;max-width:880px;line-height:1.7">
+      这是<b>反方向</b>的一套规则：上面几张表判「别人的域名像不像我们」，这张表判「我们自己的域名和网站有没有出事」。
+      两套不共用评分，也不套用 T1~T4 —— 那套语义对自己的域名不成立。
+    </p>
+    <table class="ruletable"><thead><tr><th>层次 / 频率</th><th>判据</th><th>判定方式</th></tr></thead><tbody>
+      ${SELFWATCH_RULES.map(([lvl,name,desc])=>`<tr><td style="white-space:nowrap;font-weight:700;color:${lvl==='已排除'?'var(--ink-400)':'var(--ink-700)'}">${lvl}</td><td style="font-weight:700">${name}</td><td>${desc}</td></tr>`).join("")}
+    </tbody></table>
+    <div style="font-size:12px;color:var(--ink-500);margin-top:10px;line-height:1.7">
+      放行清单（已知且合理的跳转与脚本来源）见<b>「自有资产」页</b>底部。两条铁律：
+      必须按<b>「来源 + 目标」成对</b>放行，只按目标放行等于给自己开洞；<b>放行不等于不记录</b>，
+      命中的仍产出 <code class="mono">info</code> 级发现。
+    </div>
   </div>`;bindView();
 }
 
@@ -877,34 +1334,65 @@ function renderBoard(){
   const reviewed=DOMAINS.filter(d=>["confirmed","false_positive","whitelisted"].includes(d.status)).length;
   const fp=DOMAINS.filter(d=>d.status==="false_positive"||d.status==="whitelisted").length;
   const stats=[["待复核域名",DOMAINS.filter(d=>d.status==="reviewing"||d.status==="watching").length,"var(--warn-deep)"],
-    ["高风险待处置",DOMAINS.filter(d=>d.status!=="monitoring"&&d.risk==="high").length,"var(--risk-high-ink)"],
+    ["高风险待处置",DOMAINS.filter(d=>inScope(d)&&d.risk==="high").length,"var(--risk-high-ink)"],
     ["已确认仿冒",DOMAINS.filter(d=>d.status==="confirmed").length,"var(--ok)"],
     ["误报率",reviewed?Math.round(fp/reviewed*100)+"%":"—","var(--ink-500)"]];
-  const scenes=["T1","T2","T3","T4"].map(s=>[s,DOMAINS.filter(d=>d.scene===s&&d.status!=="monitoring").length]);
+  // 场景分布与首页、复核队列共用 inScope() —— 三处曾各写各的 WHERE，
+  // 于是同一个 T1 在三个页面上是三个数字。
+  const scenes=["T1","T2","T3","T4"].map(s=>[s,DOMAINS.filter(d=>d.scene===s&&inScope(d)).length]);
   const maxScene=Math.max(...scenes.map(s=>s[1]),1);
+  const nInterOnly=PIPELINE.filter(p=>p.sched==="interactive").length;
+  const nNever=PIPELINE.filter(p=>!p.lastRun).length;
   $("#app").innerHTML=`${topnav("board")}<div class="wrap pageband fade">
     ${pageHead("运营看板","OPERATIONS BOARD","检测节奏与覆盖范围、处置情况、场景分布 —— 全部数据来自审计日志与台账真实状态，不是估算。")}
+
+    <!-- 漏斗放在最前：先看清每一层收敛到多少，再看每一层跑得怎么样 -->
+    <div class="funnel">${FUNNEL.map((f,i)=>`<div class="fc">
+      <div class="fk">${f.label}</div><div class="fv">${f.value.toLocaleString()}</div>
+      <div class="fn">${i>0?`<span class="fp">${(f.value/FUNNEL[0].value*100).toFixed(2)}%</span>`:''}${f.note}</div></div>`).join("")}</div>
+
     <div class="statstrip">${stats.map(([l,v,c])=>`<div class="statcard"><div class="top"><div class="lbl">${l}</div><div class="dot" style="background:${c}"></div></div><div class="val">${v}</div><div class="delta" style="color:var(--ink-400)">${l==='误报率'&&!reviewed?'尚无人工复核记录，误报率无意义':' '}</div></div>`).join("")}</div>
 
     <h3 class="h2" style="font-size:20px;margin:28px 0 6px">检测节奏与覆盖范围${pin("a-board")}</h3>
-    <p style="font-size:12.5px;color:var(--ink-500);margin-bottom:14px">「上次运行」来自审计日志，是任务真的跑过的记录。显示「从未运行」说明定时任务还没注册或已连续失败。</p>
+    <p style="font-size:12.5px;color:var(--ink-500);margin-bottom:14px">
+      「频率」是配置说它该多久跑一次，「调度状态」是任务计划程序里它还会不会再跑，
+      「上次运行」来自审计日志、是它真的跑过的记录。三件事分开显示 —— 对不上正是最需要被看见的故障。
+      ${nNever>0?`<b style="color:var(--warn-deep)"> 当前 ${nNever} 个阶段从未运行。</b>`:''}
+    </p>
+
+    ${nInterOnly>0?`<div class="schednote schedwarn anno-anchor" style="position:relative">${pin("a-sched","corner")}
+      ${icon("alert",16,2)}<span>${SCHED_PROBLEM}</span></div>`:
+      `<div class="schednote schedok">${icon("check",16,2)}<span>${PIPELINE.length} 个阶段的定时任务已全部注册，均可在后台运行。</span></div>`}
+
     <div class="pipetable">
-      <div class="piperow pipehd"><div>阶段</div><div>频率</div><div>范围</div><div>上次运行</div><div>说明</div></div>
-      ${PIPELINE.map(p=>{const sc=SCOPE_STYLE[p.scope];return `<div class="piperow">
-        <div style="font-weight:700;font-size:13.5px">${p.label}</div>
-        <div style="font-size:12.5px;color:var(--ink-600)">${p.freq}</div>
-        <div><span class="scopebadge" style="background:${sc.bg};color:${sc.fg}">${sc.label}</span><div style="font-size:11px;color:var(--ink-400);margin-top:4px;line-height:1.5">${p.scopeDetail}</div></div>
-        <div style="font-size:12.5px;color:var(--ink-700)">${p.lastRun}</div>
-        <div style="font-size:12px;color:var(--ink-500);line-height:1.5">${p.summary}</div></div>`;}).join("")}
+      <div class="piperow pipehd"><div>阶段</div><div>频率</div><div>调度状态</div><div>范围</div><div>每轮处理</div><div>上次运行</div></div>
+      ${PIPELINE.map(p=>{const sc=SCOPE_STYLE[p.scope];const sd=SCHED_STYLE[p.sched];return `<div class="piperow">
+        <div><div style="font-weight:700;font-size:13.5px">${p.label}</div>
+          <div class="pipemeta">${p.req} · ${p.target}</div></div>
+        <div style="font-size:12.5px;color:var(--ink-600);line-height:22px">${p.freq}</div>
+        <div><span class="scopebadge" style="background:${sd.bg};color:${sd.fg}" title="${sd.tip}">${sd.label}</span>
+          <div class="pipemeta">${p.next?`下次 ${p.next}`:p.task}</div></div>
+        <div><span class="scopebadge" style="background:${sc.bg};color:${sc.fg}">${sc.label}</span>
+          <div class="pipemeta">${p.scopeDetail}</div></div>
+        <div class="mono" style="font-size:12.5px;color:var(--ink-700);line-height:22px">${p.vol===null?'—':p.vol.toLocaleString()}</div>
+        <div><div style="font-size:12.5px;color:var(--ink-700);line-height:22px">${p.lastRun}</div>
+          <div class="pipemeta">${p.lastAt}</div>
+          ${p.summary?`<div class="pipemeta">${p.summary}</div>`:''}</div></div>`;}).join("")}
+      <div style="padding:12px 20px;font-size:11.5px;color:var(--ink-400);background:var(--softer);line-height:1.6">
+        「上次运行」取自审计日志，是任务真的跑过的记录；「下次运行」直接问任务计划程序，是它还会不会再跑。两者都对得上，这个阶段才算真的在运行。
+      </div>
     </div>
 
     <h3 class="h2" style="font-size:20px;margin:28px 0 14px">场景分布</h3>
-    <div class="panel">${scenes.map(([s,n])=>`<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><div style="width:100px;font-size:12.5px;font-weight:700;color:${SCENE[s].c}">${s} ${SCENE[s].label}</div><div style="flex:1;height:10px;background:var(--surface-sunken);border-radius:6px;overflow:hidden"><div style="width:${n/maxScene*100}%;height:100%;background:${SCENE[s].c};border-radius:6px"></div></div><div class="mono" style="width:30px;text-align:right;font-weight:800">${n}</div></div>`).join("")}</div>
+    <div class="panel">${scenes.map(([s,n])=>`<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px"><div style="width:100px;font-size:12.5px;font-weight:700;color:${SCENE[s].c}">${s} ${SCENE[s].label}</div><div style="flex:1;height:10px;background:var(--surface-sunken);border-radius:6px;overflow:hidden"><div style="width:${n/maxScene*100}%;height:100%;background:${SCENE[s].c};border-radius:6px"></div></div><div class="mono" style="width:30px;text-align:right;font-weight:800">${n}</div></div>`).join("")}
+      <div style="margin-top:12px;padding-top:12px;border-top:1px dashed var(--linefaint);font-size:11.5px;color:var(--ink-400);line-height:1.6">
+        口径与首页、复核队列的「全部」页签完全一致：监控池（无实质网站）与已加白（已退出检测）都不计入。
+      </div></div>
   </div>`;bindView();
 }
 
 /* ============================ 审计日志 ============================ */
-const AUDIT_CAT_STYLE={"研判":["📝","var(--primary-ink)","var(--primary-soft)"],"白名单":["✅","var(--warn-deep)","var(--warn-soft)"],"流水线":["⚙️","var(--info-ink)","var(--info-soft)"],"取证":["📦","var(--orange-ink)","var(--orange-soft)"],"检索":["🔍","var(--ink-600)","var(--surface-sunken)"]};
+const AUDIT_CAT_STYLE={"研判":["📝","var(--primary-ink)","var(--primary-soft)"],"白名单":["✅","var(--warn-deep)","var(--warn-soft)"],"流水线":["⚙️","var(--info-ink)","var(--info-soft)"],"取证":["📦","var(--orange-ink)","var(--orange-soft)"],"检索":["🔍","var(--ink-600)","var(--surface-sunken)"],"自监控":["🛡️","var(--ok)","var(--ok-soft)"]};
 function renderAudit(){
   const cats=["全部",...new Set(AUDIT.map(a=>a.cat))];
   const list=STATE.auditFilter==="全部"?AUDIT:AUDIT.filter(a=>a.cat===STATE.auditFilter);
@@ -961,7 +1449,7 @@ function render(){hideAnno();$("#overlay").innerHTML="";
   if(STATE.view==="home")renderHome();
   else if(STATE.view==="queue")renderQueue();
   else if(STATE.view==="detail")renderDetail();
-  else if(STATE.view==="evidence")renderEvidence();
+  else if(STATE.view==="assets")renderAssets();
   else if(STATE.view==="rules")renderRules();
   else if(STATE.view==="board")renderBoard();
   else if(STATE.view==="audit")renderAudit();
@@ -977,9 +1465,10 @@ $("#introBtn").onclick=showIntro;
 function showIntro(){$("#overlay").innerHTML=`<div class="scrim" id="iScrim"><div class="intro"><div class="ih"><h2>DomainGuard 交互式演示</h2><p>仿冒域名监测与取证系统 —— 从变体字典发现，到相似度研判、风险分级、人工复核、证据固定、白名单回流的完整闭环。本演示为完全虚构的示例数据。</p></div>
   <div class="ib">
     <div class="step"><span class="n">1</span><div><div class="tt">监测台</div><div class="dd">检索台账，或对新域名发起真实即时研判（DNS+建站探测+Playwright采集+RDAP/TLS/CT）。</div></div></div>
-    <div class="step"><span class="n">2</span><div><div class="tt">复核队列</div><div class="dd">五个视图（待复核/已判误报/已确认仿冒/监控池/全部），风险/场景筛选，同源聚类标注，批量处置。</div></div></div>
-    <div class="step"><span class="n">3</span><div><div class="tt">域名详情</div><div class="dd">可解释评分（命中规则明细）+ 误报控制 + 采集快照 + 域名情报 + 取证时间线 + 三个判定按钮。</div></div></div>
-    <div class="step"><span class="n">▦</span><div><div class="tt">顶部六个板块</div><div class="dd">监测台 / 复核队列 / 取证存档 / 风险规则 / 运营看板 / 审计日志，均可点击。</div></div></div>
+    <div class="step"><span class="n">2</span><div><div class="tt">复核队列</div><div class="dd">六个视图（待复核/已判误报/已确认仿冒/已加白/监控池/全部），风险/场景筛选，同源聚类标注，批量处置。首页场景卡点一下就带着筛选跳进来。</div></div></div>
+    <div class="step"><span class="n">3</span><div><div class="tt">域名详情</div><div class="dd">可解释评分（命中规则明细）+ 误报控制 + 采集快照 + 域名情报 + 取证时间线 + 三个判定按钮。<b>点「确认仿冒并取证」当场产出证据包并弹出下载</b> —— 原「取证存档」页签已下线。</div></div></div>
+    <div class="step"><span class="n">🛡</span><div><div class="tt">自有资产（新）</div><div class="dd"><b>反方向</b>的监测：前面几页看别人有没有仿冒我们，这一页看我们自己的域名与官网有没有被篡改、被劫持。含子域名发现候选池与放行清单。</div></div></div>
+    <div class="step"><span class="n">▦</span><div><div class="tt">顶部六个板块</div><div class="dd">监测台 / 复核队列 / 自有资产 / 风险规则 / 运营看板 / 审计日志，均可点击。</div></div></div>
     <div class="step"><span class="n">★</span><div><div class="tt">注释模式</div><div class="dd">界面上闪烁的绿色数字 ❶❷❸ 可点击，查看每个区域对应的真实实现文件与合规边界。</div></div></div>
   </div><div class="if"><button class="btn-primary" id="iStart">开始体验 ${icon("arrowR",16,2,"#fff")}</button></div></div></div>`;
   $("#iScrim").onclick=e=>{if(e.target.id==="iScrim")$("#overlay").innerHTML="";};$("#iStart").onclick=()=>$("#overlay").innerHTML="";}
