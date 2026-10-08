@@ -55,7 +55,8 @@
   ];
 
   var right = [
-    { num:"01", t:{ zh:"企业用户安全用 AI", en:"AI Safe for Everyone" }, products:[
+    { num:"01", t:{ zh:"企业用户安全用 AI", en:"AI Security for Everyone" }, products:[
+      { id:"ai-sec-insight",     n:{ zh:"AI 安全洞察", en:"AI Security Insight" }, s:"self-innovate" },
       { id:"ai-safety-platform", n:{ zh:"AI 安全科普", en:"AI Safety Platform" }, s:"self-innovate" }
     ]},
     { num:"02", t:{ zh:"AI 安全风险管理", en:"AI Security Risk Management" }, products:[
@@ -80,6 +81,7 @@
     "useract": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/useractdemo",
     "vulnerability-hub": "http://10.191.108.21:8765/vuln_platform.html",
     "emailguard": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/emailguarddemo",
+    "ai-sec-insight": "https://aisecsight.com/",
     "ai-safety-platform": "https://aisafe.glp.com.cn/",
     "ai-risk-framework": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/AIRisk",
     "digital-human": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/AgentRisk",
@@ -278,10 +280,10 @@
    its member products. Observes the document and re-applies on every render. */
 (function(){
   if (window.__capSum) return; window.__capSum = 1;
-  var IDS = ["cyber-incident-hub","multiagent-cowork","identity-hub","useract","vulnerability-hub","emailguard","pentest-openclaw","ai-safety-platform","ai-risk-framework","digital-human","ai-guardrails","ai-gateway","github-leak","ai-shift-assessment","ai-red-teaming"];
+  var IDS = ["cyber-incident-hub","multiagent-cowork","identity-hub","useract","vulnerability-hub","emailguard","pentest-openclaw","ai-sec-insight","ai-safety-platform","ai-risk-framework","digital-human","ai-guardrails","ai-gateway","github-leak","ai-shift-assessment","ai-red-teaming"];
   var GROUPS = [
     { key:"plugin",  zh:"安全插件", en:"Security Add-in",  n:1, ids:["emailguard"] },
-    { key:"product", zh:"安全产品", en:"Security Products", n:2, ids:["multiagent-cowork","ai-guardrails"] },
+    { key:"product", zh:"安全产品", en:"Security Products", n:3, ids:["multiagent-cowork","ai-guardrails","ai-sec-insight"] },
     { key:"system",  zh:"安全系统", en:"Security Systems",  n:3, ids:["cyber-incident-hub","identity-hub","vulnerability-hub"] },
     { key:"tool",    zh:"安全工具", en:"Security Tools",    n:4, ids:["useract","pentest-openclaw","github-leak","ai-shift-assessment"] }
   ];
