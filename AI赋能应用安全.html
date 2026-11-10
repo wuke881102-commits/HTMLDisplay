@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 安全测试从趋势到落地实践</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2300AA4F'/%3E%3Cpath d='M9 16l4 4 10-10' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root{
+    --brand-50:#E3F5EA; --brand-100:#C0E6D0; --brand-200:#90D4A8;
+    --brand-300:#60C080; --brand-400:#30AA60; --brand-500:#00AA4F;
+    --brand-600:#008E43; --brand-700:#006845; --brand-800:#005A3C;
+    --success:#10B050; --success-bg:rgba(16,176,80,.12);
+    --warning:#F0A800; --warning-bg:rgba(240,168,0,.12);
+    --error:#C83A3A;    --error-bg:rgba(200,58,58,.12);
+    --info:#0095D4;     --info-bg:rgba(42,157,143,.12);
+    --page:#F9FAFC; --elevated:#FFFFFF; --subtle:#F0F1F3;
+    --hover:#EDEEF0;
+    --border:#DDE3EA; --border-subtle:#E8ECF0;
+    --text:#42464A; --text-2:#555B61; --text-3:#737A82;
+    --inverse:#FFFFFF;
+    --r-md:6px; --r-lg:8px; --r-xl:12px; --r-2xl:16px;
+    --sh-sm:0 1px 3px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.03);
+    --sh-md:0 4px 12px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.04);
+    --t-fast:150ms cubic-bezier(0,0,.2,1);
+    --t-base:200ms cubic-bezier(0,0,.2,1);
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'PingFang SC','Microsoft YaHei','Helvetica Neue',Arial,sans-serif;
+    --mono:'SF Mono','Menlo','Monaco','Consolas','JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--page);color:var(--text);font-family:var(--sans);
+    font-size:14px;line-height:1.7;-webkit-font-smoothing:antialiased}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+
+  /* 导航 */
+  nav{position:sticky;top:0;background:rgba(249,250,252,.92);backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--border);z-index:10;height:56px;display:flex;align-items:center}
+  nav .wrap{display:flex;align-items:center;justify-content:space-between;width:100%}
+  nav .brand{font-weight:700;font-size:15px}
+  nav .brand span{color:var(--brand-500)}
+  nav .links{display:flex;gap:4px;font-size:13px;flex-wrap:wrap}
+  nav .links a{color:var(--text-2);text-decoration:none;padding:6px 12px;border-radius:var(--r-lg);
+    transition:background var(--t-fast),color var(--t-fast)}
+  nav .links a:hover{background:var(--hover);color:var(--text)}
+  @media(max-width:768px){nav .links{display:none}}
+
+  /* Hero */
+  .hero{position:relative;overflow:hidden;color:var(--inverse);
+    background:linear-gradient(135deg,var(--brand-500) 0%,var(--brand-600) 60%,var(--brand-700) 100%);
+    padding:72px 0 64px}
+  .hero::before,.hero::after{content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.08)}
+  .hero::before{width:420px;height:420px;top:-160px;right:-100px}
+  .hero::after{width:300px;height:300px;bottom:-140px;left:-80px;background:rgba(144,212,168,.18)}
+  .hero .wrap{position:relative;z-index:1}
+  .hero .eyebrow{display:inline-block;font-family:var(--mono);font-size:11px;
+    letter-spacing:.15em;text-transform:uppercase;
+    background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);
+    backdrop-filter:blur(4px);padding:4px 12px;border-radius:var(--r-md);margin-bottom:22px}
+  .hero h1{font-size:clamp(28px,4.4vw,48px);line-height:1.15;font-weight:800;letter-spacing:-.01em;max-width:880px}
+  .hero h1 em{font-style:normal;color:var(--brand-100)}
+  .hero .sub{margin-top:18px;font-size:15.5px;color:rgba(255,255,255,.88);max-width:760px;line-height:1.7}
+
+  /* Hero 大数字 */
+  .hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:44px}
+  @media(max-width:768px){.hero-stats{grid-template-columns:repeat(2,1fr)}}
+  .hero-stats .cell{background:rgba(255,255,255,.10);border:1px solid rgba(255,255,255,.18);
+    backdrop-filter:blur(6px);padding:20px 22px;border-radius:var(--r-2xl)}
+  .hero-stats .num{font-family:var(--mono);font-size:34px;font-weight:800;line-height:1.1;color:#fff}
+  .hero-stats .num small{font-size:14px;color:rgba(255,255,255,.7);font-weight:500;margin-left:4px}
+  .hero-stats .lbl{font-size:12px;color:rgba(255,255,255,.78);margin-top:8px;line-height:1.5}
+
+  /* 章节 */
+  section{padding:56px 0;border-bottom:1px solid var(--border-subtle)}
+  .sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+  .sec-num{font-family:var(--mono);font-size:12px;color:var(--brand-500);font-weight:700;letter-spacing:.1em}
+  .sec-title{font-size:clamp(22px,2.6vw,28px);font-weight:800;letter-spacing:-.01em}
+  .sec-tag{font-size:13px;color:var(--text-3);margin-bottom:24px}
+  .sec-lead{color:var(--text-2);font-size:15px;max-width:820px;margin-bottom:28px;line-height:1.7}
+
+  .card{background:var(--elevated);border:1px solid var(--border-subtle);
+    border-radius:var(--r-2xl);padding:24px;box-shadow:var(--sh-sm);
+    transition:box-shadow var(--t-base),transform var(--t-base)}
+  .card:hover{box-shadow:var(--sh-md);transform:translateY(-2px)}
+  .card h4{font-size:14px;font-weight:700;margin-bottom:14px}
+
+  .badge{display:inline-flex;align-items:center;font-family:var(--mono);font-size:11px;
+    font-weight:500;padding:2px 8px;border-radius:var(--r-md);
+    text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+  .badge.brand{background:var(--brand-50);color:var(--brand-600);border:1px solid var(--brand-500)}
+  .badge.neutral{background:var(--subtle);color:var(--text-2);border:1px solid var(--border)}
+  .badge.success{background:var(--success-bg);color:var(--success);border:1px solid var(--success)}
+  .badge.warning{background:var(--warning-bg);color:var(--warning);border:1px solid var(--warning)}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  @media(max-width:900px){.grid-3{grid-template-columns:1fr}.grid-4{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:768px){.grid-2{grid-template-columns:1fr}}
+
+  /* 攻击链四步 */
+  .killchain{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  @media(max-width:768px){.killchain{grid-template-columns:1fr}}
+  .kc-step{background:var(--subtle);border-radius:var(--r-lg);padding:16px;
+    border-left:3px solid var(--brand-500);position:relative}
+  .kc-step:not(:last-child)::after{content:"→";position:absolute;right:-14px;top:50%;
+    transform:translateY(-50%);color:var(--text-3);font-size:18px;z-index:2}
+  @media(max-width:768px){.kc-step:not(:last-child)::after{display:none}}
+  .kc-step .ph{font-family:var(--mono);font-size:11px;color:var(--brand-600);
+    font-weight:700;letter-spacing:.1em;margin-bottom:6px}
+  .kc-step h5{font-size:14px;font-weight:700;margin-bottom:6px}
+  .kc-step p{font-size:12.5px;color:var(--text-2);line-height:1.6}
+
+  /* 大数字 stat */
+  .stat-cell{background:var(--elevated);border:1px solid var(--border-subtle);
+    border-radius:var(--r-2xl);padding:22px;box-shadow:var(--sh-sm);
+    transition:box-shadow var(--t-base),transform var(--t-base)}
+  .stat-cell:hover{box-shadow:var(--sh-md);transform:translateY(-2px)}
+  .stat-cell .num{font-family:var(--mono);font-size:32px;font-weight:800;line-height:1.1}
+  .stat-cell .num.brand{color:var(--brand-600)}
+  .stat-cell .num.error{color:var(--error)}
+  .stat-cell .num.warn{color:var(--warning)}
+  .stat-cell .lbl{font-size:13px;color:var(--text-2);margin-top:8px;font-weight:600}
+  .stat-cell .sub{font-size:11.5px;color:var(--text-3);margin-top:4px;line-height:1.5}
+
+  /* 列表 */
+  .check-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .check-list li{font-size:13.5px;padding-left:22px;position:relative;line-height:1.65;color:var(--text-2)}
+  .check-list li::before{content:"";position:absolute;left:0;top:9px;width:10px;height:10px;border-radius:2px;background:var(--success)}
+  .check-list li b{color:var(--text);font-weight:600}
+  .cross-list{list-style:none;display:flex;flex-direction:column;gap:10px}
+  .cross-list li{font-size:13.5px;padding-left:22px;position:relative;line-height:1.65;color:var(--text-2)}
+  .cross-list li::before{content:"";position:absolute;left:0;top:9px;width:10px;height:2px;background:var(--warning)}
+  .cross-list li b{color:var(--text);font-weight:600}
+
+  /* 热力图表格 */
+  .heat-wrap{background:var(--elevated);border:1px solid var(--border-subtle);
+    border-radius:var(--r-xl);box-shadow:var(--sh-sm);overflow:hidden}
+  .heat-legend{display:flex;align-items:center;gap:12px;padding:14px 20px;
+    background:var(--subtle);border-bottom:1px solid var(--border-subtle);
+    font-size:12px;color:var(--text-3);flex-wrap:wrap}
+  .heat-legend .bar{display:flex;gap:2px}
+  .heat-legend .bar i{width:28px;height:10px;border-radius:2px;display:block}
+  table.heat{width:100%;border-collapse:collapse;table-layout:fixed}
+  table.heat th{background:var(--elevated);font-family:var(--mono);font-size:11px;
+    text-transform:uppercase;letter-spacing:.05em;color:var(--text-2);
+    padding:12px 10px;text-align:center;border-bottom:2px solid var(--border);font-weight:600}
+  table.heat th:first-child{text-align:left;padding-left:20px}
+  table.heat td{padding:0;text-align:center;border-bottom:1px solid var(--border-subtle);height:38px}
+  table.heat td:first-child{text-align:left;padding:10px 12px 10px 20px;
+    font-size:13px;color:var(--text);background:var(--elevated)}
+  table.heat tbody tr:hover td{background:var(--hover)}
+  table.heat tbody tr:hover td:first-child{background:var(--hover)}
+  .cell-yes{background:var(--brand-500);color:#fff;font-weight:700;font-size:13px}
+  .cell-no{background:var(--subtle);color:var(--text-disabled,#A6ADB5);font-size:12px}
+  @media(max-width:768px){table.heat td:first-child{font-size:12px;padding-left:10px}}
+
+  /* 流程图 */
+  .flow{display:grid;grid-template-columns:1fr 48px 1fr 48px 1fr;align-items:stretch;
+    background:var(--subtle);border:1px solid var(--border-subtle);
+    border-radius:var(--r-2xl);padding:24px;gap:0}
+  @media(max-width:768px){.flow{grid-template-columns:1fr;gap:12px;padding:16px}
+    .flow .arrow{display:none}}
+  .flow-col{background:var(--elevated);border-radius:var(--r-lg);padding:18px 20px;
+    box-shadow:var(--sh-sm);display:flex;flex-direction:column}
+  .flow-col.ai{border-top:3px solid var(--brand-500)}
+  .flow-col.gate{border-top:3px solid var(--warning)}
+  .flow-col.out{border-top:3px solid var(--success)}
+  .flow-col .role{font-family:var(--mono);font-size:12px;font-weight:700;
+    letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;text-align:center}
+  .flow-col.ai .role{color:var(--brand-600)}
+  .flow-col.gate .role{color:var(--warning)}
+  .flow-col.out .role{color:var(--success)}
+  .flow-col ul{list-style:none;display:flex;flex-direction:column;gap:8px;flex:1}
+  .flow-col li{font-size:13px;color:var(--text-2);line-height:1.55;
+    padding-left:16px;position:relative}
+  .flow-col.ai li::before{content:"";position:absolute;left:0;top:9px;
+    width:8px;height:2px;background:var(--brand-500)}
+  .flow-col.gate li::before{content:"";position:absolute;left:0;top:9px;
+    width:8px;height:2px;background:var(--warning)}
+  .flow-col.out li::before{content:"";position:absolute;left:0;top:9px;
+    width:8px;height:2px;background:var(--success)}
+  .flow .arrow{display:flex;align-items:center;justify-content:center;
+    color:var(--text-3);font-size:28px;font-weight:300}
+
+  /* 多Agent架构 */
+  .arch{background:var(--elevated);border:1px solid var(--border-subtle);
+    border-radius:var(--r-2xl);padding:24px;box-shadow:var(--sh-sm);
+    display:flex;flex-direction:column;gap:10px}
+  .arch-row{display:grid;gap:10px}
+  .arch-row.lvl-io{grid-template-columns:1fr}
+  .arch-row.lvl-boss{grid-template-columns:1.6fr 1fr 1.6fr}
+  .arch-row.lvl-agents{grid-template-columns:repeat(4,1fr)}
+  .arch-row.lvl-data{grid-template-columns:repeat(3,1fr)}
+  .arch-node{background:var(--subtle);border:1px solid var(--border-subtle);
+    border-radius:var(--r-lg);padding:12px 14px;text-align:center}
+  .arch-node.big{background:var(--brand-50);border-color:var(--brand-500)}
+  .arch-node h5{font-size:13px;font-weight:700;margin-bottom:4px}
+  .arch-node p{font-size:11.5px;color:var(--text-3);line-height:1.5}
+  .arch-label{font-family:var(--mono);font-size:10.5px;color:var(--text-3);
+    letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+  @media(max-width:768px){.arch-row.lvl-boss,.arch-row.lvl-agents,.arch-row.lvl-data{grid-template-columns:1fr}}
+
+  /* 视频位 */
+  .video-box{background:linear-gradient(135deg,#1a2e23,#0f1f18);
+    border-radius:var(--r-2xl);aspect-ratio:16/9;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;color:#fff;gap:14px;
+    border:1px solid var(--border-subtle);box-shadow:var(--sh-sm);cursor:pointer}
+  .video-box .play{width:72px;height:72px;border-radius:50%;
+    background:rgba(0,170,79,.9);display:flex;align-items:center;justify-content:center;
+    transition:transform var(--t-base)}
+  .video-box:hover .play{transform:scale(1.08)}
+  .video-box .play::after{content:"";margin-left:6px;border-style:solid;
+    border-width:12px 0 12px 20px;border-color:transparent transparent transparent #fff}
+  .video-box h5{font-size:18px;font-weight:700}
+  .video-box p{font-size:13px;color:rgba(255,255,255,.7)}
+
+  .alert{margin-top:20px;padding:16px 20px;border-radius:var(--r-lg);
+    font-size:14px;line-height:1.7}
+  .alert.info{background:var(--info-bg);border:1px solid var(--info);color:var(--text)}
+  .alert.success{background:var(--success-bg);border:1px solid var(--success);color:var(--text)}
+  .alert b{color:inherit}
+
+  .closing{padding:72px 0;text-align:center;
+    background:linear-gradient(180deg,#F7FDF9 0%,#F0FAF3 100%);border-bottom:none}
+  .closing blockquote{font-size:clamp(24px,3.4vw,34px);font-weight:800;
+    color:var(--brand-600);letter-spacing:.02em}
+  .closing .byline{margin-top:24px;color:var(--text-3);font-size:13px;font-family:var(--mono)}
+  footer{padding:24px 0;color:var(--text-3);font-size:12px;text-align:center;
+    border-top:1px solid var(--border-subtle);font-family:var(--mono)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap">
+    <div class="brand">AI 安全测试 <span>从趋势到落地</span></div>
+    <div class="links">
+      <a href="#intro">引言</a>
+      <a href="#plan">验证方案</a>
+      <a href="#overview">结果总览</a>
+      <a href="#detail">结果明细</a>
+      <a href="#conclusion">结论建议</a>
+      <a href="#demo">实战演示</a>
+      <a href="#next">下一步</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== P1 封面 ===== -->
+<header class="hero">
+  <div class="wrap">
+    <div class="eyebrow">2026.10 · 信息安全</div>
+    <h1>AI 安全测试<br>从<em>趋势</em>到<em>落地实践</em></h1>
+    <p class="sub">
+      自建靶场 · 20 类真实漏洞 · 6 套方案同场对比<br>
+      准确率 / 发现种类 / 高危漏洞三维度评估
+    </p>
+    <div class="hero-stats">
+      <div class="cell">
+        <div class="num mono">2<small>小时</small></div>
+        <div class="lbl">自主 AI 智能体攻陷一个企业平台</div>
+      </div>
+      <div class="cell">
+        <div class="num mono">83<small>%</small></div>
+        <div class="lbl">最优 AI 方案准确率（Qwen3.8）</div>
+      </div>
+      <div class="cell">
+        <div class="num mono">18<small>/20 类</small></div>
+        <div class="lbl">Qwen3.8 漏洞覆盖种类</div>
+      </div>
+      <div class="cell">
+        <div class="num mono">↓30<small>%</small></div>
+        <div class="lbl">单系统测试人天（5 → 3.5）</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== P2 引言 ===== -->
+<section id="intro">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">00</div>
+      <div class="sec-title">AI 主动执行渗透测试已成现实：不再是理论</div>
+    </div>
+    <p class="sec-tag">2026 年 2 月 · CodeWall 自主智能体自选目标实战测试</p>
+    <p class="sec-lead">
+      自主 AI 智能体不到 2 小时攻陷麦肯锡内部 AI 平台 Lilli——
+      企业须借助 AI 提升自身渗透测试效率。
+    </p>
+
+    <div class="killchain">
+      <div class="kc-step">
+        <div class="ph">STEP 1 · 侦察</div>
+        <h5>公开信息摸底</h5>
+        <p>公开 API 文档暴露 200+ 接口，其中 22 个无需认证</p>
+      </div>
+      <div class="kc-step">
+        <div class="ph">STEP 2 · 注入</div>
+        <h5>搜索接口投毒</h5>
+        <p>经搜索接口注入恶意代码，借报错回显取数据</p>
+      </div>
+      <div class="kc-step">
+        <div class="ph">STEP 3 · 越权</div>
+        <h5>权限边界突破</h5>
+        <p>利用权限管理漏洞读取员工记录，获数据库读写权限</p>
+      </div>
+      <div class="kc-step">
+        <div class="ph">STEP 4 · 接管</div>
+        <h5>提示词静默操控</h5>
+        <p>可改写 95 条系统提示词，AI 输出可被静默操控</p>
+      </div>
+    </div>
+
+    <div class="grid-4" style="margin-top:20px">
+      <div class="stat-cell">
+        <div class="num brand mono">2<small style="font-size:13px;color:var(--text-3)">小时</small></div>
+        <div class="lbl">从启动到生产库读写接管</div>
+      </div>
+      <div class="stat-cell">
+        <div class="num brand mono">22<small style="font-size:13px;color:var(--text-3)">个</small></div>
+        <div class="lbl">未授权 API 被利用</div>
+      </div>
+      <div class="stat-cell">
+        <div class="num brand mono">4650<small style="font-size:13px;color:var(--text-3)">万</small></div>
+        <div class="lbl">聊天消息与内部文件暴露</div>
+      </div>
+      <div class="stat-cell">
+        <div class="num brand mono">4.3<small style="font-size:13px;color:var(--text-3)">万人</small></div>
+        <div class="lbl">员工智能助手可被静默操控</div>
+      </div>
+    </div>
+
+    <div class="alert info">
+      <b>AI 在攻击侧的四大优势：</b>
+      <b>速度快</b>——不到 2 小时完成侦察到生产库接管；
+      <b>全自主</b>——自主选靶、自主迭代攻击方式，第 15 轮得手；
+      <b>攻击链闭环</b>——侦察、注入、越权、接管一气呵成；
+      <b>普遍可复现</b>——所用皆为常用漏洞，同类隐患在企业中常见。
+    </div>
+  </div>
+</section>
+
+<!-- ===== P4 验证方案 ===== -->
+<section id="plan">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">01</div>
+      <div class="sec-title">验证方案与评估设计</div>
+    </div>
+    <p class="sec-tag">自建靶场 · 20 类真实漏洞 · 6 套方案同场对比</p>
+    <p class="sec-lead">
+      项目搭建自研网站应用靶场，参照普洛斯业务应用典型漏洞特征植入真实漏洞 20 个，
+      对 6 套测试方案开展同场对比测评，结果直接可比。
+    </p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>参测的 6 套方案</h4>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--subtle);border-radius:var(--r-lg);font-size:13.5px"><span style="font-weight:600">DSH + k3</span><span class="badge brand">AI · 开源</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--subtle);border-radius:var(--r-lg);font-size:13.5px"><span style="font-weight:600">DSH + Qwen3.8 Max</span><span class="badge brand">AI · 开源</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--subtle);border-radius:var(--r-lg);font-size:13.5px"><span style="font-weight:600">DSH + V4 Pro</span><span class="badge brand">AI · 开源</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--subtle);border-radius:var(--r-lg);font-size:13.5px"><span style="font-weight:600">商业 AI 扫描工具</span><span class="badge brand">AI · 商业</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--subtle);border-radius:var(--r-lg);font-size:13.5px"><span style="font-weight:600">WebInspect</span><span class="badge neutral">传统 · 商业</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--subtle);border-radius:var(--r-lg);font-size:13.5px"><span style="font-weight:600">OWASP ZAP</span><span class="badge neutral">传统 · 开源</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h4>靶场植入的 20 类真实漏洞</h4>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">SQL 注入</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">明文密码存储</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">重复注册/账户覆盖</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">隐藏字段权限提升</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">密码强度校验缺失</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">越权访问/角色校验缺失</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">存储型 XSS</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">JWT 弱密钥</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">JWT Token 重放</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">JWT 密钥泄露</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">JWT alg:none</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">恶意文件上传</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">路径遍历</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">Fastjson 反序列化 RCE</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">HTTP 明文传输</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">用户枚举</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">安全响应头缺失</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">Cookie 属性不全</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">速率限制缺失</span>
+          <span style="font-size:12px;padding:3px 8px;background:var(--subtle);border-radius:var(--r-md);color:var(--text-2)">错误信息泄露</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== P5 结果总览 ===== -->
+<section id="overview">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">02</div>
+      <div class="sec-title">核心结论：AI 方案三维度全面领先</div>
+    </div>
+    <p class="sec-tag">a) 准确率（真阳性 / 总发现） · b) 发现种类数 · c) 高危以上漏洞发现数</p>
+
+    <div class="grid-3">
+      <div class="stat-cell">
+        <div class="num brand mono">83%</div>
+        <div class="lbl">a) 准确率</div>
+        <div class="sub">Qwen3.8 Max 为全场最高</div>
+      </div>
+      <div class="stat-cell">
+        <div class="num brand mono">18<small style="font-size:14px;color:var(--text-3)">/20 类</small></div>
+        <div class="lbl">b) 发现种类数</div>
+        <div class="sub">Qwen3.8 Max 覆盖最广</div>
+      </div>
+      <div class="stat-cell">
+        <div class="num error mono">11<small style="font-size:14px;color:var(--text-3)">个</small></div>
+        <div class="lbl">c) 高危以上发现数</div>
+        <div class="sub">k3 为全场最高</div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card">
+        <h4>团队定位</h4>
+        <p style="font-size:13.5px;color:var(--text-2);line-height:1.75">
+          AI 承担<b style="color:var(--text)">重复性全量扫描</b>，
+          人工专家聚焦<b style="color:var(--text)">研判、补测与签发</b>，
+          实现覆盖更大范围、发现更多逻辑漏洞。
+        </p>
+      </div>
+      <div class="card">
+        <h4>选型建议</h4>
+        <p style="font-size:13.5px;color:var(--text-2);line-height:1.75">
+          以 <b style="color:var(--text)">DSH + Qwen3.8</b> 为主模型承担常态化全量测试；
+          以 <b style="color:var(--text)">DSH + k3</b> 为深度测试模型攻坚重点目标。
+        </p>
+      </div>
+    </div>
+
+    <div class="alert success">
+      <b>组合收益：</b>
+      Qwen3.8 准确率 83% 最高、覆盖 18 类，兼顾广度与低误报；
+      k3 高危漏洞 11 个全场最高，补足深度；
+      组合实现 <b>广覆盖 · 高准确 · 深挖掘</b>。
+    </div>
+  </div>
+</section>
+
+<!-- ===== P6 20类对照表（热力图） ===== -->
+<section id="detail">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">03</div>
+      <div class="sec-title">20 类漏洞逐项对照</div>
+    </div>
+    <p class="sec-lead">
+      绿色 = 命中，灰底 = 未命中。一眼可见：传统扫描器只覆盖"表面漏洞"，
+      AI 方案在越权、明文密码、JWT 等逻辑/凭证类问题上形成明显补位。
+    </p>
+
+    <div class="heat-wrap">
+      <div class="heat-legend">
+        <span>图例</span>
+        <div class="bar">
+          <i style="background:var(--brand-500)"></i>
+          <i style="background:var(--subtle)"></i>
+        </div>
+        <span>绿色 = 命中 ✓</span>
+        <span>灰底 = 未命中 ✗</span>
+      </div>
+      <table class="heat">
+        <colgroup>
+          <col style="width:40%">
+          <col style="width:12%">
+          <col style="width:12%">
+          <col style="width:12%">
+          <col style="width:12%">
+          <col style="width:12%">
+        </colgroup>
+        <thead>
+          <tr>
+            <th>漏洞类型</th>
+            <th>传统<br>(WI+ZAP)</th>
+            <th>DSH<br>+ K3</th>
+            <th>DSH<br>+ V4</th>
+            <th>DSH<br>+ Qwen</th>
+            <th>商业<br>AI</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1. SQL 注入</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>2. 明文密码存储</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>3. 重复注册 / 账户覆盖</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-no">✗</td></tr>
+          <tr><td>4. 隐藏字段权限提升</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>5. 密码强度校验缺失</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td></tr>
+          <tr><td>6. 越权访问 / 角色校验缺失</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>7. 存储型 XSS</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>8. JWT 弱密钥</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>9. JWT Token 重放</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td></tr>
+          <tr><td>10. JWT 密钥泄露 Payload</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>11. JWT alg:none 算法混淆</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>12. 隐藏返回路径恶意上传</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>13. 路径遍历</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td></tr>
+          <tr><td>14. Fastjson 反序列化 RCE</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-no">✗</td></tr>
+          <tr><td>15. HTTP 明文传输</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-no">✗</td></tr>
+          <tr><td>16. 用户枚举</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td><td class="cell-no">✗</td><td class="cell-no">✗</td></tr>
+          <tr><td>17. 安全响应头缺失</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-yes">✓</td><td class="cell-no">✗</td></tr>
+          <tr><td>18. Cookie 安全属性不完整</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td></tr>
+          <tr><td>19. 速率限制缺失</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td></tr>
+          <tr><td>20. 错误信息泄露</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td><td class="cell-yes">✓</td><td class="cell-no">✗</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== P7 优劣势 ===== -->
+<section id="conclusion">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">04</div>
+      <div class="sec-title">AI 自动化渗透测试：优势、不足与缓解</div>
+    </div>
+    <p class="sec-tag">六维对比：AI vs 传统工具 vs 人工（POC 结果综合等级 0–10）</p>
+
+    <div class="grid-2">
+      <div class="card" style="border-top:3px solid var(--success)">
+        <h4><span class="badge success" style="margin-right:8px">优势</span>双重领先</h4>
+        <div style="display:flex;gap:12px;margin:10px 0 16px;flex-wrap:wrap">
+          <div style="flex:1;min-width:140px;background:var(--subtle);padding:10px 14px;border-radius:var(--r-lg)">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text-3)">扫描耗时</div>
+            <div style="font-weight:700;font-size:14px">小时级 → 数十分钟</div>
+          </div>
+          <div style="flex:1;min-width:140px;background:var(--subtle);padding:10px 14px;border-radius:var(--r-lg)">
+            <div style="font-family:var(--mono);font-size:11px;color:var(--text-3)">测试周期</div>
+            <div style="font-weight:700;font-size:14px">天级 → 数十分钟</div>
+          </div>
+        </div>
+        <ul class="check-list">
+          <li><b>对传统扫描工具：</b>漏洞发现率大幅提升、误报率显著下降、报告可读性更强</li>
+          <li><b>对人工渗透测试：</b>通用漏洞挖掘效率超过人工</li>
+          <li>自动固定测试数据与证据，省去大量重复性工作</li>
+        </ul>
+      </div>
+
+      <div class="card" style="border-top:3px solid var(--warning)">
+        <h4><span class="badge warning" style="margin-right:8px">不足</span>仍需人在环</h4>
+        <ul class="cross-list">
+          <li><b>误报无法完全避免</b>，仍需人工甄别确认</li>
+          <li><b>漏洞覆盖率仍有遗漏</b>，未达全量覆盖</li>
+          <li><b>自动报告偏技术化</b>，需润色转为可读版</li>
+        </ul>
+        <div class="alert" style="margin-top:16px;background:var(--warning-bg);border:1px solid var(--warning)">
+          <b>缓解：</b>人机协同 · 人必须在环。
+          重心由"找"转"验"，复核量显著上升。
+        </div>
+      </div>
+    </div>
+
+    <h4 style="margin:28px 0 14px;font-size:15px">人机协同流程</h4>
+    <div class="flow">
+      <div class="flow-col ai">
+        <div class="role">AI</div>
+        <ul>
+          <li>全量扫描</li>
+          <li>自动固定证据</li>
+        </ul>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-col gate">
+        <div class="role">专家</div>
+        <ul>
+          <li>研判结论 · 甄别误报</li>
+          <li>定向 AI 补测 · 扩大覆盖</li>
+          <li>签发报告 · 闭环负责</li>
+        </ul>
+      </div>
+      <div class="arrow">→</div>
+      <div class="flow-col out">
+        <div class="role">产出</div>
+        <ul>
+          <li>可复现的漏洞结论</li>
+          <li>带证据的正式报告</li>
+          <li>闭环跟进</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== P8 总结选型 ===== -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">04</div>
+      <div class="sec-title">总结和选型建议</div>
+    </div>
+    <p class="sec-tag">六边形战士 · AI 与人工逐维互补取强</p>
+
+    <div class="card" style="margin-bottom:20px">
+      <h4>组合选型：DSH 编排 · Qwen3.8 与 k3 分工 · 专家在环签发</h4>
+      <div class="grid-4">
+        <div style="text-align:center;padding:10px">
+          <div class="badge brand" style="margin-bottom:6px">DSH 编排</div>
+          <p style="font-size:12.5px;color:var(--text-2);margin-top:6px">任务分解 · 调度</p>
+        </div>
+        <div style="text-align:center;padding:10px">
+          <div class="badge brand" style="margin-bottom:6px">Qwen3.8</div>
+          <p style="font-size:12.5px;color:var(--text-2);margin-top:6px">常态化全量测试</p>
+        </div>
+        <div style="text-align:center;padding:10px">
+          <div class="badge brand" style="margin-bottom:6px">k3</div>
+          <p style="font-size:12.5px;color:var(--text-2);margin-top:6px">重点目标深度攻坚</p>
+        </div>
+        <div style="text-align:center;padding:10px">
+          <div class="badge success" style="margin-bottom:6px">专家</div>
+          <p style="font-size:12.5px;color:var(--text-2);margin-top:6px">甄别补测 · 签发</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-3">
+      <div class="card">
+        <h4>覆盖广</h4>
+        <p style="font-size:13px;color:var(--text-2);line-height:1.7">
+          Qwen3.8 覆盖 18 类漏洞、准确率 83%，常态化全量不漏项
+        </p>
+      </div>
+      <div class="card">
+        <h4>挖掘深</h4>
+        <p style="font-size:13px;color:var(--text-2);line-height:1.7">
+          k3 高危漏洞 11 个全场最高，重点目标深度攻坚
+        </p>
+      </div>
+      <div class="card">
+        <h4>有人把关</h4>
+        <p style="font-size:13px;color:var(--text-2);line-height:1.7">
+          专家甄别误报、签发报告，结论可追溯闭环
+        </p>
+      </div>
+    </div>
+
+    <h4 style="margin:28px 0 14px;font-size:15px">实现前提</h4>
+    <div class="grid-3">
+      <div class="card">
+        <h4 style="font-size:13.5px;color:var(--warning)">▲ 验证工作量上升</h4>
+        <p style="font-size:12.5px;color:var(--text-2);line-height:1.65">
+          AI 发现量成倍增长，甄别复核成为人工主要投入
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:13.5px;color:var(--warning)">▲ 口径需持续校准</h4>
+        <p style="font-size:12.5px;color:var(--text-2);line-height:1.65">
+          模型升级或靶标变化需定期 POC 复验保持结论有效
+        </p>
+      </div>
+      <div class="card">
+        <h4 style="font-size:13.5px;color:var(--warning)">▲ Token 消耗</h4>
+        <p style="font-size:12.5px;color:var(--text-2);line-height:1.65">
+          中小系统单次 4~6.5M Token（入:出 ≈ 75:25）
+        </p>
+      </div>
+    </div>
+
+    <h4 style="margin:28px 0 14px;font-size:15px">测试效率与实战成果</h4>
+    <div class="grid-4">
+      <div class="stat-cell">
+        <div class="num mono">5<small style="font-size:13px;color:var(--text-3)">人天</small></div>
+        <div class="lbl">人工主导 / 系统</div>
+      </div>
+      <div class="stat-cell">
+        <div class="num brand mono">3.5<small style="font-size:13px;color:var(--text-3)">人天</small></div>
+        <div class="lbl">人机组合 · ↓30%</div>
+      </div>
+      <div class="stat-cell">
+        <div class="num error mono">15<small style="font-size:13px;color:var(--text-3)">个</small></div>
+        <div class="lbl">4 系统实战挖出隐藏漏洞</div>
+        <div class="sub">已有 2 系统复测：严重 1 · 高危 2<br>新 2 系统：严重 3 · 高危 9</div>
+      </div>
+      <div class="stat-cell">
+        <div class="num brand mono">4</div>
+        <div class="lbl">系统</div>
+        <div class="sub">已有 2 系统复测 + 新 2 系统测试</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== P9 实战演示 ===== -->
+<section id="demo">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">05</div>
+      <div class="sec-title">AI 自动化渗透测试全流程演示</div>
+    </div>
+    <p class="sec-lead">AI 从信息收集、漏洞利用到报告输出的完整攻击链实录（POC 受控环境）。</p>
+
+    <video controls preload="metadata" playsinline
+           style="width:100%;border-radius:var(--r-2xl);box-shadow:var(--sh-sm);
+                  background:#0f1f18;aspect-ratio:16/9;display:block">
+      <source src="assets/demo.mp4" type="video/mp4">
+      你的浏览器不支持 video 标签
+    </video>
+
+    <div class="grid-4" style="margin-top:20px">
+      <div class="stat-cell">
+        <h4 style="font-size:13px;margin-bottom:6px">自主探测</h4>
+        <p style="font-size:12.5px;color:var(--text-2)">识别资产与攻击面</p>
+      </div>
+      <div class="stat-cell">
+        <h4 style="font-size:13px;margin-bottom:6px">漏洞利用</h4>
+        <p style="font-size:12.5px;color:var(--text-2)">链式验证并获取权限</p>
+      </div>
+      <div class="stat-cell">
+        <h4 style="font-size:13px;margin-bottom:6px">证据固定</h4>
+        <p style="font-size:12.5px;color:var(--text-2)">自动截图与请求留存</p>
+      </div>
+      <div class="stat-cell">
+        <h4 style="font-size:13px;margin-bottom:6px">报告生成</h4>
+        <p style="font-size:12.5px;color:var(--text-2)">含复现步骤的完整报告</p>
+      </div>
+    </div>
+
+    <div class="alert success">
+      <b>结论：</b>AI 是测试团队的<b>能力放大器，不是替代品</b>；
+      以 AI + 专家协同模式常态化运行获得最高效率。
+    </div>
+  </div>
+</section>
+
+<!-- ===== P10 多Agent ===== -->
+<section id="next">
+  <div class="wrap">
+    <div class="sec-head">
+      <div class="sec-num">06</div>
+      <div class="sec-title">多 Agent 协同自动化安全测试（探索中）</div>
+    </div>
+    <p class="sec-tag">广度覆盖 + 深度挖掘 + 质量保障 · 所有 Agent 读写同一账本，消除信息传递损耗</p>
+
+    <div class="arch">
+      <div class="arch-row lvl-io">
+        <div>
+          <div class="arch-label">测试输入</div>
+          <div class="arch-node big"><h5>目标 URL · 测试范围 · 授权凭据</h5></div>
+        </div>
+      </div>
+      <div class="arch-row lvl-boss">
+        <div style="grid-column:2">
+          <div class="arch-label">编排层</div>
+          <div class="arch-node big"><h5>Chief 编排 Agent</h5><p>任务分解 · 调度 · 报告合并仲裁</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="arch-label">执行层</div>
+        <div class="arch-row lvl-agents">
+          <div class="arch-node"><h5>侦察 Agent</h5><p>资产发现 · 攻击面测绘</p></div>
+          <div class="arch-node"><h5>黑盒渗透 Agent</h5><p>漏洞利用 · 提权 · 链式验证</p></div>
+          <div class="arch-node"><h5>白盒审计 Agent</h5><p>代码审计 · Sink 定位</p></div>
+          <div class="arch-node"><h5>对抗验证 Agent</h5><p>独立挑战 · 证据审核</p></div>
+        </div>
+      </div>
+      <div>
+        <div class="arch-label">数据层</div>
+        <div class="arch-row lvl-data">
+          <div class="arch-node"><h5>证据账本</h5></div>
+          <div class="arch-node"><h5>攻击面监测 · 测试边界</h5></div>
+          <div class="arch-node"><h5>经验卡片</h5></div>
+        </div>
+      </div>
+      <div class="arch-row lvl-io">
+        <div>
+          <div class="arch-label">输出层</div>
+          <div class="arch-node big"><h5>Chief 合并审查 → 渗透测试报告（HTML）→ 交付用户</h5></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:20px">
+      <div class="card" style="border-top:3px solid var(--success)">
+        <h4><span class="badge success" style="margin-right:6px">✓</span>核心优势</h4>
+        <ul class="check-list">
+          <li><b>看得全：</b>多模型分工互补盲区</li>
+          <li><b>靠得住：</b>结论都附原始证据</li>
+          <li><b>独立复核：</b>专设 Agent 质疑他人结论，降低误判</li>
+          <li><b>里外双查：</b>代码 + 实战各确认一遍</li>
+          <li><b>会积累：</b>踩过的坑沉淀为教训，避免重犯</li>
+        </ul>
+      </div>
+      <div class="card" style="border-top:3px solid var(--warning)">
+        <h4><span class="badge warning" style="margin-right:6px">▲</span>待解决问题</h4>
+        <ul class="cross-list">
+          <li><b>共识 ≠ 正确：</b>一致同意也可能集体错</li>
+          <li><b>传话走样：</b>转述丢细节</li>
+          <li><b>根治难：</b>覆盖率 / 准确率问题难永久修复</li>
+          <li><b>看到 ≠ 证实：</b>可疑代码须实际运行才算</li>
+          <li><b>Token 叠加：</b>每增 1 个 Agent 增 10%~25%</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert info">
+      <b>定位：</b>多 Agent 是测试团队的能力放大器——以 AI 协同实现
+      "广度覆盖 + 深度挖掘 + 质量保障"，当前框架仍在实战中持续迭代。
+    </div>
+  </div>
+</section>
+
+<!-- ===== P11 致谢 ===== -->
+<section class="closing">
+  <div class="wrap">
+    <blockquote>Thanks</blockquote>
+    <div class="byline">信息安全团队 · 2026.10</div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">AI 安全测试从趋势到落地实践 · 2026.10</div>
+</footer>
+
+</body>
+</html>
