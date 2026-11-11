@@ -49,7 +49,8 @@
     { num:"04", t:{ zh:"AI 邮件安全", en:"AI for Email Security" }, products:[
       { id:"emailguard", n:{ zh:"邮件安全卫士", en:"EmailGuard" }, s:"self-innovate" }
     ]},
-    { num:"05", t:{ zh:"AI 攻击面管理", en:"AI for Attack Surface Management" }, products:[
+    { num:"05", t:{ zh:"AI 赋能应用安全", en:"AI for Application Security" }, products:[
+      { id:"ai-pentest", n:{ zh:"AI 赋能渗透测试", en:"AIPenTest" }, s:"self-innovate" },
       { id:"pentest-openclaw", n:{ zh:"公司域名防伪监测", en:"DomainGuard" }, s:"self-innovate" }
     ]}
   ];
@@ -87,6 +88,7 @@
     "digital-human": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/AgentRisk",
     "ai-guardrails": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/llmwafdemo",
     "ai-gateway": "#",
+    "ai-pentest": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/AIPenTest",
     "pentest-openclaw": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/domainguarddemo",
     "github-leak": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/gitdlpdemo",
     "ai-shift-assessment": "https://ambitious-bay-06f9f3610.7.azurestaticapps.net/aishiftdemo"
@@ -280,12 +282,12 @@
    its member products. Observes the document and re-applies on every render. */
 (function(){
   if (window.__capSum) return; window.__capSum = 1;
-  var IDS = ["cyber-incident-hub","multiagent-cowork","identity-hub","useract","vulnerability-hub","emailguard","pentest-openclaw","ai-sec-insight","ai-safety-platform","ai-risk-framework","digital-human","ai-guardrails","ai-gateway","github-leak","ai-shift-assessment","ai-red-teaming"];
+  var IDS = ["cyber-incident-hub","multiagent-cowork","identity-hub","useract","vulnerability-hub","emailguard","ai-pentest","pentest-openclaw","ai-sec-insight","ai-safety-platform","ai-risk-framework","digital-human","ai-guardrails","ai-gateway","github-leak","ai-shift-assessment","ai-red-teaming"];
   var GROUPS = [
     { key:"plugin",  zh:"安全插件", en:"Security Add-in",  n:1, ids:["emailguard"] },
     { key:"product", zh:"安全产品", en:"Security Products", n:3, ids:["multiagent-cowork","ai-guardrails","ai-sec-insight"] },
     { key:"system",  zh:"安全系统", en:"Security Systems",  n:3, ids:["cyber-incident-hub","identity-hub","vulnerability-hub"] },
-    { key:"tool",    zh:"安全工具", en:"Security Tools",    n:4, ids:["useract","pentest-openclaw","github-leak","ai-shift-assessment"] }
+    { key:"tool",    zh:"安全工具", en:"Security Tools",    n:5, ids:["useract","ai-pentest","pentest-openclaw","github-leak","ai-shift-assessment"] }
   ];
   var HL  = "background:#E6F4EC;border-radius:6px;box-shadow:0 0 0 3px #E6F4EC,0 0 0 5px #00963B;";
   var OFF = "display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 13px;border:1px solid #E1E7EC;border-radius:9px;background:#FFFFFF;cursor:pointer;transition:all .15s;";
