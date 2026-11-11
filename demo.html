@@ -34,10 +34,18 @@
     "commercial":    { zh:"商业产品", en:"COMMERCIAL", desc:{ zh:"商业方案", en:"Vendor Solution" } }
   };
 
+  /* 生命周期阶段；产品未写 p 字段时默认 live */
+  var PHASE = {
+    "live":    { zh:"已上线", en:"Live" },
+    "dev":     { zh:"开发中", en:"InDev" },
+    "onhold":  { zh:"已暂停", en:"OnHold" },
+    "planned": { zh:"待立项", en:"Planned" }
+  };
+
   var left = [
     { num:"01", t:{ zh:"AI 安全运营（SOC）", en:"AI for Security Operations" }, products:[
       { id:"cyber-incident-hub", n:{ zh:"网络安全事件中心", en:"Cyber Incident Hub" }, s:"commercial-self-innovate" },
-      { id:"multiagent-cowork",  n:{ zh:"多智能体协同", en:"MultiAgent Cowork" }, s:"self-innovate" }
+      { id:"multiagent-cowork",  n:{ zh:"多智能体协同", en:"MultiAgent Cowork" }, s:"self-innovate", p:"dev" }
     ]},
     { num:"02", t:{ zh:"AI 身份安全", en:"AI for Identity Security" }, products:[
       { id:"identity-hub", n:{ zh:"身份安全中心", en:"Identity Hub" }, s:"self-innovate" },
@@ -50,15 +58,15 @@
       { id:"emailguard", n:{ zh:"邮件安全卫士", en:"EmailGuard" }, s:"self-innovate" }
     ]},
     { num:"05", t:{ zh:"AI 赋能应用安全", en:"AI for Application Security" }, products:[
-      { id:"ai-pentest", n:{ zh:"AI 赋能渗透测试", en:"AIPenTest" }, s:"self-innovate" },
+      { id:"ai-pentest", n:{ zh:"AI 赋能渗透测试", en:"AIPenTest" }, s:"self-innovate", p:"dev" },
       { id:"pentest-openclaw", n:{ zh:"公司域名防伪监测", en:"DomainGuard" }, s:"self-innovate" }
     ]}
   ];
 
   var right = [
     { num:"01", t:{ zh:"企业用户安全用 AI", en:"AI Security for Everyone" }, products:[
-      { id:"ai-sec-insight",     n:{ zh:"AI 安全洞察", en:"AI Security Insight" }, s:"self-innovate" },
-      { id:"ai-safety-platform", n:{ zh:"AI 安全科普", en:"AI Safety Platform" }, s:"self-innovate" }
+      { id:"ai-sec-insight",     n:{ zh:"AI 安全洞察", en:"AI Security Insight" }, s:"self-innovate", p:"dev" },
+      { id:"ai-safety-platform", n:{ zh:"AI 安全科普", en:"AI Safety Platform" }, s:"self-innovate", p:"onhold" }
     ]},
     { num:"02", t:{ zh:"AI 安全风险管理", en:"AI Security Risk Management" }, products:[
       { id:"ai-risk-framework", n:{ zh:"AI 安全风险框架", en:"AI Security Risk Framework" }, s:"principle" },
@@ -66,12 +74,12 @@
     ]},
     { num:"03", t:{ zh:"AI 安全防护", en:"AI Security Guardrail and Gateway" }, products:[
       { id:"ai-guardrails", n:{ zh:"AI 安全护栏", en:"AI Guardrails" }, s:"commercial-self-innovate" },
-      { id:"ai-gateway", n:{ zh:"AI 安全网关", en:"AI Gateway" }, s:"commercial" }
+      { id:"ai-gateway", n:{ zh:"AI 安全网关", en:"AI Gateway" }, s:"commercial", p:"planned" }
     ]},
     { num:"04", t:{ zh:"AI安全面向 AI 编码", en:"AI Security for AI Coding" }, products:[
       { id:"github-leak", n:{ zh:"GitHub 泄露检测", en:"Github Leak Detection" }, s:"self-innovate" },
       { id:"ai-shift-assessment", n:{ zh:"智能体安全左移评估", en:"Shift Left for Agent Assessment" }, s:"self-innovate" },
-      { id:"ai-red-teaming", n:{ zh:"红队测试智能体", en:"AI Red Teaming Agent" }, s:"commercial" }
+      { id:"ai-red-teaming", n:{ zh:"红队测试智能体", en:"AI Red Teaming Agent" }, s:"commercial", p:"planned" }
     ]}
   ];
 
@@ -135,6 +143,25 @@
     return base + (map[key] || map["self-innovate"]);
   }
 
+  /* 圆角胶囊 + 圆点，与上方方角徽章区分开，避免两类标识混淆 */
+  function phaseStyle(key){
+    var base = "display:inline-flex;align-items:center;gap:5px;padding:2px 8px;font-size:10.5px;font-weight:600;border-radius:999px;white-space:nowrap;line-height:1.5;flex:none;";
+    var map = {
+      "live":    "background:#ECF7F0;color:#00763A;border:1px solid #BFE3CE;",
+      "dev":     "background:#FFF6E3;color:#8A5D00;border:1px solid #F0D9A3;",
+      "onhold":  "background:#F3F0FA;color:#53409B;border:1px solid #CDC2EC;",
+      "planned": "background:#F2F4F6;color:#6B737B;border:1px solid #DDE3EA;"
+    };
+    return base + (map[key] || map["live"]);
+  }
+  function phaseDot(key){
+    var c = { "live":"#00AA4F", "dev":"#F0A800", "onhold":"#6E5AD6", "planned":"#A6ADB5" }[key] || "#00AA4F";
+    return '<span style="width:6px;height:6px;border-radius:50%;background:' + c + ';flex:none;"></span>';
+  }
+  function phaseHtml(key){
+    return '<span style="' + phaseStyle(key) + '">' + phaseDot(key) + esc(L(PHASE[key] || PHASE["live"])) + '</span>';
+  }
+
   function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 
   var lang = "en";
@@ -150,7 +177,8 @@
             name: L(p.n),
             href: HREFS[p.id] || ("#" + p.id),
             badgeLabel: L(STATUS[p.s]),
-            badgeStyle: statusStyle(p.s)
+            badgeStyle: statusStyle(p.s),
+            phase: p.p || "live"
           };
         })
       };
@@ -162,11 +190,12 @@
     return domains.map(function(d){
       var prods = d.products.map(function(p){
         return '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">'
-          + '<span style="display:flex;align-items:center;gap:8px;">'
+          + '<span style="display:flex;align-items:center;gap:8px;min-width:0;">'
           + '<span style="color:' + bullet + ';font-size:13px;line-height:1;">•</span>'
           + '<a href="' + p.href + '" target="_blank" rel="noopener" class="lk lk-' + side + '">' + esc(p.name) + '</a>'
+          + phaseHtml(p.phase)
           + '</span>'
-          + '<span style="' + p.badgeStyle + '">' + esc(p.badgeLabel) + '</span>'
+          + '<span style="' + p.badgeStyle + 'flex:none;">' + esc(p.badgeLabel) + '</span>'
           + '</div>';
       }).join("");
       return '<div>'
@@ -203,6 +232,8 @@
         + '<span style="font-size:12.5px;color:#5C6B62;">' + esc(l.desc) + '</span>'
         + '</div>';
     }).join("");
+    legendHtml += '<span style="width:1px;height:16px;background:#E1E7EC;"></span>'
+      + ["live","dev","onhold","planned"].map(function(k){ return phaseHtml(k); }).join("");
 
     document.documentElement.lang = lang;
     document.title = ui.title;
